@@ -20,3 +20,9 @@ app.get('/', (req, res) => {
 app.listen(3000, () => {
     console.log('Serveur lancé sur http://localhost:3000');
 });
+
+// En haut avec tes autres imports :
+import profileRoutes from './routes/profiles.js';
+
+// Plus bas, avec tes autres app.use() :
+app.use('/profiles', profileRoutes);
