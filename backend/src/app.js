@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import sejourRoutes from './routes/sejours.js';
 import profileRoutes from './routes/profiles.js';
 import candidatureRoutes from './routes/candidatures.js';
+import messageRoutes from './routes/messages.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/auth', authRoutes);
 app.use('/profiles', profileRoutes);
 app.use('/sejours', sejourRoutes);
 app.use('/candidatures', candidatureRoutes);
+app.use('/messages', messageRoutes);
 
 app.get('/', (req, res) => {
     res.send('API BAFAConnect opérationnelle');
