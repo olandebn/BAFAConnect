@@ -10,6 +10,7 @@ import sejourRoutes from './routes/sejours.js';
 import profileRoutes from './routes/profiles.js';
 import candidatureRoutes from './routes/candidatures.js';
 import messageRoutes from './routes/messages.js';
+import MesCandidatures from './MesCandidatures';
 
 const app = express();
 
