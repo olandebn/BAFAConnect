@@ -12,91 +12,323 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
 
-  // Fonction pour charger les annonces
   const fetchSejours = () => {
     api.get('/sejours')
-      .then(res => {
-        console.log("Annonces reçues :", res.data);
-        setSejours(res.data);
-      })
-      .catch(err => console.error("Erreur récup séjours :", err))
+      .then(res => setSejours(res.data))
+      .catch(err => console.error('Erreur récup séjours :', err))
   }
 
-  // Synchronisation au montage et au changement de connexion
   useEffect(() => {
-    fetchSejours();
-    // On s'assure que l'état local du rôle est bien celui du localStorage
-    const savedRole = localStorage.getItem('role');
-    if (savedRole) setRole(savedRole);
+    fetchSejours()
+    const savedRole = localStorage.getItem('role')
+    if (savedRole) setRole(savedRole)
   }, [isLoggedIn])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('role')
     setIsLoggedIn(false)
-    setRole('animateur') 
+    setRole('animateur')
+  }
+
+  const handleLoginSuccess = (userRole) => {
+    localStorage.setItem('role', userRole)
+    setRole(userRole)
+    setIsLoggedIn(true)
   }
 
   return (
-    <div style={{ padding: '20px', color: 'white' }}>
-      <h1>🌍 BAFA Connect</h1>
-      
-      {!isLoggedIn ? (
-        /* --- CORRECTION ICI : onLoginSuccess --- */
-        <Login onLoginSuccess={(userRole) => {
-          localStorage.setItem('role', userRole); // Sauvegarde immédiate
-          setRole(userRole);                      // Mise à jour de l'interface
-          setIsLoggedIn(true);                    // Déclenche le useEffect
-        }} />
-      ) : (
-        <>
-          <button onClick={handleLogout} style={{ background: '#ff4646', marginBottom: '20px', border: 'none', padding: '10px', borderRadius: '5px', cursor: 'pointer' }}>
-            Se déconnecter
-          </button>
+    <div className="site-wrapper">
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="logo">
+            <span className="logo-heart">🧡</span>
+            <span>BafaConnect</span>
+          </div>
 
-          <Profile />
+          <div className="nav-menu">
+            <a href="#hero" className="nav-item">Accueil</a>
+            <a href="#offres" className="nav-item">Trouver une mission</a>
+            <a href="#comment" className="nav-item">Comment ça marche</a>
+            {!isLoggedIn ? (
+              <a href="#connexion" className="nav-item nav-cta-light">Connexion</a>
+            ) : (
+              <button onClick={handleLogout} className="btn-logout">Déconnexion</button>
+            )}
+          </div>
+        </div>
+      </nav>
 
-          {/* AFFICHAGE CONDITIONNEL STRICT SELON LE RÔLE */}
-          {role === 'animateur' ? (
-            <div style={{ marginTop: '20px' }}>
-              <h2 style={{ color: '#646cff' }}>Annonces disponibles</h2>
-              
-              {sejours.length === 0 ? (
-                <p>Aucune annonce n'est disponible pour le moment.</p>
-              ) : (
-                <div style={{ display: 'grid', gap: '20px', marginBottom: '40px' }}>
-                  {sejours.map(s => (
-                    <div key={s.id} style={{ border: '1px solid #444', padding: '20px', borderRadius: '12px', background: '#242424', textAlign: 'left' }}>
-                      <h3 style={{ margin: '0 0 10px 0', color: '#646cff' }}>{s.titre}</h3>
-                      <p><strong>📍 Lieu :</strong> {s.lieu}</p>
-                      <p><strong>🏢 Structure :</strong> {s.nom_structure || 'Non précisé'}</p>
-                      <p style={{ fontSize: '0.9rem', color: '#bbb' }}>{s.description}</p>
-                      <button 
-                        onClick={() => {
-                          api.post('/candidatures', { sejour_id: s.id })
-                            .then(() => alert("Candidature envoyée !"))
-                            .catch(() => alert("Tu as déjà postulé à ce séjour."));
-                        }}
-                        style={{ background: '#646cff', marginTop: '10px' }}
+      <main className="main-content">
+        {!isLoggedIn ? (
+          <div className="landing-page">
+            <section id="hero" className="hero-section">
+              <div className="hero-content">
+                <span className="hero-badge">Plateforme de recrutement BAFA</span>
+
+                <h1 className="hero-title">
+                  Le recrutement <span className="text-orange">BAFA</span>,
+                  <br />
+                  enfin simple et rapide
+                </h1>
+
+                <p className="hero-subtitle">
+                  Directeurs : publiez vos annonces. Animateurs : trouvez une mission
+                  et candidatez en quelques clics.
+                </p>
+
+                <div className="hero-actions">
+                  <a href="#connexion" className="btn-primary">Publier une annonce</a>
+                  <a href="#offres" className="btn-secondary">Trouver une mission</a>
+                </div>
+
+                <p className="hero-note">
+                  Pensé pour les centres de loisirs, colonies et séjours jeunesse.
+                </p>
+              </div>
+
+              <div id="connexion" className="login-card">
+                <div className="login-card-top">
+                   <h3>Votre espace BafaConnect</h3>
+                <p>
+                 Directeurs et animateurs accèdent ici à leur espace personnel.
+                  </p>
+              </div>
+
+  <div className="login-panel">
+    <Login onLoginSuccess={handleLoginSuccess} />
+  </div>
+</div>
+                <div className="login-panel">
+                  <Login onLoginSuccess={handleLoginSuccess} />
+                </div>
+              </div>
+            </section>
+
+            <section className="audience-section">
+              <div className="audience-card">
+                <div className="audience-icon">🏕️</div>
+                <h3>Vous êtes directeur ?</h3>
+                <p>
+                  Publiez vos besoins en recrutement, recevez des candidatures
+                  et trouvez rapidement les bons profils pour vos séjours et accueils de loisirs.
+                </p>
+                <a href="#connexion" className="btn-primary">Déposer une annonce</a>
+              </div>
+
+              <div className="audience-card">
+                <div className="audience-icon">🎒</div>
+                <h3>Vous êtes animateur ?</h3>
+                <p>
+                  Consultez les offres, mettez en avant votre profil
+                  et candidatez facilement aux missions qui vous correspondent.
+                </p>
+                <a href="#offres" className="btn-secondary">Voir les offres</a>
+              </div>
+            </section>
+
+            <section className="features-section">
+              <div className="section-header">
+                <span className="section-kicker">Pourquoi BafaConnect ?</span>
+                <h2>Une plateforme pensée pour le recrutement dans l’animation</h2>
+                <p>
+                  Gagnez du temps, simplifiez le recrutement et rendez les candidatures plus fluides.
+                </p>
+              </div>
+
+              <div className="features-grid">
+                <div className="feature-card">
+                  <div className="feature-icon">⚡</div>
+                  <h3>Publiez en quelques minutes</h3>
+                  <p>Créez une annonce claire, complète et visible rapidement.</p>
+                </div>
+
+                <div className="feature-card">
+                  <div className="feature-icon">📂</div>
+                  <h3>Centralisez les candidatures</h3>
+                  <p>Recevez les profils au même endroit et gagnez du temps.</p>
+                </div>
+
+                <div className="feature-card">
+                  <div className="feature-icon">✅</div>
+                  <h3>Candidatez simplement</h3>
+                  <p>Les animateurs trouvent les offres adaptées et postulent vite.</p>
+                </div>
+
+                <div className="feature-card">
+                  <div className="feature-icon">🌍</div>
+                  <h3>Pensé pour l’animation</h3>
+                  <p>Une plateforme conçue pour les centres, colos et séjours jeunesse.</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="comment" className="steps-section">
+              <div className="section-header">
+                <span className="section-kicker">Comment ça marche ?</span>
+                <h2>Un parcours simple pour les directeurs et les animateurs</h2>
+              </div>
+
+              <div className="steps-grid">
+                <div className="step-column">
+                  <h3>Pour les directeurs</h3>
+
+                  <div className="step-item">
+                    <div className="step-number">1</div>
+                    <div>
+                      <h4>Créez votre espace</h4>
+                      <p>Inscrivez-vous et accédez à votre tableau de bord.</p>
+                    </div>
+                  </div>
+
+                  <div className="step-item">
+                    <div className="step-number">2</div>
+                    <div>
+                      <h4>Publiez votre annonce</h4>
+                      <p>Ajoutez le lieu, les dates et le profil recherché.</p>
+                    </div>
+                  </div>
+
+                  <div className="step-item">
+                    <div className="step-number">3</div>
+                    <div>
+                      <h4>Recevez des candidatures</h4>
+                      <p>Consultez les profils et recrutez plus rapidement.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="step-column">
+                  <h3>Pour les animateurs</h3>
+
+                  <div className="step-item">
+                    <div className="step-number">1</div>
+                    <div>
+                      <h4>Créez votre profil</h4>
+                      <p>Ajoutez vos expériences, disponibilités et qualifications.</p>
+                    </div>
+                  </div>
+
+                  <div className="step-item">
+                    <div className="step-number">2</div>
+                    <div>
+                      <h4>Consultez les offres</h4>
+                      <p>Parcourez les missions selon le lieu et la période.</p>
+                    </div>
+                  </div>
+
+                  <div className="step-item">
+                    <div className="step-number">3</div>
+                    <div>
+                      <h4>Candidatez rapidement</h4>
+                      <p>Postulez facilement aux offres qui vous intéressent.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="offres" className="offers-section">
+              <div className="section-header">
+                <span className="section-kicker">Offres récentes</span>
+                <h2>Des opportunités concrètes</h2>
+                <p>Découvrez les dernières missions publiées sur la plateforme.</p>
+              </div>
+
+              <div className="offers-grid">
+                {sejours.slice(0, 6).map((s) => (
+                  <article key={s.id} className="offer-card">
+                    <div className="offer-top">
+                      <span className="offer-location">📍 {s.lieu}</span>
+                    </div>
+
+                    <h3>{s.titre}</h3>
+                    <p className="offer-structure">{s.nom_structure || 'Structure partenaire'}</p>
+
+                    <p className="offer-description">
+                      {s.description || 'Mission d’animation à découvrir sur BafaConnect.'}
+                    </p>
+
+                    <button className="btn-primary">Voir l’offre</button>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="final-cta">
+              <div className="final-cta-card">
+                <span className="section-kicker">Rejoindre BafaConnect</span>
+                <h2>Prêt à passer à l’action ?</h2>
+                <p>
+                  Que vous recrutiez pour un séjour ou que vous cherchiez votre prochaine mission,
+                  BafaConnect vous aide à aller plus vite.
+                </p>
+
+                <div className="hero-actions center-actions">
+                  <a href="#connexion" className="btn-primary">Publier une annonce</a>
+                  <a href="#offres" className="btn-secondary">Créer mon profil</a>
+                </div>
+              </div>
+            </section>
+
+            <footer className="footer">
+              <div className="footer-brand">
+                <strong>BafaConnect</strong>
+                <p>La plateforme qui relie directeurs et animateurs BAFA.</p>
+              </div>
+
+              <div className="footer-links">
+                <a href="#hero">Accueil</a>
+                <a href="#offres">Offres</a>
+                <a href="#comment">Comment ça marche</a>
+                <a href="#connexion">Connexion</a>
+              </div>
+            </footer>
+          </div>
+        ) : (
+          <div className="dashboard-container">
+            <div className="card">
+              <Profile />
+            </div>
+
+            {role === 'animateur' ? (
+              <div className="view-section">
+                <h2 className="title-center">Annonces disponibles</h2>
+                <div className="annonces-grid">
+                  {sejours.map((s) => (
+                    <div key={s.id} className="card item-card">
+                      <div className="badge">📍 {s.lieu}</div>
+                      <h3>{s.titre}</h3>
+                      <p className="subtitle">{s.nom_structure || 'Structure partenaire'}</p>
+                      <p className="description">{s.description}</p>
+                      <button
+                        className="btn-primary"
+                        onClick={() => api.post('/candidatures', { sejour_id: s.id })}
                       >
-                        Postuler
+                        Postuler au séjour
                       </button>
                     </div>
                   ))}
                 </div>
-              )}
-              <MesCandidatures />
-            </div>
-          ) : (
-            /* ESPACE RÉSERVÉ AU DIRECTEUR */
-            <div style={{ marginTop: '20px' }}>
-              <h2 style={{ color: '#28a745' }}>Espace Recruteur</h2>
-              <CreerAnnonce onAnnonceCreated={fetchSejours} /> 
-              <GestionCandidatures />
-            </div>
-          )}
-        </>
-      )}
+
+                <div className="card">
+                  <MesCandidatures />
+                </div>
+              </div>
+            ) : (
+              <div className="view-section">
+                <h2 className="title-center text-orange">Espace Recrutement</h2>
+                <div className="card action-card">
+                  <CreerAnnonce onAnnonceCreated={fetchSejours} />
+                </div>
+                <div className="card">
+                  <GestionCandidatures />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   )
 }

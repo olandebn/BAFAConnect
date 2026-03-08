@@ -1,70 +1,79 @@
-import { useState } from 'react';
-import api from './api/axios';
+import { useState } from 'react'
+import api from './api/axios'
 
 function Login({ onLoginSuccess }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
     try {
-      const res = await api.post('/auth/login', { email, password });
-      
-      // On extrait le rôle depuis l'objet 'user' envoyé par le serveur
-      const userRole = res.data.user?.role; 
-      const token = res.data.token;
+      const res = await api.post('/auth/login', { email, password })
+
+      const userRole = res.data.user?.role
+      const token = res.data.token
 
       if (token && userRole) {
-        // Stockage propre pour éviter le bug 'undefined'
-        localStorage.setItem('token', token);
-        localStorage.setItem('role', userRole); 
-        
-        alert("Connexion réussie ! ✅");
-        
-        // On informe App.jsx pour basculer l'affichage immédiatement
-        onLoginSuccess(userRole); 
+        localStorage.setItem('token', token)
+        localStorage.setItem('role', userRole)
+        onLoginSuccess(userRole)
       } else {
-        console.error("Structure de réponse inattendue :", res.data);
-        alert("Erreur : Données utilisateur manquantes dans la réponse.");
+        console.error('Structure de réponse inattendue :', res.data)
+        setError("Impossible de récupérer les informations de connexion.")
       }
     } catch (err) {
-      console.error("Erreur de connexion :", err);
-      alert("Identifiants incorrects ou erreur serveur.");
+      console.error('Erreur de connexion :', err)
+      setError('Identifiants incorrects ou erreur serveur.')
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div style={{ border: '1px solid #646cff', padding: '20px', borderRadius: '8px', maxWidth: '350px', margin: '40px auto', background: '#242424', boxShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
-      <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '20px' }}>Connexion BAFA Connect</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div style={{ textAlign: 'left' }}>
-          <label style={{ color: '#bbb', fontSize: '0.8rem', display: 'block', marginBottom: '5px' }}>Email</label>
-          <input 
-            type="email" 
-            placeholder="votre@email.com" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #444', background: '#1a1a1a', color: 'white', boxSizing: 'border-box' }}
+    <div className="login-box">
+      <div className="login-header">
+        <h2>Bon retour sur BafaConnect</h2>
+        <p>Connectez-vous pour retrouver vos annonces, candidatures et outils.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="votre@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
-        <div style={{ textAlign: 'left' }}>
-          <label style={{ color: '#bbb', fontSize: '0.8rem', display: 'block', marginBottom: '5px' }}>Mot de passe</label>
-          <input 
-            type="password" 
-            placeholder="••••••••" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #444', background: '#1a1a1a', color: 'white', boxSizing: 'border-box' }}
+
+        <div className="form-group">
+          <label htmlFor="password">Mot de passe</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
-        <button type="submit" style={{ background: '#646cff', color: 'white', cursor: 'pointer', padding: '12px', border: 'none', borderRadius: '4px', fontWeight: 'bold', marginTop: '10px', fontSize: '1rem' }}>
-          Se connecter
+
+        {error && <div className="login-error">{error}</div>}
+
+        <button type="submit" className="login-submit" disabled={isLoading}>
+          {isLoading ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
     </div>
-  );
+  )
 }
 
-export default Login;
+export default Login
