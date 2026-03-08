@@ -1,35 +1,28 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
-
-// 1. Tous les imports de routes en haut
+import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import sejourRoutes from './routes/sejours.js';
 import profileRoutes from './routes/profiles.js';
 import candidatureRoutes from './routes/candidatures.js';
-import messageRoutes from './routes/messages.js';
-import MesCandidatures from './MesCandidatures';
+import recrutementRoutes from './routes/recrutement.js'; // AJOUT : Import des routes directeur
+
+dotenv.config();
 
 const app = express();
 
-// 2. Les middlewares de base
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// 3. Déclaration de TOUTES les routes
+// Routes
 app.use('/auth', authRoutes);
-app.use('/profiles', profileRoutes);
 app.use('/sejours', sejourRoutes);
+app.use('/profiles', profileRoutes);
 app.use('/candidatures', candidatureRoutes);
-app.use('/messages', messageRoutes);
+app.use('/recrutement', recrutementRoutes); // AJOUT : Enregistrement des routes de recrutement
 
-app.get('/', (req, res) => {
-    res.send('API BAFAConnect opérationnelle');
-});
-
-// 4. Lancement du serveur EN DERNIER
-app.listen(3000, () => {
-    console.log('Serveur lancé sur http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serveur lancé sur http://localhost:${PORT}`);
 });

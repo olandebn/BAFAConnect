@@ -4,14 +4,12 @@ import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Route pour récupérer son propre profil
+// 1. Route pour récupérer son propre profil
 router.get('/me', authenticateToken, async (req, res) => {
     try {
-        const { id, role } = req.user; // Récupéré grâce au middleware !
+        const { id, role } = req.user;
 
         let query = '';
-        
-        // On adapte la requête SQL en fonction du rôle
         if (role === 'animateur') {
             query = `SELECT * FROM animateurs_profiles WHERE user_id = $1`;
         } else if (role === 'directeur') {
@@ -21,46 +19,43 @@ router.get('/me', authenticateToken, async (req, res) => {
         const result = await pool.query(query, [id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Profil non trouvé. Veuillez le compléter." });
+            return res.status(404).json({ message: "Profil non trouvé." });
         }
 
         res.json(result.rows[0]);
-
     } catch (err) {
         console.error("Erreur récupération profil :", err);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
 
-// Route pour créer ou mettre à jour son profil
+// 2. Route pour mettre à jour son profil (POST pour correspondre à ton Front)
 router.post('/me', authenticateToken, async (req, res) => {
     try {
-        const { id, role } = req.user; // Toujours grâce au middleware !
+        const { id, role } = req.user;
         
-        if (role === 'animateur') {
-            // On récupère les champs envoyés par l'animateur
-            const { nom, age, ville, diplomes, competences, experiences, disponibilites } = req.body;
+if (role === 'animateur') {
+            const { nom, prenom, bafa_status } = req.body;
 
             const query = `
-                INSERT INTO animateurs_profiles (user_id, nom, age, ville, diplomes, competences, experiences, disponibilites)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO animateurs_profiles (user_id, nom, diplomes)
+                VALUES ($1, $2, $3)
                 ON CONFLICT (user_id) DO UPDATE SET
                     nom = EXCLUDED.nom,
-                    age = EXCLUDED.age,
-                    ville = EXCLUDED.ville,
-                    diplomes = EXCLUDED.diplomes,
-                    competences = EXCLUDED.competences,
-                    experiences = EXCLUDED.experiences,
-                    disponibilites = EXCLUDED.disponibilites
+                    diplomes = EXCLUDED.diplomes
                 RETURNING *;
             `;
             
-            const values = [id, nom, age, ville, diplomes || [], competences || [], experiences || [], disponibilites || {}];
+            const nomComplet = `${prenom} ${nom}`.trim();
+            
+            // LA CORRECTION EST ICI : on met bafa_status dans un tableau []
+            const values = [id, nomComplet, [bafa_status]]; 
+            
             const result = await pool.query(query, values);
             return res.json({ message: "Profil animateur mis à jour", profil: result.rows[0] });
+        }
 
-        } else if (role === 'directeur') {
-            // On récupère les champs envoyés par le directeur
+        else if (role === 'directeur') {
             const { nom_structure, type_structure, ville, description } = req.body;
 
             const query = `
@@ -81,7 +76,7 @@ router.post('/me', authenticateToken, async (req, res) => {
 
     } catch (err) {
         console.error("Erreur mise à jour profil :", err);
-        res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du profil' });
+        res.status(500).json({ error: 'Erreur serveur lors de la mise à jour' });
     }
 });
 
