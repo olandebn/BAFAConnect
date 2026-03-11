@@ -14,8 +14,8 @@ function App() {
 
   const fetchSejours = () => {
     api.get('/sejours')
-      .then(res => setSejours(res.data))
-      .catch(err => console.error('Erreur récup séjours :', err))
+      .then((res) => setSejours(res.data))
+      .catch((err) => console.error('Erreur récup séjours :', err))
   }
 
   useEffect(() => {
@@ -50,10 +50,13 @@ function App() {
             <a href="#hero" className="nav-item">Accueil</a>
             <a href="#offres" className="nav-item">Trouver une mission</a>
             <a href="#comment" className="nav-item">Comment ça marche</a>
+
             {!isLoggedIn ? (
               <a href="#connexion" className="nav-item nav-cta-light">Connexion</a>
             ) : (
-              <button onClick={handleLogout} className="btn-logout">Déconnexion</button>
+              <button onClick={handleLogout} className="btn-logout">
+                Déconnexion
+              </button>
             )}
           </div>
         </div>
@@ -66,14 +69,12 @@ function App() {
               <div className="hero-content">
                 <span className="hero-badge">Plateforme de recrutement BAFA</span>
 
-                <h1 className="hero-title">
-                  Le recrutement <span className="text-orange">BAFA</span>,
-                  <br />
-                  enfin simple et rapide
-                </h1>
-
+                  <h1 className="hero-title hero-title-compact">
+                    Le recrutement <span className="text-orange">BAFA</span>,<br />
+                    enfin simple et rapide
+                  </h1>
                 <p className="hero-subtitle">
-                  Directeurs : publiez vos annonces. Animateurs : trouvez une mission
+                  Directeurs, publiez vos annonces. Animateurs, trouvez des missions adaptées
                   et candidatez en quelques clics.
                 </p>
 
@@ -88,20 +89,13 @@ function App() {
               </div>
 
               <div id="connexion" className="login-card">
-                <div className="login-card-top">
-                   <h3>Votre espace BafaConnect</h3>
+                <span className="section-kicker">Connexion</span>
+                <h3>Votre espace BafaConnect</h3>
                 <p>
-                 Directeurs et animateurs accèdent ici à leur espace personnel.
-                  </p>
-              </div>
+                  Directeurs et animateurs accèdent ici à leur espace personnel.
+                </p>
 
-  <div className="login-panel">
-    <Login onLoginSuccess={handleLoginSuccess} />
-  </div>
-</div>
-                <div className="login-panel">
-                  <Login onLoginSuccess={handleLoginSuccess} />
-                </div>
+                <Login onLoginSuccess={handleLoginSuccess} />
               </div>
             </section>
 
@@ -244,7 +238,6 @@ function App() {
 
                     <h3>{s.titre}</h3>
                     <p className="offer-structure">{s.nom_structure || 'Structure partenaire'}</p>
-
                     <p className="offer-description">
                       {s.description || 'Mission d’animation à découvrir sur BafaConnect.'}
                     </p>
@@ -294,6 +287,7 @@ function App() {
             {role === 'animateur' ? (
               <div className="view-section">
                 <h2 className="title-center">Annonces disponibles</h2>
+
                 <div className="annonces-grid">
                   {sejours.map((s) => (
                     <div key={s.id} className="card item-card">
@@ -318,9 +312,11 @@ function App() {
             ) : (
               <div className="view-section">
                 <h2 className="title-center text-orange">Espace Recrutement</h2>
+
                 <div className="card action-card">
                   <CreerAnnonce onAnnonceCreated={fetchSejours} />
                 </div>
+
                 <div className="card">
                   <GestionCandidatures />
                 </div>

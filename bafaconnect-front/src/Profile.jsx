@@ -1,114 +1,258 @@
-import { useEffect, useState } from 'react';
-import api from './api/axios';
+import { useEffect, useState } from 'react'
+import api from './api/axios'
 
 function Profile() {
-  const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const role = localStorage.getItem('role'); // On récupère le rôle en direct
+  const [user, setUser] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const role = localStorage.getItem('role')
 
-  const [formData, setFormData] = useState({ 
-    nom: '', prenom: '', bafa_status: '', 
-    nom_structure: '', ville: '', description: '' 
-  });
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenom: '',
+    bafa_status: '',
+    nom_structure: '',
+    ville: '',
+    description: ''
+  })
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    fetchProfile()
+  }, [])
 
   const fetchProfile = async () => {
     try {
-      const res = await api.get('/profiles/me');
-      setUser(res.data);
-      
-      // On pré-remplit le formulaire selon le rôle
+      setError('')
+      const res = await api.get('/profiles/me')
+      setUser(res.data)
+
       if (role === 'animateur') {
-        const nomParts = (res.data.nom || '').split(' ');
+        const nomParts = (res.data.nom || '').split(' ')
         setFormData({
           prenom: nomParts[0] || '',
           nom: nomParts.slice(1).join(' ') || '',
-          bafa_status: res.data.diplomes?.[0] || ''
-        });
+          bafa_status: res.data.diplomes?.[0] || 'Non diplômé',
+          nom_structure: '',
+          ville: '',
+          description: ''
+        })
       } else {
         setFormData({
+          nom: '',
+          prenom: '',
+          bafa_status: '',
           nom_structure: res.data.nom_structure || '',
           ville: res.data.ville || '',
           description: res.data.description || ''
-        });
+        })
       }
     } catch (err) {
-      console.error("Erreur récupération profil :", err);
-      // On crée un objet vide pour sortir du mode "Chargement" en cas d'erreur
-      setUser({}); 
+      console.error('Erreur récupération profil :', err)
+      setError('Impossible de charger le profil.')
+      setUser({})
     }
-  };
+  }
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('/profiles/me', formData);
-      setIsEditing(false);
-      fetchProfile(); 
-      alert("Profil mis à jour ! ✅");
-    } catch (err) {
-      alert("Erreur lors de la mise à jour");
-    }
-  };
+    e.preventDefault()
+    setError('')
+    setSuccess('')
 
-  // Sécurité pour ne pas rester bloqué
-  if (!user) return <p style={{ color: 'white', textAlign: 'center' }}>Chargement du profil...</p>;
+    try {
+      await api.post('/profiles/me', formData)
+      setIsEditing(false)
+      setSuccess('Profil mis à jour avec succès.')
+      fetchProfile()
+    } catch (err) {
+      console.error('Erreur mise à jour profil :', err)
+      setError('Erreur lors de la mise à jour du profil.')
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="profile-card">
+        <p className="profile-loading">Chargement du profil...</p>
+      </div>
+    )
+  }
 
   return (
-    <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '15px', marginBottom: '30px', border: '1px solid #646cff', textAlign: 'left', maxWidth: '600px', margin: '0 auto 30px auto' }}>
-      <h2 style={{ color: '#646cff', marginTop: 0, textAlign: 'center' }}>
-        👤 Mon Profil {role === 'animateur' ? 'Animateur' : 'Directeur'}
-      </h2>
+    <div className="profile-card">
+      <div className="profile-header">
+        <div>
+          <span className="profile-kicker">
+            {role === 'animateur' ? 'Espace animateur' : 'Espace directeur'}
+          </span>
 
-      {!isEditing ? (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            {role === 'animateur' ? (
-              <>
-                <p><strong>Identité :</strong> {user?.nom || 'Non renseigné'}</p>
-                <p><strong>Diplôme :</strong> {user?.diplomes?.[0] || 'Non renseigné'}</p>
-              </>
-            ) : (
-              <>
-                <p><strong>Structure :</strong> {user?.nom_structure || 'Non renseignée'}</p>
-                <p><strong>Ville :</strong> {user?.ville || 'Non renseignée'}</p>
-              </>
-            )}
-          </div>
-          <button onClick={() => setIsEditing(true)} style={{ background: '#646cff', color: 'white', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}>
+          <h2>
+            {role === 'animateur' ? 'Mon profil animateur' : 'Mon profil directeur'}
+          </h2>
+
+          <p>
+            {role === 'animateur'
+              ? 'Retrouvez vos informations personnelles et mettez votre profil à jour.'
+              : 'Gérez les informations de votre structure et présentez votre organisation.'}
+          </p>
+        </div>
+
+        {!isEditing && (
+          <button className="btn-primary profile-edit-btn" onClick={() => setIsEditing(true)}>
             Modifier mon profil
           </button>
-        </div>
-      ) : (
-        <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        )}
+      </div>
+
+      {error && <div className="profile-alert profile-alert-error">{error}</div>}
+      {success && <div className="profile-alert profile-alert-success">{success}</div>}
+
+      {!isEditing ? (
+        <div className="profile-grid">
           {role === 'animateur' ? (
             <>
-              <input type="text" placeholder="Prénom" value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})} />
-              <input type="text" placeholder="Nom" value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} />
-              <select value={formData.bafa_status} onChange={e => setFormData({...formData, bafa_status: e.target.value})}>
-                <option value="Non diplômé">Non diplômé</option>
-                <option value="Stagiaire">Stagiaire</option>
-                <option value="Diplômé">Diplômé</option>
-              </select>
+              <div className="profile-info-box">
+                <span className="profile-label">Prénom</span>
+                <strong>{formData.prenom || 'Non renseigné'}</strong>
+              </div>
+
+              <div className="profile-info-box">
+                <span className="profile-label">Nom</span>
+                <strong>{formData.nom || 'Non renseigné'}</strong>
+              </div>
+
+              <div className="profile-info-box">
+                <span className="profile-label">Statut BAFA</span>
+                <strong>{user?.diplomes?.[0] || formData.bafa_status || 'Non renseigné'}</strong>
+              </div>
+
+              <div className="profile-info-box">
+                <span className="profile-label">Identité complète</span>
+                <strong>{user?.nom || 'Non renseigné'}</strong>
+              </div>
             </>
           ) : (
             <>
-              <input type="text" placeholder="Nom de la structure" value={formData.nom_structure} onChange={e => setFormData({...formData, nom_structure: e.target.value})} />
-              <input type="text" placeholder="Ville" value={formData.ville} onChange={e => setFormData({...formData, ville: e.target.value})} />
-              <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+              <div className="profile-info-box">
+                <span className="profile-label">Nom de la structure</span>
+                <strong>{user?.nom_structure || 'Non renseignée'}</strong>
+              </div>
+
+              <div className="profile-info-box">
+                <span className="profile-label">Ville</span>
+                <strong>{user?.ville || 'Non renseignée'}</strong>
+              </div>
+
+              <div className="profile-info-box profile-info-box-full">
+                <span className="profile-label">Description</span>
+                <strong>{user?.description || 'Aucune description renseignée'}</strong>
+              </div>
             </>
           )}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" style={{ background: '#28a745', color: 'white', padding: '10px', borderRadius: '5px', flex: 1 }}>Enregistrer</button>
-            <button type="button" onClick={() => setIsEditing(false)} style={{ background: '#dc3545', color: 'white', padding: '10px', borderRadius: '5px', flex: 1 }}>Annuler</button>
+        </div>
+      ) : (
+        <form onSubmit={handleUpdate} className="profile-form">
+          {role === 'animateur' ? (
+            <>
+              <div className="profile-form-grid">
+                <div className="form-group">
+                  <label htmlFor="prenom">Prénom</label>
+                  <input
+                    id="prenom"
+                    type="text"
+                    placeholder="Prénom"
+                    value={formData.prenom}
+                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="nom">Nom</label>
+                  <input
+                    id="nom"
+                    type="text"
+                    placeholder="Nom"
+                    value={formData.nom}
+                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="bafa_status">Statut BAFA</label>
+                <select
+                  id="bafa_status"
+                  value={formData.bafa_status}
+                  onChange={(e) => setFormData({ ...formData, bafa_status: e.target.value })}
+                  className="profile-select"
+                >
+                  <option value="Non diplômé">Non diplômé</option>
+                  <option value="Stagiaire">Stagiaire</option>
+                  <option value="Diplômé">Diplômé</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="profile-form-grid">
+                <div className="form-group">
+                  <label htmlFor="nom_structure">Nom de la structure</label>
+                  <input
+                    id="nom_structure"
+                    type="text"
+                    placeholder="Nom de la structure"
+                    value={formData.nom_structure}
+                    onChange={(e) => setFormData({ ...formData, nom_structure: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="ville">Ville</label>
+                  <input
+                    id="ville"
+                    type="text"
+                    placeholder="Ville"
+                    value={formData.ville}
+                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  placeholder="Présentez votre structure"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="profile-textarea"
+                  rows="5"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="profile-actions">
+            <button type="submit" className="btn-primary profile-action-btn">
+              Enregistrer
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary profile-action-btn"
+              onClick={() => {
+                setIsEditing(false)
+                setError('')
+                setSuccess('')
+              }}
+            >
+              Annuler
+            </button>
           </div>
         </form>
       )}
     </div>
-  );
+  )
 }
 
-export default Profile;
+export default Profile
