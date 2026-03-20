@@ -9,18 +9,17 @@ function Profile() {
   const role = localStorage.getItem('role')
 
   const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    bafa_status: '',
-    nom_structure: '',
-    type_structure: '',
-    ville: '',
-    description: ''
+    // Commun animateur
+    nom: '', prenom: '', bafa_status: '', ville: '',
+    // Animateur avancé
+    competencesText: '',   // texte brut → tableau à l'envoi
+    experiencesText: '',   // idem
+    dispo_debut: '', dispo_fin: '',
+    // Directeur
+    nom_structure: '', type_structure: '', description: ''
   })
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
+  useEffect(() => { fetchProfile() }, [])
 
   const fetchProfile = async () => {
     try {
@@ -30,22 +29,29 @@ function Profile() {
 
       if (role === 'animateur') {
         const nomParts = (res.data.nom || '').split(' ')
+        const dispo = res.data.disponibilites
+          ? (typeof res.data.disponibilites === 'string'
+            ? JSON.parse(res.data.disponibilites)
+            : res.data.disponibilites)
+          : {}
         setFormData({
           prenom: nomParts[0] || '',
           nom: nomParts.slice(1).join(' ') || '',
           bafa_status: res.data.diplomes?.[0] || 'Non diplômé',
-          nom_structure: '',
-          ville: '',
-          description: ''
+          ville: res.data.ville || '',
+          competencesText: (res.data.competences || []).join('\n'),
+          experiencesText: (res.data.experiences || []).join('\n'),
+          dispo_debut: dispo.debut || '',
+          dispo_fin: dispo.fin || '',
+          nom_structure: '', type_structure: '', description: ''
         })
       } else {
         setFormData({
-          nom: '',
-          prenom: '',
-          bafa_status: '',
+          nom: '', prenom: '', bafa_status: '',
+          ville: '', competencesText: '', experiencesText: '',
+          dispo_debut: '', dispo_fin: '',
           nom_structure: res.data.nom_structure || '',
           type_structure: res.data.type_structure || '',
-          ville: res.data.ville || '',
           description: res.data.description || ''
         })
       }
@@ -60,9 +66,16 @@ function Profile() {
     e.preventDefault()
     setError('')
     setSuccess('')
-
     try {
-      await api.post('/profiles/me', formData)
+      const payload = role === 'animateur'
+        ? {
+            ...formData,
+            competences: formData.competencesText.split('\n').map(s => s.trim()).filter(Boolean),
+            experiences: formData.experiencesText.split('\n').map(s => s.trim()).filter(Boolean),
+          }
+        : formData
+
+      await api.post('/profiles/me', payload)
       setIsEditing(false)
       setSuccess('Profil mis à jour avec succès.')
       fetchProfile()
@@ -72,13 +85,22 @@ function Profile() {
     }
   }
 
-  if (!user) {
+  const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value })
+
+  const renderChips = (arr) => {
+    if (!arr || arr.length === 0) return <span className="profile-empty-chip">Non renseigné</span>
     return (
-      <div className="profile-card">
-        <p className="profile-loading">Chargement du profil...</p>
+      <div className="profile-chips">
+        {arr.map((item, i) => <span key={i} className="profile-chip">{item}</span>)}
       </div>
     )
   }
+
+  if (!user) return (
+    <div className="profile-card">
+      <p className="profile-loading">Chargement du profil...</p>
+    </div>
+  )
 
   return (
     <div className="profile-card">
@@ -87,18 +109,13 @@ function Profile() {
           <span className="profile-kicker">
             {role === 'animateur' ? 'Espace animateur' : 'Espace directeur'}
           </span>
-
-          <h2>
-            {role === 'animateur' ? 'Mon profil animateur' : 'Mon profil directeur'}
-          </h2>
-
+          <h2>{role === 'animateur' ? 'Mon profil animateur' : 'Mon profil directeur'}</h2>
           <p>
             {role === 'animateur'
-              ? 'Retrouvez vos informations personnelles et mettez votre profil à jour.'
+              ? 'Complétez votre profil pour être visible et postuler aux meilleures missions.'
               : 'Gérez les informations de votre structure et présentez votre organisation.'}
           </p>
         </div>
-
         {!isEditing && (
           <button className="btn-primary profile-edit-btn" onClick={() => setIsEditing(true)}>
             Modifier mon profil
@@ -109,6 +126,7 @@ function Profile() {
       {error && <div className="profile-alert profile-alert-error">{error}</div>}
       {success && <div className="profile-alert profile-alert-success">{success}</div>}
 
+      {/* ── VUE LECTURE ── */}
       {!isEditing ? (
         <div className="profile-grid">
           {role === 'animateur' ? (
@@ -117,21 +135,42 @@ function Profile() {
                 <span className="profile-label">Prénom</span>
                 <strong>{formData.prenom || 'Non renseigné'}</strong>
               </div>
-
               <div className="profile-info-box">
                 <span className="profile-label">Nom</span>
                 <strong>{formData.nom || 'Non renseigné'}</strong>
               </div>
-
               <div className="profile-info-box">
                 <span className="profile-label">Statut BAFA</span>
-                <strong>{user?.diplomes?.[0] || formData.bafa_status || 'Non renseigné'}</strong>
+                <strong>{user?.diplomes?.[0] || 'Non renseigné'}</strong>
               </div>
-
               <div className="profile-info-box">
-                <span className="profile-label">Identité complète</span>
-                <strong>{user?.nom || 'Non renseigné'}</strong>
+                <span className="profile-label">Ville</span>
+                <strong>{user?.ville || 'Non renseignée'}</strong>
               </div>
+              <div className="profile-info-box profile-info-box-full">
+                <span className="profile-label">Compétences</span>
+                {renderChips(user?.competences)}
+              </div>
+              <div className="profile-info-box profile-info-box-full">
+                <span className="profile-label">Expériences</span>
+                {renderChips(user?.experiences)}
+              </div>
+              {(user?.disponibilites) && (
+                <div className="profile-info-box profile-info-box-full">
+                  <span className="profile-label">Disponibilités</span>
+                  <strong>
+                    {(() => {
+                      const d = typeof user.disponibilites === 'string'
+                        ? JSON.parse(user.disponibilites)
+                        : user.disponibilites
+                      if (d?.debut && d?.fin)
+                        return `Du ${new Date(d.debut).toLocaleDateString('fr-FR')} au ${new Date(d.fin).toLocaleDateString('fr-FR')}`
+                      if (d?.debut) return `À partir du ${new Date(d.debut).toLocaleDateString('fr-FR')}`
+                      return 'Non renseignées'
+                    })()}
+                  </strong>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -139,17 +178,14 @@ function Profile() {
                 <span className="profile-label">Nom de la structure</span>
                 <strong>{user?.nom_structure || 'Non renseignée'}</strong>
               </div>
-
               <div className="profile-info-box">
                 <span className="profile-label">Type de structure</span>
                 <strong>{user?.type_structure || 'Non renseigné'}</strong>
               </div>
-
               <div className="profile-info-box">
                 <span className="profile-label">Ville</span>
                 <strong>{user?.ville || 'Non renseignée'}</strong>
               </div>
-
               <div className="profile-info-box profile-info-box-full">
                 <span className="profile-label">Description</span>
                 <strong>{user?.description || 'Aucune description renseignée'}</strong>
@@ -158,45 +194,74 @@ function Profile() {
           )}
         </div>
       ) : (
+        /* ── FORMULAIRE ÉDITION ── */
         <form onSubmit={handleUpdate} className="profile-form">
           {role === 'animateur' ? (
             <>
               <div className="profile-form-grid">
                 <div className="form-group">
                   <label htmlFor="prenom">Prénom</label>
-                  <input
-                    id="prenom"
-                    type="text"
-                    placeholder="Prénom"
-                    value={formData.prenom}
-                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                  />
+                  <input id="prenom" type="text" placeholder="Prénom" value={formData.prenom} onChange={set('prenom')} />
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="nom">Nom</label>
-                  <input
-                    id="nom"
-                    type="text"
-                    placeholder="Nom"
-                    value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                  />
+                  <input id="nom" type="text" placeholder="Nom" value={formData.nom} onChange={set('nom')} />
+                </div>
+              </div>
+
+              <div className="profile-form-grid">
+                <div className="form-group">
+                  <label htmlFor="bafa_status">Statut BAFA</label>
+                  <select id="bafa_status" value={formData.bafa_status} onChange={set('bafa_status')} className="profile-select">
+                    <option value="Non diplômé">Non diplômé</option>
+                    <option value="Stagiaire BAFA">Stagiaire BAFA</option>
+                    <option value="Diplômé BAFA">Diplômé BAFA</option>
+                    <option value="Diplômé BAFD">Diplômé BAFD</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="ville">Ville</label>
+                  <input id="ville" type="text" placeholder="Ex : Lyon" value={formData.ville} onChange={set('ville')} />
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor="bafa_status">Statut BAFA</label>
-                <select
-                  id="bafa_status"
-                  value={formData.bafa_status}
-                  onChange={(e) => setFormData({ ...formData, bafa_status: e.target.value })}
-                  className="profile-select"
-                >
-                  <option value="Non diplômé">Non diplômé</option>
-                  <option value="Stagiaire">Stagiaire</option>
-                  <option value="Diplômé">Diplômé</option>
-                </select>
+                <label htmlFor="competencesText">
+                  Compétences <span className="form-hint">(une par ligne)</span>
+                </label>
+                <textarea
+                  id="competencesText"
+                  placeholder={"Premiers secours\nAnimation sportive\nMusique"}
+                  value={formData.competencesText}
+                  onChange={set('competencesText')}
+                  className="profile-textarea"
+                  rows="4"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="experiencesText">
+                  Expériences <span className="form-hint">(une par ligne)</span>
+                </label>
+                <textarea
+                  id="experiencesText"
+                  placeholder={"Animateur colo été 2023 – Ardèche\nACCM centre de loisirs 2024"}
+                  value={formData.experiencesText}
+                  onChange={set('experiencesText')}
+                  className="profile-textarea"
+                  rows="4"
+                />
+              </div>
+
+              <div className="profile-form-grid">
+                <div className="form-group">
+                  <label htmlFor="dispo_debut">Disponible à partir du</label>
+                  <input id="dispo_debut" type="date" value={formData.dispo_debut} onChange={set('dispo_debut')} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="dispo_fin">Disponible jusqu'au</label>
+                  <input id="dispo_fin" type="date" value={formData.dispo_fin} onChange={set('dispo_fin')} />
+                </div>
               </div>
             </>
           ) : (
@@ -204,35 +269,17 @@ function Profile() {
               <div className="profile-form-grid">
                 <div className="form-group">
                   <label htmlFor="nom_structure">Nom de la structure</label>
-                  <input
-                    id="nom_structure"
-                    type="text"
-                    placeholder="Nom de la structure"
-                    value={formData.nom_structure}
-                    onChange={(e) => setFormData({ ...formData, nom_structure: e.target.value })}
-                  />
+                  <input id="nom_structure" type="text" placeholder="Nom de la structure" value={formData.nom_structure} onChange={set('nom_structure')} />
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="ville">Ville</label>
-                  <input
-                    id="ville"
-                    type="text"
-                    placeholder="Ville"
-                    value={formData.ville}
-                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                  />
+                  <input id="ville" type="text" placeholder="Ville" value={formData.ville} onChange={set('ville')} />
                 </div>
               </div>
 
               <div className="form-group">
                 <label htmlFor="type_structure">Type de structure</label>
-                <select
-                  id="type_structure"
-                  value={formData.type_structure}
-                  onChange={(e) => setFormData({ ...formData, type_structure: e.target.value })}
-                  className="profile-select"
-                >
+                <select id="type_structure" value={formData.type_structure} onChange={set('type_structure')} className="profile-select">
                   <option value="">— Sélectionner —</option>
                   <option value="Association">Association</option>
                   <option value="Centre de loisirs">Centre de loisirs</option>
@@ -245,32 +292,15 @@ function Profile() {
 
               <div className="form-group">
                 <label htmlFor="description">Description</label>
-                <textarea
-                  id="description"
-                  placeholder="Présentez votre structure"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="profile-textarea"
-                  rows="5"
-                />
+                <textarea id="description" placeholder="Présentez votre structure" value={formData.description} onChange={set('description')} className="profile-textarea" rows="5" />
               </div>
             </>
           )}
 
           <div className="profile-actions">
-            <button type="submit" className="btn-primary profile-action-btn">
-              Enregistrer
-            </button>
-
-            <button
-              type="button"
-              className="btn-secondary profile-action-btn"
-              onClick={() => {
-                setIsEditing(false)
-                setError('')
-                setSuccess('')
-              }}
-            >
+            <button type="submit" className="btn-primary profile-action-btn">Enregistrer</button>
+            <button type="button" className="btn-secondary profile-action-btn"
+              onClick={() => { setIsEditing(false); setError(''); setSuccess('') }}>
               Annuler
             </button>
           </div>

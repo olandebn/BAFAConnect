@@ -5,6 +5,7 @@ import Profile from './Profile'
 import MesCandidatures from './MesCandidatures'
 import GestionCandidatures from './GestionCandidatures'
 import CreerAnnonce from './CreerAnnonce'
+import MesAnnonces from './MesAnnonces'
 import Messagerie from './Messagerie'
 import './App.css'
 
@@ -13,8 +14,10 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
   const [postuleNotif, setPostuleNotif] = useState('')
-  const [messageDest, setMessageDest] = useState(null) // Ouvre la messagerie vers un interlocuteur
+  const [messageDest, setMessageDest] = useState(null)
   const [onglet, setOnglet] = useState('dashboard') // 'dashboard' | 'messages'
+  // Filtres
+  const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '' })
 
   const fetchSejours = () => {
     api.get('/sejours')
@@ -328,37 +331,96 @@ function App() {
               <div className="view-section">
                 <h2 className="title-center">Annonces disponibles</h2>
 
+                {/* ── Filtres ── */}
+                <div className="card filtres-bar">
+                  <div className="filtres-grid">
+                    <div className="form-group">
+                      <label>📍 Lieu</label>
+                      <input
+                        type="text"
+                        placeholder="Ex : Ardèche, Lyon..."
+                        value={filtres.lieu}
+                        onChange={e => setFiltres({ ...filtres, lieu: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>🏕️ Type de séjour</label>
+                      <select
+                        value={filtres.type}
+                        onChange={e => setFiltres({ ...filtres, type: e.target.value })}
+                        className="profile-select"
+                      >
+                        <option value="">Tous les types</option>
+                        <option value="Séjour de vacances">Séjour de vacances</option>
+                        <option value="Accueil de loisirs">Accueil de loisirs</option>
+                        <option value="Colonie">Colonie</option>
+                        <option value="Séjour sportif">Séjour sportif</option>
+                        <option value="Autre">Autre</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>🗓️ À partir du</label>
+                      <input
+                        type="date"
+                        value={filtres.date_debut}
+                        onChange={e => setFiltres({ ...filtres, date_debut: e.target.value })}
+                      />
+                    </div>
+                    {(filtres.lieu || filtres.type || filtres.date_debut) && (
+                      <button
+                        className="btn-secondary filtres-reset"
+                        onClick={() => setFiltres({ lieu: '', type: '', date_debut: '' })}
+                      >
+                        ✕ Réinitialiser
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 {postuleNotif && (
                   <div className={`profile-alert ${postuleNotif.includes('succès') ? 'profile-alert-success' : 'profile-alert-error'}`}>
                     {postuleNotif}
                   </div>
                 )}
 
-                <div className="annonces-grid">
-                  {sejours.map((s) => (
-                    <div key={s.id} className="card item-card">
-                      <div className="badge">📍 {s.lieu}</div>
-                      <h3>{s.titre}</h3>
-                      <p className="subtitle">{s.nom_structure || 'Structure partenaire'}</p>
-                      {s.date_debut && (
-                        <p className="offer-dates">
-                          🗓️ {new Date(s.date_debut).toLocaleDateString('fr-FR')}
-                          {s.date_fin && ` → ${new Date(s.date_fin).toLocaleDateString('fr-FR')}`}
-                        </p>
-                      )}
-                      {s.nombre_postes && (
-                        <p className="offer-postes">👥 {s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''}</p>
-                      )}
-                      <p className="description">{s.description}</p>
-                      <button
-                        className="btn-primary"
-                        onClick={() => handlePostuler(s.id)}
-                      >
-                        Postuler au séjour
-                      </button>
+                {(() => {
+                  const sejoursFiltres = sejours.filter(s => {
+                    if (filtres.lieu && !s.lieu?.toLowerCase().includes(filtres.lieu.toLowerCase())) return false
+                    if (filtres.type && s.type !== filtres.type) return false
+                    if (filtres.date_debut && s.date_debut && s.date_debut < filtres.date_debut) return false
+                    return true
+                  })
+
+                  return sejoursFiltres.length === 0 ? (
+                    <p className="candidatures-empty" style={{ textAlign: 'center', padding: '32px 0' }}>
+                      Aucune annonce ne correspond à vos filtres.
+                    </p>
+                  ) : (
+                    <div className="annonces-grid">
+                      {sejoursFiltres.map((s) => (
+                        <div key={s.id} className="card item-card">
+                          <div className="badge">📍 {s.lieu}</div>
+                          {s.type && <span className="item-card-type">{s.type}</span>}
+                          <h3>{s.titre}</h3>
+                          <p className="subtitle">{s.nom_structure || 'Structure partenaire'}</p>
+                          {s.date_debut && (
+                            <p className="offer-dates">
+                              🗓️ {new Date(s.date_debut).toLocaleDateString('fr-FR')}
+                              {s.date_fin && ` → ${new Date(s.date_fin).toLocaleDateString('fr-FR')}`}
+                            </p>
+                          )}
+                          {s.nombre_postes && (
+                            <p className="offer-postes">👥 {s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''}</p>
+                          )}
+                          <p className="description">{s.description}</p>
+                          <button className="btn-primary" onClick={() => handlePostuler(s.id)}>
+                            Postuler au séjour
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )
+                })()}
 
                 <div className="card">
                   <MesCandidatures onContacter={handleContacter} />
@@ -370,6 +432,10 @@ function App() {
 
                 <div className="card action-card">
                   <CreerAnnonce onAnnonceCreated={fetchSejours} />
+                </div>
+
+                <div className="card">
+                  <MesAnnonces onAnnonceChanged={fetchSejours} />
                 </div>
 
                 <div className="card">

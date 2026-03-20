@@ -35,22 +35,33 @@ router.post('/me', authenticateToken, async (req, res) => {
         const { id, role } = req.user;
         
 if (role === 'animateur') {
-            const { nom, prenom, bafa_status } = req.body;
+            const { nom, prenom, bafa_status, ville, competences, experiences, dispo_debut, dispo_fin } = req.body;
+
+            const nomComplet = `${prenom} ${nom}`.trim();
+
+            // competences et experiences sont envoyés comme tableaux depuis le front
+            const competencesArr = Array.isArray(competences) ? competences : (competences ? [competences] : []);
+            const experiencesArr = Array.isArray(experiences) ? experiences : (experiences ? [experiences] : []);
+
+            // disponibilites stocké comme JSON { debut, fin }
+            const disponibilites = (dispo_debut || dispo_fin)
+                ? JSON.stringify({ debut: dispo_debut || null, fin: dispo_fin || null })
+                : null;
 
             const query = `
-                INSERT INTO animateurs_profiles (user_id, nom, diplomes)
-                VALUES ($1, $2, $3)
+                INSERT INTO animateurs_profiles (user_id, nom, diplomes, ville, competences, experiences, disponibilites)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (user_id) DO UPDATE SET
-                    nom = EXCLUDED.nom,
-                    diplomes = EXCLUDED.diplomes
+                    nom           = EXCLUDED.nom,
+                    diplomes      = EXCLUDED.diplomes,
+                    ville         = EXCLUDED.ville,
+                    competences   = EXCLUDED.competences,
+                    experiences   = EXCLUDED.experiences,
+                    disponibilites = EXCLUDED.disponibilites
                 RETURNING *;
             `;
-            
-            const nomComplet = `${prenom} ${nom}`.trim();
-            
-            // LA CORRECTION EST ICI : on met bafa_status dans un tableau []
-            const values = [id, nomComplet, [bafa_status]]; 
-            
+
+            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil animateur mis à jour", profil: result.rows[0] });
         }

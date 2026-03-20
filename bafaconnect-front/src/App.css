@@ -1613,3 +1613,232 @@ a {
     border-bottom: 1px solid var(--border);
   }
 }
+
+/* ─── FILTRES ─── */
+
+.filtres-bar {
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.filtres-grid {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filtres-grid .form-group {
+  flex: 1;
+  min-width: 160px;
+  margin: 0;
+}
+
+.filtres-reset {
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── CHIPS PROFIL ANIMATEUR ─── */
+
+.profile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.profile-chip {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.profile-empty-chip {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+/* ─── MES ANNONCES (directeur) ─── */
+
+.mes-annonces-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.annonce-item {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.annonce-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 24px;
+}
+
+.annonce-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.annonce-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.annonce-item-titre {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.annonce-item-type {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.annonce-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.annonce-candidatures-count {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.annonce-item-desc {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.annonce-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.annonce-edit-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg);
+}
+
+.btn-edit {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1.5px solid rgba(249, 115, 22, 0.25);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-edit:hover {
+  background: rgba(249, 115, 22, 0.2);
+}
+
+.btn-delete {
+  background: #fef2f2;
+  color: var(--danger);
+  border: 1.5px solid #fecaca;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}
+
+.confirm-delete {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.btn-secondary-sm {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--muted);
+}
+
+/* Type badge dans les cartes offres */
+.item-card-type {
+  display: inline-block;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 640px) {
+  .annonce-item-content {
+    flex-direction: column;
+  }
+  .annonce-item-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+  .filtres-grid {
+    flex-direction: column;
+  }
+}
