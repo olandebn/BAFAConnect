@@ -1085,3 +1085,226 @@ a {
     width: 100%;
   }
 }
+
+/* ─── LOGIN TABS (Connexion / Inscription) ─── */
+
+.login-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.login-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-bottom 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: inherit;
+}
+
+.login-tab.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+.login-tab:hover:not(.active) {
+  color: var(--text);
+}
+
+.login-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ─── CANDIDATURES (Animateur & Directeur) ─── */
+
+.candidatures-section {
+  margin-top: 10px;
+}
+
+.candidatures-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 18px 0;
+}
+
+.candidatures-empty {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.candidatures-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.candidature-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.candidature-item-directeur {
+  flex-wrap: wrap;
+}
+
+.candidature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.candidature-titre {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.candidature-lieu {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.candidature-statut-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.candidature-statut-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
+.statut-accepte {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statut-refuse {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.statut-attente {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.candidature-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-accept {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-accept:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.btn-accept:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-refuse {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-refuse:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-refuse:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── FORMULAIRE ANNONCE (CreerAnnonce) ─── */
+
+.action-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-card-header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.action-card-header p {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.annonce-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.annonce-form-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+/* ─── OFFRES : dates & postes ─── */
+
+.offer-dates,
+.offer-postes {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 4px 0;
+}

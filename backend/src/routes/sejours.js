@@ -34,10 +34,10 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT sejours.*, structures_directeurs.nom_structure 
-             FROM sejours 
-             JOIN structures_directeurs ON sejours.directeur_id = structures_directeurs.user_id 
-             ORDER BY created_at DESC`
+            `SELECT sejours.*, structures_directeurs.nom_structure
+             FROM sejours
+             LEFT JOIN structures_directeurs ON sejours.directeur_id = structures_directeurs.user_id
+             ORDER BY sejours.date_debut ASC`
         );
         res.json(result.rows);
     } catch (err) {

@@ -11,6 +11,7 @@ function App() {
   const [sejours, setSejours] = useState([])
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
+  const [postuleNotif, setPostuleNotif] = useState('') // Feedback candidature
 
   const fetchSejours = () => {
     api.get('/sejours')
@@ -35,6 +36,17 @@ function App() {
     localStorage.setItem('role', userRole)
     setRole(userRole)
     setIsLoggedIn(true)
+  }
+
+  const handlePostuler = async (sejourId) => {
+    try {
+      await api.post('/candidatures', { sejour_id: sejourId })
+      setPostuleNotif('Candidature envoyée avec succès !')
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Erreur lors de la candidature.'
+      setPostuleNotif(msg)
+    }
+    setTimeout(() => setPostuleNotif(''), 4000)
   }
 
   return (
@@ -288,16 +300,31 @@ function App() {
               <div className="view-section">
                 <h2 className="title-center">Annonces disponibles</h2>
 
+                {postuleNotif && (
+                  <div className={`profile-alert ${postuleNotif.includes('succès') ? 'profile-alert-success' : 'profile-alert-error'}`}>
+                    {postuleNotif}
+                  </div>
+                )}
+
                 <div className="annonces-grid">
                   {sejours.map((s) => (
                     <div key={s.id} className="card item-card">
                       <div className="badge">📍 {s.lieu}</div>
                       <h3>{s.titre}</h3>
                       <p className="subtitle">{s.nom_structure || 'Structure partenaire'}</p>
+                      {s.date_debut && (
+                        <p className="offer-dates">
+                          🗓️ {new Date(s.date_debut).toLocaleDateString('fr-FR')}
+                          {s.date_fin && ` → ${new Date(s.date_fin).toLocaleDateString('fr-FR')}`}
+                        </p>
+                      )}
+                      {s.nombre_postes && (
+                        <p className="offer-postes">👥 {s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''}</p>
+                      )}
                       <p className="description">{s.description}</p>
                       <button
                         className="btn-primary"
-                        onClick={() => api.post('/candidatures', { sejour_id: s.id })}
+                        onClick={() => handlePostuler(s.id)}
                       >
                         Postuler au séjour
                       </button>

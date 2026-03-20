@@ -3,11 +3,19 @@ import api from './api/axios';
 
 function GestionCandidatures() {
   const [candidats, setCandidats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState(null); // ID de la candidature en cours d'action
 
   const fetchCandidats = () => {
+    setIsLoading(true);
     api.get('/recrutement/candidats-recus')
       .then(res => setCandidats(res.data))
-      .catch(err => console.error("Erreur", err));
+      .catch(err => {
+        console.error("Erreur", err);
+        setError("Impossible de charger les candidatures.");
+      })
+      .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
@@ -15,44 +23,67 @@ function GestionCandidatures() {
   }, []);
 
   const handleAction = async (id, nouveauStatut) => {
+    setActionLoading(id);
+    setError('');
     try {
       await api.patch(`/recrutement/candidatures/${id}`, { statut: nouveauStatut });
-      alert(`Candidature ${nouveauStatut} !`);
-      fetchCandidats(); // On rafraîchit la liste
+      fetchCandidats();
     } catch (err) {
-      alert("Erreur lors de l'action");
+      setError("Erreur lors de la mise à jour du statut.");
+    } finally {
+      setActionLoading(null);
     }
   };
 
+  const statutLabel = (statut) => {
+    if (statut === 'acceptée' || statut === 'acceptee') return { label: 'Acceptée', cls: 'statut-accepte' };
+    if (statut === 'refusée' || statut === 'refusee') return { label: 'Refusée', cls: 'statut-refuse' };
+    return { label: 'En attente', cls: 'statut-attente' };
+  };
+
   return (
-    <div style={{ marginTop: '30px', borderTop: '2px solid #646cff', paddingTop: '20px' }}>
-      <h2 style={{ background: '#333', display: 'inline-block', padding: '5px 15px', borderRadius: '5px' }}>
-        📩 Candidatures reçues
-      </h2>
-      
-      {candidats.length === 0 ? (
-        <p style={{ fontStyle: 'italic', color: '#888' }}>Aucune candidature pour le moment.</p>
+    <div className="candidatures-section">
+      <h2 className="candidatures-title">📩 Candidatures reçues</h2>
+
+      {error && <div className="profile-alert profile-alert-error">{error}</div>}
+
+      {isLoading ? (
+        <p className="candidatures-empty">Chargement...</p>
+      ) : candidats.length === 0 ? (
+        <p className="candidatures-empty">Aucune candidature reçue pour le moment.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '15px', marginTop: '20px' }}>
-          {candidats.map(c => (
-            <div key={c.candidature_id} style={{ background: '#242424', padding: '15px', borderRadius: '12px', border: '1px solid #444', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ textAlign: 'left' }}>
-                <strong style={{ fontSize: '1.1rem', color: '#646cff' }}>{c.candidat_nom}</strong>
-                <p style={{ margin: '5px 0' }}>Postule pour : <em>{c.sejour_titre}</em></p>
-                <span style={{ fontSize: '0.8rem', background: '#444', padding: '2px 8px', borderRadius: '10px' }}>
-                  Statut actuel : {c.statut}
-                </span>
+        <div className="candidatures-list">
+          {candidats.map(c => {
+            const { label, cls } = statutLabel(c.statut);
+            const loading = actionLoading === c.candidature_id;
+
+            return (
+              <div key={c.candidature_id} className="candidature-item candidature-item-directeur">
+                <div className="candidature-info">
+                  <h4 className="candidature-titre">{c.candidat_nom || 'Anonyme'}</h4>
+                  <p className="candidature-lieu">Postule pour : <em>{c.sejour_titre}</em></p>
+                  <span className={`candidature-statut-tag ${cls}`}>{label}</span>
+                </div>
+
+                <div className="candidature-actions">
+                  <button
+                    className="btn-accept"
+                    onClick={() => handleAction(c.candidature_id, 'acceptée')}
+                    disabled={loading || c.statut === 'acceptée' || c.statut === 'acceptee'}
+                  >
+                    {loading ? '...' : 'Accepter'}
+                  </button>
+                  <button
+                    className="btn-refuse"
+                    onClick={() => handleAction(c.candidature_id, 'refusée')}
+                    disabled={loading || c.statut === 'refusée' || c.statut === 'refusee'}
+                  >
+                    {loading ? '...' : 'Refuser'}
+                  </button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => handleAction(c.candidature_id, 'acceptée')} style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer' }}>
-                  Accepter
-                </button>
-                <button onClick={() => handleAction(c.candidature_id, 'refusée')} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer' }}>
-                  Refuser
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

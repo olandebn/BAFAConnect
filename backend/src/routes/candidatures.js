@@ -36,22 +36,25 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// 2. VOIR MES CANDIDATURES (Pour l'animateur)
-router.get('/mes-candidatures', authenticateToken, async (req, res) => {
+// 2. VOIR MES CANDIDATURES (Pour l'animateur) — routes /me et /mes-candidatures
+const getMesCandidatures = async (req, res) => {
     const { id } = req.user;
-
     try {
         const result = await pool.query(
-            `SELECT candidatures.*, sejours.titre, sejours.lieu 
-             FROM candidatures 
-             JOIN sejours ON candidatures.sejour_id = sejours.id 
-             WHERE animateur_id = $1`,
+            `SELECT candidatures.*, sejours.titre AS sejour_titre, sejours.lieu
+             FROM candidatures
+             JOIN sejours ON candidatures.sejour_id = sejours.id
+             WHERE animateur_id = $1
+             ORDER BY candidatures.date_candidature DESC`,
             [id]
         );
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: "Erreur serveur" });
     }
-});
+};
+
+router.get('/me', authenticateToken, getMesCandidatures);
+router.get('/mes-candidatures', authenticateToken, getMesCandidatures);
 
 export default router;

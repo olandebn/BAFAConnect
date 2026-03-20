@@ -13,7 +13,7 @@ router.get('/candidats-recus', authenticateToken, async (req, res) => {
         const query = `
             SELECT c.id as candidature_id, c.statut, p.nom as candidat_nom, s.titre as sejour_titre
             FROM candidatures c
-            JOIN animateurs_profiles p ON c.user_id = p.user_id
+            JOIN animateurs_profiles p ON c.animateur_id = p.user_id
             JOIN sejours s ON c.sejour_id = s.id
             WHERE s.directeur_id = $1
         `;

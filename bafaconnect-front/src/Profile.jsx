@@ -13,6 +13,7 @@ function Profile() {
     prenom: '',
     bafa_status: '',
     nom_structure: '',
+    type_structure: '',
     ville: '',
     description: ''
   })
@@ -43,6 +44,7 @@ function Profile() {
           prenom: '',
           bafa_status: '',
           nom_structure: res.data.nom_structure || '',
+          type_structure: res.data.type_structure || '',
           ville: res.data.ville || '',
           description: res.data.description || ''
         })
@@ -139,6 +141,11 @@ function Profile() {
               </div>
 
               <div className="profile-info-box">
+                <span className="profile-label">Type de structure</span>
+                <strong>{user?.type_structure || 'Non renseigné'}</strong>
+              </div>
+
+              <div className="profile-info-box">
                 <span className="profile-label">Ville</span>
                 <strong>{user?.ville || 'Non renseignée'}</strong>
               </div>
@@ -216,6 +223,24 @@ function Profile() {
                     onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="type_structure">Type de structure</label>
+                <select
+                  id="type_structure"
+                  value={formData.type_structure}
+                  onChange={(e) => setFormData({ ...formData, type_structure: e.target.value })}
+                  className="profile-select"
+                >
+                  <option value="">— Sélectionner —</option>
+                  <option value="Association">Association</option>
+                  <option value="Centre de loisirs">Centre de loisirs</option>
+                  <option value="Colonie de vacances">Colonie de vacances</option>
+                  <option value="Établissement scolaire">Établissement scolaire</option>
+                  <option value="Collectivité territoriale">Collectivité territoriale</option>
+                  <option value="Autre">Autre</option>
+                </select>
               </div>
 
               <div className="form-group">

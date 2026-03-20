@@ -47,7 +47,7 @@ CREATE TABLE candidatures (
     sejour_id UUID REFERENCES sejours(id) ON DELETE CASCADE,
     animateur_id UUID REFERENCES users(id) ON DELETE CASCADE,
     date_candidature TIMESTAMP DEFAULT NOW(),
-    statut TEXT CHECK (statut IN ('en attente', 'acceptee', 'refusee')) DEFAULT 'en attente'
+    statut TEXT CHECK (statut IN ('en attente', 'acceptee', 'refusee', 'acceptée', 'refusée')) DEFAULT 'en attente'
 );
 
 -- TABLE DES MESSAGES

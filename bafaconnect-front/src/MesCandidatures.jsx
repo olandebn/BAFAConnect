@@ -1,40 +1,62 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
 
+const statutColor = (statut) => {
+  if (statut === 'acceptée' || statut === 'acceptee') return 'var(--color-success, #22c55e)';
+  if (statut === 'refusée' || statut === 'refusee') return 'var(--color-danger, #ef4444)';
+  return 'var(--color-warning, #f59e0b)';
+};
+
 function MesCandidatures() {
   const [candidatures, setCandidatures] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchMesCandidatures();
   }, []);
 
   const fetchMesCandidatures = () => {
+    setIsLoading(true);
     api.get('/candidatures/me')
-      .then(res => {
-        // CORRECTION : On utilise setCandidatures et non setSejours
-        setCandidatures(res.data);
+      .then(res => setCandidatures(res.data))
+      .catch(err => {
+        console.error("Erreur récup candidatures :", err);
+        setError("Impossible de charger vos candidatures.");
       })
-      .catch(err => console.error("Erreur récup candidatures :", err));
+      .finally(() => setIsLoading(false));
   };
 
+  if (isLoading) {
+    return (
+      <div className="candidatures-section">
+        <h2 className="candidatures-title">📂 Mes candidatures</h2>
+        <p className="candidatures-empty">Chargement...</p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ marginTop: '30px', textAlign: 'left' }}>
-      <h2 style={{ color: '#646cff' }}>📂 Mes candidatures envoyées</h2>
+    <div className="candidatures-section">
+      <h2 className="candidatures-title">📂 Mes candidatures</h2>
+
+      {error && <div className="profile-alert profile-alert-error">{error}</div>}
+
       {candidatures.length === 0 ? (
-        <p style={{ color: '#bbb' }}>Vous n'avez pas encore postulé à des séjours.</p>
+        <p className="candidatures-empty">Vous n'avez pas encore postulé à des séjours.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '10px' }}>
+        <div className="candidatures-list">
           {candidatures.map(c => (
-            <div key={c.id} style={{ background: '#333', padding: '15px', borderRadius: '10px', borderLeft: '5px solid #646cff' }}>
-              <h4 style={{ margin: '0 0 5px 0' }}>{c.sejour_titre}</h4>
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                Statut : <span style={{ 
-                  color: c.statut === 'acceptée' ? '#28a745' : c.statut === 'refusée' ? '#dc3545' : '#ffc107',
-                  fontWeight: 'bold' 
-                }}>
-                  {c.statut.toUpperCase()}
-                </span>
-              </p>
+            <div key={c.id} className="candidature-item">
+              <div className="candidature-info">
+                <h4 className="candidature-titre">{c.sejour_titre || c.titre || '—'}</h4>
+                {c.lieu && (
+                  <span className="candidature-lieu">📍 {c.lieu}</span>
+                )}
+              </div>
+              <div className="candidature-statut-badge" style={{ color: statutColor(c.statut) }}>
+                {(c.statut || '').toUpperCase()}
+              </div>
             </div>
           ))}
         </div>
