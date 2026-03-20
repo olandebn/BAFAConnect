@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { pool } from '../db.js';
 import { sendPasswordResetEmail } from '../emailService.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -145,6 +146,45 @@ router.post('/reset-password', async (req, res) => {
         res.json({ message: 'Mot de passe mis à jour avec succès !' });
     } catch (err) {
         console.error('Erreur reset-password :', err);
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+});
+
+// CHANGER SON MOT DE PASSE (connecté)
+router.put('/change-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Champs requis.' });
+    if (newPassword.length < 6) return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 6 caractères.' });
+
+    try {
+        const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+        const isValid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+        if (!isValid) return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashed, req.user.id]);
+        res.json({ message: 'Mot de passe mis à jour avec succès !' });
+    } catch (err) {
+        console.error('Erreur change-password :', err);
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+});
+
+// CHANGER SON EMAIL (connecté)
+router.put('/change-email', authenticateToken, async (req, res) => {
+    const { newEmail, password } = req.body;
+    if (!newEmail || !password) return res.status(400).json({ error: 'Champs requis.' });
+
+    try {
+        const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+        const isValid = await bcrypt.compare(password, result.rows[0].password_hash);
+        if (!isValid) return res.status(400).json({ error: 'Mot de passe incorrect.' });
+
+        await pool.query('UPDATE users SET email = $1 WHERE id = $2', [newEmail, req.user.id]);
+        res.json({ message: 'Email mis à jour avec succès !', email: newEmail });
+    } catch (err) {
+        if (err.code === '23505') return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+        console.error('Erreur change-email :', err);
         res.status(500).json({ error: 'Erreur serveur.' });
     }
 });

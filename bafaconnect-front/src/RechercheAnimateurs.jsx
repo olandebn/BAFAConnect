@@ -7,6 +7,26 @@ function RechercheAnimateurs({ onContacter }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
+  const [favorisIds, setFavorisIds] = useState(new Set())
+  const [favoriNotif, setFavoriNotif] = useState('')
+
+  const toggleFavori = async (animateur) => {
+    const isFavori = favorisIds.has(animateur.user_id)
+    try {
+      if (isFavori) {
+        await api.delete(`/favoris/${animateur.user_id}`)
+        setFavorisIds(prev => { const s = new Set(prev); s.delete(animateur.user_id); return s })
+        setFavoriNotif(`${animateur.nom || 'Animateur'} retiré des favoris`)
+      } else {
+        await api.post(`/favoris/${animateur.user_id}`)
+        setFavorisIds(prev => new Set([...prev, animateur.user_id]))
+        setFavoriNotif(`${animateur.nom || 'Animateur'} ajouté aux favoris ❤️`)
+      }
+    } catch {
+      setFavoriNotif('Erreur lors de la mise à jour des favoris')
+    }
+    setTimeout(() => setFavoriNotif(''), 3000)
+  }
 
   const set = (field) => (e) => setFiltres({ ...filtres, [field]: e.target.value })
 
@@ -92,6 +112,7 @@ function RechercheAnimateurs({ onContacter }) {
       </form>
 
       {error && <div className="profile-alert profile-alert-error">{error}</div>}
+      {favoriNotif && <div className="notif-toast toast-success">{favoriNotif}</div>}
 
       {/* Résultats */}
       {searched && !loading && (
@@ -142,14 +163,23 @@ function RechercheAnimateurs({ onContacter }) {
                         <p className="animateur-card-dispos">🗓️ Disponible : {dispos}</p>
                       )}
 
-                      {onContacter && (
+                      <div className="animateur-card-actions-row">
+                        {onContacter && (
+                          <button
+                            className="btn-primary animateur-card-btn"
+                            onClick={() => onContacter({ id: a.user_id, nom: a.nom, role: 'animateur' })}
+                          >
+                            💬 Contacter
+                          </button>
+                        )}
                         <button
-                          className="btn-primary animateur-card-btn"
-                          onClick={() => onContacter({ id: a.user_id, nom: a.nom, role: 'animateur' })}
+                          className={`btn-favori ${favorisIds.has(a.user_id) ? 'btn-favori-active' : ''}`}
+                          onClick={() => toggleFavori(a)}
+                          title={favorisIds.has(a.user_id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                         >
-                          💬 Contacter
+                          {favorisIds.has(a.user_id) ? '❤️' : '🤍'}
                         </button>
-                      )}
+                      </div>
                     </div>
                   )
                 })}
