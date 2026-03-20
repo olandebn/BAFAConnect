@@ -35,7 +35,7 @@ router.post('/me', authenticateToken, async (req, res) => {
         const { id, role } = req.user;
         
 if (role === 'animateur') {
-            const { nom, prenom, bafa_status, ville, competences, experiences, dispo_debut, dispo_fin } = req.body;
+            const { nom, prenom, bafa_status, ville, competences, experiences, dispo_debut, dispo_fin, photo_url } = req.body;
 
             const nomComplet = `${prenom} ${nom}`.trim();
 
@@ -49,38 +49,40 @@ if (role === 'animateur') {
                 : null;
 
             const query = `
-                INSERT INTO animateurs_profiles (user_id, nom, diplomes, ville, competences, experiences, disponibilites)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO animateurs_profiles (user_id, nom, diplomes, ville, competences, experiences, disponibilites, photo_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (user_id) DO UPDATE SET
                     nom           = EXCLUDED.nom,
                     diplomes      = EXCLUDED.diplomes,
                     ville         = EXCLUDED.ville,
                     competences   = EXCLUDED.competences,
                     experiences   = EXCLUDED.experiences,
-                    disponibilites = EXCLUDED.disponibilites
+                    disponibilites = EXCLUDED.disponibilites,
+                    photo_url     = COALESCE(EXCLUDED.photo_url, animateurs_profiles.photo_url)
                 RETURNING *;
             `;
 
-            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites];
+            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites, photo_url || null];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil animateur mis à jour", profil: result.rows[0] });
         }
 
         else if (role === 'directeur') {
-            const { nom_structure, type_structure, ville, description } = req.body;
+            const { nom_structure, type_structure, ville, description, photo_url } = req.body;
 
             const query = `
-                INSERT INTO structures_directeurs (user_id, nom_structure, type_structure, ville, description)
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO structures_directeurs (user_id, nom_structure, type_structure, ville, description, photo_url)
+                VALUES ($1, $2, $3, $4, $5, $6)
                 ON CONFLICT (user_id) DO UPDATE SET
-                    nom_structure = EXCLUDED.nom_structure,
+                    nom_structure  = EXCLUDED.nom_structure,
                     type_structure = EXCLUDED.type_structure,
-                    ville = EXCLUDED.ville,
-                    description = EXCLUDED.description
+                    ville          = EXCLUDED.ville,
+                    description    = EXCLUDED.description,
+                    photo_url      = COALESCE(EXCLUDED.photo_url, structures_directeurs.photo_url)
                 RETURNING *;
             `;
-            
-            const values = [id, nom_structure, type_structure, ville, description];
+
+            const values = [id, nom_structure, type_structure, ville, description, photo_url || null];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil structure mis à jour", profil: result.rows[0] });
         }
@@ -88,6 +90,51 @@ if (role === 'animateur') {
     } catch (err) {
         console.error("Erreur mise à jour profil :", err);
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour' });
+    }
+});
+
+// RECHERCHE D'ANIMATEURS (pour les directeurs)
+router.get('/animateurs', authenticateToken, async (req, res) => {
+    const { role } = req.user;
+    if (role !== 'directeur') return res.status(403).json({ error: 'Accès réservé aux directeurs.' });
+
+    const { ville, statut, q } = req.query;
+
+    try {
+        let query = `
+            SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
+                   ap.experiences, ap.disponibilites, ap.photo_url, u.email
+            FROM animateurs_profiles ap
+            JOIN users u ON u.id = ap.user_id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (ville) {
+            params.push(`%${ville.toLowerCase()}%`);
+            query += ` AND LOWER(COALESCE(ap.ville,'')) LIKE $${params.length}`;
+        }
+        if (statut) {
+            params.push(statut);
+            query += ` AND $${params.length} = ANY(ap.diplomes)`;
+        }
+        if (q) {
+            params.push(`%${q.toLowerCase()}%`);
+            const idx = params.length;
+            query += ` AND (
+                LOWER(ap.nom) LIKE $${idx}
+                OR EXISTS (SELECT 1 FROM unnest(ap.competences) c WHERE LOWER(c) LIKE $${idx})
+                OR EXISTS (SELECT 1 FROM unnest(ap.experiences) e WHERE LOWER(e) LIKE $${idx})
+            )`;
+        }
+
+        query += ' ORDER BY ap.nom ASC LIMIT 50';
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Erreur recherche animateurs :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
     }
 });
 

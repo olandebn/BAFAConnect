@@ -67,7 +67,57 @@ router.get('/mes-sejours', authenticateToken, async (req, res) => {
     }
 });
 
-// 4. MODIFIER UN SÉJOUR
+// 4. STATS DIRECTEUR — tableau de bord
+router.get('/stats', authenticateToken, async (req, res) => {
+    const { id, role } = req.user;
+    if (role !== 'directeur') return res.status(403).json({ error: "Accès réservé aux directeurs." });
+
+    try {
+        const annonceResult = await pool.query(
+            'SELECT COUNT(*) AS nb_annonces FROM sejours WHERE directeur_id = $1', [id]
+        );
+
+        const candidaturesResult = await pool.query(
+            `SELECT
+                COUNT(*) AS nb_total,
+                COUNT(*) FILTER (WHERE statut = 'acceptée' OR statut = 'acceptee') AS nb_acceptees,
+                COUNT(*) FILTER (WHERE statut = 'refusée' OR statut = 'refusee') AS nb_refusees,
+                COUNT(*) FILTER (WHERE statut = 'en attente') AS nb_en_attente
+             FROM candidatures
+             WHERE sejour_id IN (SELECT id FROM sejours WHERE directeur_id = $1)`,
+            [id]
+        );
+
+        const recentesResult = await pool.query(
+            `SELECT sejours.id, sejours.titre, sejours.lieu, sejours.date_debut, sejours.type,
+                (SELECT COUNT(*) FROM candidatures WHERE sejour_id = sejours.id) AS nb_candidatures
+             FROM sejours WHERE directeur_id = $1
+             ORDER BY sejours.id DESC LIMIT 3`,
+            [id]
+        );
+
+        const nb_annonces = parseInt(annonceResult.rows[0].nb_annonces);
+        const stats = candidaturesResult.rows[0];
+        const nb_total = parseInt(stats.nb_total);
+        const nb_acceptees = parseInt(stats.nb_acceptees);
+        const taux_acceptation = nb_total > 0 ? Math.round((nb_acceptees / nb_total) * 100) : 0;
+
+        res.json({
+            nb_annonces,
+            nb_candidatures: nb_total,
+            nb_acceptees,
+            nb_refusees: parseInt(stats.nb_refusees),
+            nb_en_attente: parseInt(stats.nb_en_attente),
+            taux_acceptation,
+            annonces_recentes: recentesResult.rows
+        });
+    } catch (err) {
+        console.error("ERREUR STATS :", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// 6. MODIFIER UN SÉJOUR
 router.put('/:id', authenticateToken, async (req, res) => {
     const { id: userId, role } = req.user;
     const { id: sejourId } = req.params;
@@ -92,7 +142,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// 5. SUPPRIMER UN SÉJOUR
+// 7. SUPPRIMER UN SÉJOUR
 router.delete('/:id', authenticateToken, async (req, res) => {
     const { id: userId, role } = req.user;
     const { id: sejourId } = req.params;

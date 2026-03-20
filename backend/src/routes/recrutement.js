@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { sendCandidatureNotification } from '../emailService.js';
 
 const router = express.Router();
 
@@ -43,6 +44,26 @@ router.patch('/candidatures/:id', authenticateToken, async (req, res) => {
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Candidature non trouvée" });
+        }
+
+        // Envoyer un email de notification à l'animateur
+        try {
+            const cand = result.rows[0];
+            const infoResult = await pool.query(
+                `SELECT u.email, p.nom, s.titre AS sejour_titre
+                 FROM candidatures c
+                 JOIN users u ON u.id = c.animateur_id
+                 LEFT JOIN animateurs_profiles p ON p.user_id = c.animateur_id
+                 JOIN sejours s ON s.id = c.sejour_id
+                 WHERE c.id = $1`,
+                [id]
+            );
+            if (infoResult.rows.length > 0) {
+                const { email, nom, sejour_titre } = infoResult.rows[0];
+                await sendCandidatureNotification({ email, animateurNom: nom, sejourTitre: sejour_titre, statut });
+            }
+        } catch (emailErr) {
+            console.error('Erreur envoi notif email :', emailErr.message);
         }
 
         res.json({ message: "Statut mis à jour !", candidature: result.rows[0] });

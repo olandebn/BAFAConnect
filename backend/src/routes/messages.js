@@ -35,33 +35,45 @@ router.get('/conversations', authenticateToken, async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT
-                interlocuteur_id,
-                u.email AS interlocuteur_email,
-                COALESCE(ap.nom, sd.nom_structure, u.email) AS interlocuteur_nom,
-                u.role AS interlocuteur_role,
-                conv.dernier_message,
-                conv.dernier_envoi,
-                conv.non_lus
-            FROM (
+            `WITH conv_ranked AS (
                 SELECT
-                    CASE WHEN expediteur_id = $1 THEN destinataire_id ELSE expediteur_id END AS interlocuteur_id,
-                    MAX(envoye_le) AS dernier_envoi,
-                    (
-                        SELECT contenu FROM messages m2
-                        WHERE (m2.expediteur_id = $1 AND m2.destinataire_id = CASE WHEN m.expediteur_id = $1 THEN m.destinataire_id ELSE m.expediteur_id END)
-                           OR (m2.destinataire_id = $1 AND m2.expediteur_id = CASE WHEN m.expediteur_id = $1 THEN m.destinataire_id ELSE m.expediteur_id END)
-                        ORDER BY envoye_le DESC LIMIT 1
-                    ) AS dernier_message,
-                    COUNT(*) FILTER (WHERE destinataire_id = $1 AND lu = FALSE) AS non_lus
-                FROM messages m
-                WHERE expediteur_id = $1 OR destinataire_id = $1
+                    CASE WHEN expediteur_id = $1::uuid THEN destinataire_id
+                         ELSE expediteur_id END                              AS interlocuteur_id,
+                    contenu,
+                    envoye_le,
+                    CASE WHEN destinataire_id = $1::uuid AND lu = false
+                         THEN 1 ELSE 0 END                                   AS est_non_lu,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY CASE WHEN expediteur_id = $1::uuid
+                                          THEN destinataire_id
+                                          ELSE expediteur_id END
+                        ORDER BY envoye_le DESC
+                    ) AS rn
+                FROM messages
+                WHERE expediteur_id = $1::uuid OR destinataire_id = $1::uuid
+            ),
+            conv_summary AS (
+                SELECT
+                    interlocuteur_id,
+                    MAX(envoye_le)                                   AS dernier_envoi,
+                    SUM(est_non_lu)                                  AS non_lus,
+                    MAX(CASE WHEN rn = 1 THEN contenu END)           AS dernier_message
+                FROM conv_ranked
                 GROUP BY interlocuteur_id
-            ) conv
-            JOIN users u ON u.id = conv.interlocuteur_id
+            )
+            SELECT
+                cs.interlocuteur_id,
+                u.email                                              AS interlocuteur_email,
+                COALESCE(ap.nom, sd.nom_structure, u.email)          AS interlocuteur_nom,
+                u.role                                               AS interlocuteur_role,
+                cs.dernier_message,
+                cs.dernier_envoi,
+                cs.non_lus
+            FROM conv_summary cs
+            JOIN users u ON u.id = cs.interlocuteur_id
             LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
             LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
-            ORDER BY conv.dernier_envoi DESC`,
+            ORDER BY cs.dernier_envoi DESC`,
             [id]
         );
         res.json(result.rows);

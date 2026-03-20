@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
+import AvisSection from './AvisSection';
 
 function GestionCandidatures({ onContacter }) {
   const [candidats, setCandidats] = useState([]);
+  const [avisOuvert, setAvisOuvert] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
@@ -58,37 +60,53 @@ function GestionCandidatures({ onContacter }) {
             const loading = actionLoading === c.candidature_id;
 
             return (
-              <div key={c.candidature_id} className="candidature-item candidature-item-directeur">
-                <div className="candidature-info">
-                  <h4 className="candidature-titre">{c.candidat_nom || 'Anonyme'}</h4>
-                  <p className="candidature-lieu">Postule pour : <em>{c.sejour_titre}</em></p>
-                  <span className={`candidature-statut-tag ${cls}`}>{label}</span>
-                </div>
+              <div key={c.candidature_id}>
+                <div className="candidature-item candidature-item-directeur">
+                  <div className="candidature-info">
+                    <h4 className="candidature-titre">{c.candidat_nom || 'Anonyme'}</h4>
+                    <p className="candidature-lieu">Postule pour : <em>{c.sejour_titre}</em></p>
+                    <span className={`candidature-statut-tag ${cls}`}>{label}</span>
+                  </div>
 
-                <div className="candidature-actions">
-                  <button
-                    className="btn-accept"
-                    onClick={() => handleAction(c.candidature_id, 'acceptée')}
-                    disabled={loading || c.statut === 'acceptée' || c.statut === 'acceptee'}
-                  >
-                    {loading ? '...' : 'Accepter'}
-                  </button>
-                  <button
-                    className="btn-refuse"
-                    onClick={() => handleAction(c.candidature_id, 'refusée')}
-                    disabled={loading || c.statut === 'refusée' || c.statut === 'refusee'}
-                  >
-                    {loading ? '...' : 'Refuser'}
-                  </button>
-                  {onContacter && (
+                  <div className="candidature-actions">
                     <button
-                      className="btn-contacter"
-                      onClick={() => onContacter({ id: c.animateur_id, nom: c.candidat_nom, role: 'animateur' })}
+                      className="btn-accept"
+                      onClick={() => handleAction(c.candidature_id, 'acceptée')}
+                      disabled={loading || c.statut === 'acceptée' || c.statut === 'acceptee'}
                     >
-                      💬 Contacter
+                      {loading ? '...' : 'Accepter'}
                     </button>
-                  )}
+                    <button
+                      className="btn-refuse"
+                      onClick={() => handleAction(c.candidature_id, 'refusée')}
+                      disabled={loading || c.statut === 'refusée' || c.statut === 'refusee'}
+                    >
+                      {loading ? '...' : 'Refuser'}
+                    </button>
+                    {onContacter && (
+                      <button
+                        className="btn-contacter"
+                        onClick={() => onContacter({ id: c.animateur_id, nom: c.candidat_nom, role: 'animateur' })}
+                      >
+                        💬 Contacter
+                      </button>
+                    )}
+                    {(c.statut === 'acceptée' || c.statut === 'acceptee') && (
+                      <button
+                        className="btn-secondary"
+                        style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                        onClick={() => setAvisOuvert(avisOuvert === c.animateur_id ? null : c.animateur_id)}
+                      >
+                        ⭐ Avis
+                      </button>
+                    )}
+                  </div>
                 </div>
+                {avisOuvert === c.animateur_id && (
+                  <div style={{ marginTop: 12 }}>
+                    <AvisSection cibleId={c.animateur_id} canLeaveAvis={true} />
+                  </div>
+                )}
               </div>
             );
           })}

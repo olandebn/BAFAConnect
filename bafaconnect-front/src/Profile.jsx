@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
+import AvisSection from './AvisSection'
 
 function Profile() {
   const [user, setUser] = useState(null)
@@ -16,7 +17,9 @@ function Profile() {
     experiencesText: '',   // idem
     dispo_debut: '', dispo_fin: '',
     // Directeur
-    nom_structure: '', type_structure: '', description: ''
+    nom_structure: '', type_structure: '', description: '',
+    // Commun
+    photo_url: ''
   })
 
   useEffect(() => { fetchProfile() }, [])
@@ -43,7 +46,8 @@ function Profile() {
           experiencesText: (res.data.experiences || []).join('\n'),
           dispo_debut: dispo.debut || '',
           dispo_fin: dispo.fin || '',
-          nom_structure: '', type_structure: '', description: ''
+          nom_structure: '', type_structure: '', description: '',
+          photo_url: res.data.photo_url || ''
         })
       } else {
         setFormData({
@@ -52,7 +56,8 @@ function Profile() {
           dispo_debut: '', dispo_fin: '',
           nom_structure: res.data.nom_structure || '',
           type_structure: res.data.type_structure || '',
-          description: res.data.description || ''
+          description: res.data.description || '',
+          photo_url: res.data.photo_url || ''
         })
       }
     } catch (err) {
@@ -87,6 +92,18 @@ function Profile() {
 
   const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value })
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image trop lourde (max 2 Mo).')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => setFormData(prev => ({ ...prev, photo_url: ev.target.result }))
+    reader.readAsDataURL(file)
+  }
+
   const renderChips = (arr) => {
     if (!arr || arr.length === 0) return <span className="profile-empty-chip">Non renseigné</span>
     return (
@@ -105,16 +122,26 @@ function Profile() {
   return (
     <div className="profile-card">
       <div className="profile-header">
-        <div>
-          <span className="profile-kicker">
-            {role === 'animateur' ? 'Espace animateur' : 'Espace directeur'}
-          </span>
-          <h2>{role === 'animateur' ? 'Mon profil animateur' : 'Mon profil directeur'}</h2>
-          <p>
-            {role === 'animateur'
-              ? 'Complétez votre profil pour être visible et postuler aux meilleures missions.'
-              : 'Gérez les informations de votre structure et présentez votre organisation.'}
-          </p>
+        <div className="profile-header-left">
+          <div className="profile-avatar">
+            {formData.photo_url
+              ? <img src={formData.photo_url} alt="Photo de profil" className="profile-avatar-img" />
+              : <div className="profile-avatar-placeholder">
+                  {role === 'animateur' ? '🎒' : '🏕️'}
+                </div>
+            }
+          </div>
+          <div>
+            <span className="profile-kicker">
+              {role === 'animateur' ? 'Espace animateur' : 'Espace directeur'}
+            </span>
+            <h2>{role === 'animateur' ? 'Mon profil animateur' : 'Mon profil directeur'}</h2>
+            <p>
+              {role === 'animateur'
+                ? 'Complétez votre profil pour être visible et postuler aux meilleures missions.'
+                : 'Gérez les informations de votre structure et présentez votre organisation.'}
+            </p>
+          </div>
         </div>
         {!isEditing && (
           <button className="btn-primary profile-edit-btn" onClick={() => setIsEditing(true)}>
@@ -297,6 +324,34 @@ function Profile() {
             </>
           )}
 
+          <div className="form-group">
+            <label>Photo de profil <span className="form-hint">(JPG/PNG, max 2 Mo)</span></label>
+            <div className="photo-upload-area">
+              {formData.photo_url && (
+                <img src={formData.photo_url} alt="Aperçu" className="photo-preview" />
+              )}
+              <label className="btn-secondary photo-upload-btn" htmlFor="photo-input">
+                {formData.photo_url ? '🔄 Changer la photo' : '📷 Ajouter une photo'}
+              </label>
+              <input
+                id="photo-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoChange}
+                style={{ display: 'none' }}
+              />
+              {formData.photo_url && (
+                <button
+                  type="button"
+                  className="btn-delete-sm"
+                  onClick={() => setFormData(prev => ({ ...prev, photo_url: '' }))}
+                >
+                  Supprimer
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="profile-actions">
             <button type="submit" className="btn-primary profile-action-btn">Enregistrer</button>
             <button type="button" className="btn-secondary profile-action-btn"
@@ -305,6 +360,13 @@ function Profile() {
             </button>
           </div>
         </form>
+      )}
+
+      {/* Avis reçus sur ce profil */}
+      {user && !isEditing && (
+        <div style={{ marginTop: 32 }}>
+          <AvisSection cibleId={user.id} canLeaveAvis={false} />
+        </div>
       )}
     </div>
   )

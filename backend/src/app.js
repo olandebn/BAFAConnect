@@ -7,6 +7,7 @@ import profileRoutes from './routes/profiles.js';
 import candidatureRoutes from './routes/candidatures.js';
 import recrutementRoutes from './routes/recrutement.js';
 import messageRoutes from './routes/messages.js';
+import avisRoutes from './routes/avis.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/profiles', profileRoutes);
 app.use('/candidatures', candidatureRoutes);
 app.use('/recrutement', recrutementRoutes);
 app.use('/messages', messageRoutes);
+app.use('/avis', avisRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
