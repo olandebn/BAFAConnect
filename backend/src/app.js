@@ -5,7 +5,8 @@ import authRoutes from './routes/auth.js';
 import sejourRoutes from './routes/sejours.js';
 import profileRoutes from './routes/profiles.js';
 import candidatureRoutes from './routes/candidatures.js';
-import recrutementRoutes from './routes/recrutement.js'; // AJOUT : Import des routes directeur
+import recrutementRoutes from './routes/recrutement.js';
+import messageRoutes from './routes/messages.js';
 
 dotenv.config();
 
@@ -20,7 +21,8 @@ app.use('/auth', authRoutes);
 app.use('/sejours', sejourRoutes);
 app.use('/profiles', profileRoutes);
 app.use('/candidatures', candidatureRoutes);
-app.use('/recrutement', recrutementRoutes); // AJOUT : Enregistrement des routes de recrutement
+app.use('/recrutement', recrutementRoutes);
+app.use('/messages', messageRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

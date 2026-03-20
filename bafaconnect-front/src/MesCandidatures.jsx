@@ -7,7 +7,7 @@ const statutColor = (statut) => {
   return 'var(--color-warning, #f59e0b)';
 };
 
-function MesCandidatures() {
+function MesCandidatures({ onContacter }) {
   const [candidatures, setCandidatures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,8 +54,18 @@ function MesCandidatures() {
                   <span className="candidature-lieu">📍 {c.lieu}</span>
                 )}
               </div>
-              <div className="candidature-statut-badge" style={{ color: statutColor(c.statut) }}>
-                {(c.statut || '').toUpperCase()}
+              <div className="candidature-actions">
+                <div className="candidature-statut-badge" style={{ color: statutColor(c.statut) }}>
+                  {(c.statut || '').toUpperCase()}
+                </div>
+                {onContacter && c.directeur_id && (
+                  <button
+                    className="btn-contacter"
+                    onClick={() => onContacter({ id: c.directeur_id, nom: 'Directeur', role: 'directeur' })}
+                  >
+                    💬 Contacter
+                  </button>
+                )}
               </div>
             </div>
           ))}

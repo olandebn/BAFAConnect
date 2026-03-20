@@ -11,7 +11,7 @@ router.get('/candidats-recus', authenticateToken, async (req, res) => {
         if (role !== 'directeur') return res.status(403).json({ error: "Accès réservé aux directeurs" });
 
         const query = `
-            SELECT c.id as candidature_id, c.statut, p.nom as candidat_nom, s.titre as sejour_titre
+            SELECT c.id as candidature_id, c.statut, c.animateur_id, p.nom as candidat_nom, s.titre as sejour_titre
             FROM candidatures c
             JOIN animateurs_profiles p ON c.animateur_id = p.user_id
             JOIN sejours s ON c.sejour_id = s.id

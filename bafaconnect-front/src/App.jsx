@@ -5,13 +5,16 @@ import Profile from './Profile'
 import MesCandidatures from './MesCandidatures'
 import GestionCandidatures from './GestionCandidatures'
 import CreerAnnonce from './CreerAnnonce'
+import Messagerie from './Messagerie'
 import './App.css'
 
 function App() {
   const [sejours, setSejours] = useState([])
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
-  const [postuleNotif, setPostuleNotif] = useState('') // Feedback candidature
+  const [postuleNotif, setPostuleNotif] = useState('')
+  const [messageDest, setMessageDest] = useState(null) // Ouvre la messagerie vers un interlocuteur
+  const [onglet, setOnglet] = useState('dashboard') // 'dashboard' | 'messages'
 
   const fetchSejours = () => {
     api.get('/sejours')
@@ -36,6 +39,11 @@ function App() {
     localStorage.setItem('role', userRole)
     setRole(userRole)
     setIsLoggedIn(true)
+  }
+
+  const handleContacter = (interlocuteur) => {
+    setMessageDest(interlocuteur)
+    setOnglet('messages')
   }
 
   const handlePostuler = async (sejourId) => {
@@ -296,7 +304,27 @@ function App() {
               <Profile />
             </div>
 
-            {role === 'animateur' ? (
+            {/* Onglets de navigation du dashboard */}
+            <div className="dashboard-tabs">
+              <button
+                className={`dashboard-tab ${onglet === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setOnglet('dashboard')}
+              >
+                {role === 'animateur' ? '🎒 Mes missions' : '🏕️ Recrutement'}
+              </button>
+              <button
+                className={`dashboard-tab ${onglet === 'messages' ? 'active' : ''}`}
+                onClick={() => { setOnglet('messages'); setMessageDest(null); }}
+              >
+                💬 Messages
+              </button>
+            </div>
+
+            {onglet === 'messages' ? (
+              <div className="card">
+                <Messagerie destinataireInitial={messageDest} />
+              </div>
+            ) : role === 'animateur' ? (
               <div className="view-section">
                 <h2 className="title-center">Annonces disponibles</h2>
 
@@ -333,7 +361,7 @@ function App() {
                 </div>
 
                 <div className="card">
-                  <MesCandidatures />
+                  <MesCandidatures onContacter={handleContacter} />
                 </div>
               </div>
             ) : (
@@ -345,7 +373,7 @@ function App() {
                 </div>
 
                 <div className="card">
-                  <GestionCandidatures />
+                  <GestionCandidatures onContacter={handleContacter} />
                 </div>
               </div>
             )}

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
 
-function GestionCandidatures() {
+function GestionCandidatures({ onContacter }) {
   const [candidats, setCandidats] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionLoading, setActionLoading] = useState(null); // ID de la candidature en cours d'action
+  const [actionLoading, setActionLoading] = useState(null);
 
   const fetchCandidats = () => {
     setIsLoading(true);
@@ -80,6 +80,14 @@ function GestionCandidatures() {
                   >
                     {loading ? '...' : 'Refuser'}
                   </button>
+                  {onContacter && (
+                    <button
+                      className="btn-contacter"
+                      onClick={() => onContacter({ id: c.animateur_id, nom: c.candidat_nom, role: 'animateur' })}
+                    >
+                      💬 Contacter
+                    </button>
+                  )}
                 </div>
               </div>
             );

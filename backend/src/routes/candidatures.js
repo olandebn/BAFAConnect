@@ -41,7 +41,7 @@ const getMesCandidatures = async (req, res) => {
     const { id } = req.user;
     try {
         const result = await pool.query(
-            `SELECT candidatures.*, sejours.titre AS sejour_titre, sejours.lieu
+            `SELECT candidatures.*, sejours.titre AS sejour_titre, sejours.lieu, sejours.directeur_id
              FROM candidatures
              JOIN sejours ON candidatures.sejour_id = sejours.id
              WHERE animateur_id = $1
