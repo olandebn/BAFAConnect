@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
 
+function getBadges(f) {
+  const badges = []
+  if (f.diplomes?.some(d => /diplômé bafa/i.test(d) || /diplome bafa/i.test(d))) {
+    badges.push({ icon: '🎓', label: 'Diplômé BAFA', cls: 'badge-bafa' })
+  }
+  if ((f.experiences?.length || 0) >= 2) {
+    badges.push({ icon: '💪', label: 'Expérimenté', cls: 'badge-exp' })
+  }
+  return badges
+}
+
 function Favoris({ onContacter }) {
   const [favoris, setFavoris] = useState([])
   const [loading, setLoading] = useState(true)
@@ -57,6 +68,7 @@ function Favoris({ onContacter }) {
     <div className="animateurs-grid">
       {favoris.map(f => {
         const dispos = getDispos(f.disponibilites)
+        const badges = getBadges(f)
         return (
           <div key={f.animateur_id} className="animateur-card">
             <div className="animateur-card-top">
@@ -71,6 +83,13 @@ function Favoris({ onContacter }) {
                 {f.ville && <p className="animateur-card-ville">📍 {f.ville}</p>}
                 {f.diplomes?.[0] && (
                   <span className="animateur-card-statut">{f.diplomes[0]}</span>
+                )}
+                {badges.length > 0 && (
+                  <div className="animateur-badges">
+                    {badges.map((b, i) => (
+                      <span key={i} className={`animateur-badge ${b.cls}`}>{b.icon} {b.label}</span>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>

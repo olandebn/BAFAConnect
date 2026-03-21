@@ -67,49 +67,87 @@ router.get('/mes-sejours', authenticateToken, async (req, res) => {
     }
 });
 
-// 4. STATS DIRECTEUR — tableau de bord
+// 4. STATS DIRECTEUR — tableau de bord enrichi
 router.get('/stats', authenticateToken, async (req, res) => {
     const { id, role } = req.user;
     if (role !== 'directeur') return res.status(403).json({ error: "Accès réservé aux directeurs." });
 
     try {
-        const annonceResult = await pool.query(
-            'SELECT COUNT(*) AS nb_annonces FROM sejours WHERE directeur_id = $1', [id]
-        );
+        const [annonceRes, candidaturesRes, contactsRes, favorisRes, avenirRes, parAnnonceRes] = await Promise.all([
+            // Nb annonces totales
+            pool.query('SELECT COUNT(*) AS nb FROM sejours WHERE directeur_id = $1', [id]),
 
-        const candidaturesResult = await pool.query(
-            `SELECT
-                COUNT(*) AS nb_total,
-                COUNT(*) FILTER (WHERE statut = 'acceptée' OR statut = 'acceptee') AS nb_acceptees,
-                COUNT(*) FILTER (WHERE statut = 'refusée' OR statut = 'refusee') AS nb_refusees,
-                COUNT(*) FILTER (WHERE statut = 'en attente') AS nb_en_attente
-             FROM candidatures
-             WHERE sejour_id IN (SELECT id FROM sejours WHERE directeur_id = $1)`,
-            [id]
-        );
+            // Stats globales candidatures
+            pool.query(`
+                SELECT
+                    COUNT(*) AS nb_total,
+                    COUNT(*) FILTER (WHERE statut = 'acceptée' OR statut = 'acceptee') AS nb_acceptees,
+                    COUNT(*) FILTER (WHERE statut = 'refusée' OR statut = 'refusee') AS nb_refusees,
+                    COUNT(*) FILTER (WHERE statut = 'en attente') AS nb_en_attente
+                FROM candidatures
+                WHERE sejour_id IN (SELECT id FROM sejours WHERE directeur_id = $1)
+            `, [id]),
 
-        const recentesResult = await pool.query(
-            `SELECT sejours.id, sejours.titre, sejours.lieu, sejours.date_debut, sejours.type,
-                (SELECT COUNT(*) FROM candidatures WHERE sejour_id = sejours.id) AS nb_candidatures
-             FROM sejours WHERE directeur_id = $1
-             ORDER BY sejours.id DESC LIMIT 3`,
-            [id]
-        );
+            // Nb animateurs contactés (conversations distinctes avec des animateurs)
+            pool.query(`
+                SELECT COUNT(DISTINCT interlocuteur) AS nb
+                FROM (
+                    SELECT CASE WHEN m.expediteur_id = $1 THEN m.destinataire_id ELSE m.expediteur_id END AS interlocuteur
+                    FROM messages m
+                    WHERE (m.expediteur_id = $1 OR m.destinataire_id = $1)
+                ) sub
+                JOIN users u ON u.id = sub.interlocuteur
+                WHERE u.role = 'animateur'
+            `, [id]),
 
-        const nb_annonces = parseInt(annonceResult.rows[0].nb_annonces);
-        const stats = candidaturesResult.rows[0];
-        const nb_total = parseInt(stats.nb_total);
-        const nb_acceptees = parseInt(stats.nb_acceptees);
-        const taux_acceptation = nb_total > 0 ? Math.round((nb_acceptees / nb_total) * 100) : 0;
+            // Nb favoris
+            pool.query('SELECT COUNT(*) AS nb FROM favoris WHERE directeur_id = $1', [id]),
+
+            // Nb séjours à venir
+            pool.query(`
+                SELECT COUNT(*) AS nb FROM sejours
+                WHERE directeur_id = $1 AND date_debut > NOW()
+            `, [id]),
+
+            // Stats par annonce (toutes)
+            pool.query(`
+                SELECT s.id, s.titre, s.lieu, s.type, s.date_debut, s.date_fin, s.nombre_postes,
+                    COUNT(c.id) AS nb_total,
+                    COUNT(c.id) FILTER (WHERE c.statut = 'acceptée' OR c.statut = 'acceptee') AS nb_acceptees,
+                    COUNT(c.id) FILTER (WHERE c.statut = 'en attente') AS nb_en_attente
+                FROM sejours s
+                LEFT JOIN candidatures c ON c.sejour_id = s.id
+                WHERE s.directeur_id = $1
+                GROUP BY s.id
+                ORDER BY s.date_debut DESC NULLS LAST
+            `, [id])
+        ]);
+
+        const nb_annonces = parseInt(annonceRes.rows[0].nb);
+        const c = candidaturesRes.rows[0];
+        const nb_total = parseInt(c.nb_total);
+        const nb_acceptees = parseInt(c.nb_acceptees);
 
         res.json({
             nb_annonces,
             nb_candidatures: nb_total,
             nb_acceptees,
-            nb_refusees: parseInt(stats.nb_refusees),
-            nb_en_attente: parseInt(stats.nb_en_attente),
-            taux_acceptation,
-            annonces_recentes: recentesResult.rows
+            nb_refusees: parseInt(c.nb_refusees),
+            nb_en_attente: parseInt(c.nb_en_attente),
+            taux_acceptation: nb_total > 0 ? Math.round((nb_acceptees / nb_total) * 100) : 0,
+            nb_animateurs_contactes: parseInt(contactsRes.rows[0].nb),
+            nb_favoris: parseInt(favorisRes.rows[0].nb),
+            nb_sejours_a_venir: parseInt(avenirRes.rows[0].nb),
+            candidatures_par_annonce: parAnnonceRes.rows.map(r => ({
+                ...r,
+                nb_total: parseInt(r.nb_total),
+                nb_acceptees: parseInt(r.nb_acceptees),
+                nb_en_attente: parseInt(r.nb_en_attente),
+            })),
+            // Compat ancienne version
+            annonces_recentes: parAnnonceRes.rows.slice(0, 3).map(r => ({
+                ...r, nb_candidatures: parseInt(r.nb_total)
+            }))
         });
     } catch (err) {
         console.error("ERREUR STATS :", err);

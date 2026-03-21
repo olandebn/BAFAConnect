@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import api from './api/axios'
 import AvisSection from './AvisSection'
 
-function Profile() {
+function Profile({ onPhotoChange }) {
   const [user, setUser] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState('')
@@ -80,9 +80,12 @@ function Profile() {
           }
         : formData
 
-      await api.post('/profiles/me', payload)
+      const res = await api.post('/profiles/me', payload)
       setIsEditing(false)
       setSuccess('Profil mis à jour avec succès.')
+      // Remonte la photo vers App.jsx pour la sidebar
+      const savedPhoto = res.data?.profil?.photo_url || formData.photo_url || ''
+      onPhotoChange && onPhotoChange(savedPhoto)
       fetchProfile()
     } catch (err) {
       console.error('Erreur mise à jour profil :', err)
@@ -102,6 +105,33 @@ function Profile() {
     const reader = new FileReader()
     reader.onload = (ev) => setFormData(prev => ({ ...prev, photo_url: ev.target.result }))
     reader.readAsDataURL(file)
+  }
+
+  const getCompletude = () => {
+    if (role === 'animateur') {
+      const champs = [
+        { label: 'Prénom', ok: !!formData.prenom },
+        { label: 'Nom', ok: !!formData.nom },
+        { label: 'Statut BAFA', ok: !!formData.bafa_status && formData.bafa_status !== 'Non diplômé' },
+        { label: 'Ville', ok: !!formData.ville },
+        { label: 'Compétences', ok: formData.competencesText.trim().length > 0 },
+        { label: 'Expériences', ok: formData.experiencesText.trim().length > 0 },
+        { label: 'Disponibilités', ok: !!formData.dispo_debut },
+        { label: 'Photo de profil', ok: !!formData.photo_url },
+      ]
+      const done = champs.filter(c => c.ok).length
+      return { pct: Math.round((done / champs.length) * 100), manquants: champs.filter(c => !c.ok).map(c => c.label) }
+    } else {
+      const champs = [
+        { label: 'Nom de la structure', ok: !!formData.nom_structure },
+        { label: 'Type de structure', ok: !!formData.type_structure },
+        { label: 'Ville', ok: !!formData.ville },
+        { label: 'Description', ok: !!formData.description },
+        { label: 'Photo de profil', ok: !!formData.photo_url },
+      ]
+      const done = champs.filter(c => c.ok).length
+      return { pct: Math.round((done / champs.length) * 100), manquants: champs.filter(c => !c.ok).map(c => c.label) }
+    }
   }
 
   const renderChips = (arr) => {
@@ -144,14 +174,55 @@ function Profile() {
           </div>
         </div>
         {!isEditing && (
-          <button className="btn-primary profile-edit-btn" onClick={() => setIsEditing(true)}>
-            Modifier mon profil
-          </button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button className="btn-primary profile-edit-btn" onClick={() => setIsEditing(true)}>
+              Modifier mon profil
+            </button>
+            {role === 'animateur' && user?.user_id && (
+              <button
+                className="btn-secondary profile-edit-btn"
+                onClick={() => {
+                  const url = `${window.location.origin}?profil=${user.user_id}`
+                  navigator.clipboard.writeText(url)
+                    .then(() => setSuccess('🔗 Lien de profil copié !'))
+                    .catch(() => setSuccess(`Lien : ${url}`))
+                  setTimeout(() => setSuccess(''), 3000)
+                }}
+                title="Copier le lien de votre profil public"
+              >
+                🔗 Partager mon profil
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       {error && <div className="profile-alert profile-alert-error">{error}</div>}
       {success && <div className="profile-alert profile-alert-success">{success}</div>}
+
+      {/* ── Barre de complétion ── */}
+      {!isEditing && user && (() => {
+        const { pct, manquants } = getCompletude()
+        const barColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444'
+        return (
+          <div className="completude-block">
+            <div className="completude-header">
+              <span className="completude-label">
+                Profil complété à <strong style={{ color: barColor }}>{pct}%</strong>
+              </span>
+              {pct === 100 && <span className="completude-badge">🏆 Profil complet !</span>}
+            </div>
+            <div className="completude-track">
+              <div className="completude-fill" style={{ width: `${pct}%`, background: barColor }} />
+            </div>
+            {manquants.length > 0 && (
+              <p className="completude-hint">
+                Manquant : {manquants.join(', ')}
+              </p>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ── VUE LECTURE ── */}
       {!isEditing ? (

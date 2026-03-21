@@ -138,4 +138,49 @@ router.get('/animateurs', authenticateToken, async (req, res) => {
     }
 });
 
+// PROFIL PUBLIC ANIMATEUR (sans authentification)
+router.get('/public/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const profileRes = await pool.query(`
+            SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
+                   ap.experiences, ap.disponibilites, ap.photo_url, u.email
+            FROM animateurs_profiles ap
+            JOIN users u ON u.id = ap.user_id
+            WHERE ap.user_id = $1 AND u.role = 'animateur'
+        `, [userId]);
+
+        if (profileRes.rows.length === 0) {
+            return res.status(404).json({ error: 'Profil introuvable.' });
+        }
+
+        const avisRes = await pool.query(`
+            SELECT a.note, a.commentaire, a.created_at,
+                   COALESCE(ap2.nom, sd.nom_structure, u2.email) AS auteur_nom
+            FROM avis a
+            JOIN users u2 ON u2.id = a.auteur_id
+            LEFT JOIN animateurs_profiles ap2 ON ap2.user_id = u2.id
+            LEFT JOIN structures_directeurs sd ON sd.user_id = u2.id
+            WHERE a.cible_id = $1
+            ORDER BY a.created_at DESC
+        `, [userId]);
+
+        const notes = avisRes.rows.map(r => r.note);
+        const moyenne = notes.length > 0
+            ? Math.round((notes.reduce((s, n) => s + n, 0) / notes.length) * 10) / 10
+            : null;
+
+        res.json({
+            profil: profileRes.rows[0],
+            avis: avisRes.rows,
+            moyenne,
+            nb_avis: notes.length
+        });
+    } catch (err) {
+        console.error('Erreur profil public :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 export default router;

@@ -5,7 +5,9 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
   const [notifOpen, setNotifOpen] = useState(false)
 
   const navAnimateur = [
+    { id: 'dashboard',    icon: '📊', label: 'Tableau de bord' },
     { id: 'annonces',     icon: '🏠', label: 'Annonces' },
+    { id: 'calendrier',   icon: '📅', label: 'Planning' },
     { id: 'candidatures', icon: '📋', label: 'Mes candidatures' },
     { id: 'messages',     icon: '💬', label: 'Messages', badge: unreadCount },
     { id: 'profil',       icon: '👤', label: 'Mon profil' },
@@ -15,6 +17,7 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
   const navDirecteur = [
     { id: 'dashboard',    icon: '📊', label: 'Tableau de bord' },
     { id: 'annonces',     icon: '📝', label: 'Mes annonces' },
+    { id: 'calendrier',   icon: '📅', label: 'Planning' },
     { id: 'recherche',    icon: '🔍', label: 'Trouver un animateur' },
     { id: 'favoris',      icon: '❤️', label: 'Mes favoris' },
     { id: 'candidatures', icon: '📩', label: 'Candidatures reçues' },

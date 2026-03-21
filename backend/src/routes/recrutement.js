@@ -12,13 +12,27 @@ router.get('/candidats-recus', authenticateToken, async (req, res) => {
         if (role !== 'directeur') return res.status(403).json({ error: "Accès réservé aux directeurs" });
 
         const query = `
-            SELECT c.id as candidature_id, c.statut, c.animateur_id, p.nom as candidat_nom, s.titre as sejour_titre
+            SELECT c.id as candidature_id, c.statut, c.animateur_id, c.date_candidature,
+                   c.vue_le, p.nom as candidat_nom, s.titre as sejour_titre
             FROM candidatures c
             JOIN animateurs_profiles p ON c.animateur_id = p.user_id
             JOIN sejours s ON c.sejour_id = s.id
             WHERE s.directeur_id = $1
+            ORDER BY c.date_candidature DESC
         `;
         const result = await pool.query(query, [id]);
+
+        // Marquer toutes les candidatures en attente comme vues maintenant
+        await pool.query(
+            `UPDATE candidatures SET vue_le = NOW()
+             WHERE id = ANY(
+               SELECT c.id FROM candidatures c
+               JOIN sejours s ON s.id = c.sejour_id
+               WHERE s.directeur_id = $1 AND c.vue_le IS NULL
+             )`,
+            [id]
+        );
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

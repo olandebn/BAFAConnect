@@ -57,4 +57,54 @@ const getMesCandidatures = async (req, res) => {
 router.get('/me', authenticateToken, getMesCandidatures);
 router.get('/mes-candidatures', authenticateToken, getMesCandidatures);
 
+// 3. STATS ANIMATEUR — tableau de bord perso
+router.get('/stats', authenticateToken, async (req, res) => {
+    const { id, role } = req.user;
+    if (role !== 'animateur') return res.status(403).json({ error: 'Accès réservé aux animateurs.' });
+
+    try {
+        const [statsRes, avisRes, dernieresRes] = await Promise.all([
+            pool.query(`
+                SELECT
+                    COUNT(*) AS nb_total,
+                    COUNT(*) FILTER (WHERE statut = 'acceptée' OR statut = 'acceptee') AS nb_acceptees,
+                    COUNT(*) FILTER (WHERE statut = 'refusée' OR statut = 'refusee') AS nb_refusees,
+                    COUNT(*) FILTER (WHERE statut = 'en attente') AS nb_en_attente
+                FROM candidatures WHERE animateur_id = $1
+            `, [id]),
+
+            pool.query(`
+                SELECT ROUND(AVG(note)::numeric, 1) AS moyenne, COUNT(*) AS total
+                FROM avis WHERE cible_id = $1
+            `, [id]),
+
+            pool.query(`
+                SELECT c.statut, c.date_candidature, s.titre AS sejour_titre, s.lieu
+                FROM candidatures c
+                JOIN sejours s ON s.id = c.sejour_id
+                WHERE c.animateur_id = $1
+                ORDER BY c.date_candidature DESC LIMIT 5
+            `, [id])
+        ]);
+
+        const s = statsRes.rows[0];
+        const nb_total = parseInt(s.nb_total);
+        const nb_acceptees = parseInt(s.nb_acceptees);
+
+        res.json({
+            nb_total,
+            nb_acceptees,
+            nb_refusees: parseInt(s.nb_refusees),
+            nb_en_attente: parseInt(s.nb_en_attente),
+            taux_acceptation: nb_total > 0 ? Math.round((nb_acceptees / nb_total) * 100) : 0,
+            moyenne_avis: avisRes.rows[0].moyenne ? parseFloat(avisRes.rows[0].moyenne) : null,
+            nb_avis: parseInt(avisRes.rows[0].total),
+            dernieres_candidatures: dernieresRes.rows
+        });
+    } catch (err) {
+        console.error('Erreur stats animateur :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 export default router;

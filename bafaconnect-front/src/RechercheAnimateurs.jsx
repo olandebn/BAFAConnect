@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import api from './api/axios'
 
+function getBadges(a) {
+  const badges = []
+  if (a.diplomes?.some(d => /diplômé bafa/i.test(d) || /diplome bafa/i.test(d))) {
+    badges.push({ icon: '🎓', label: 'Diplômé BAFA', cls: 'badge-bafa' })
+  }
+  if ((a.experiences?.length || 0) >= 2) {
+    badges.push({ icon: '💪', label: 'Expérimenté', cls: 'badge-exp' })
+  }
+  return badges
+}
+
 function RechercheAnimateurs({ onContacter }) {
   const [filtres, setFiltres] = useState({ q: '', ville: '', statut: '' })
   const [resultats, setResultats] = useState([])
@@ -130,6 +141,7 @@ function RechercheAnimateurs({ onContacter }) {
               <div className="animateurs-grid">
                 {resultats.map(a => {
                   const dispos = getDispos(a.disponibilites)
+                  const badges = getBadges(a)
                   return (
                     <div key={a.user_id} className="animateur-card">
                       <div className="animateur-card-top">
@@ -144,6 +156,13 @@ function RechercheAnimateurs({ onContacter }) {
                           {a.ville && <p className="animateur-card-ville">📍 {a.ville}</p>}
                           {a.diplomes?.[0] && (
                             <span className="animateur-card-statut">{a.diplomes[0]}</span>
+                          )}
+                          {badges.length > 0 && (
+                            <div className="animateur-badges">
+                              {badges.map((b, i) => (
+                                <span key={i} className={`animateur-badge ${b.cls}`}>{b.icon} {b.label}</span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>

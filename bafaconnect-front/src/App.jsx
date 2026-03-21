@@ -10,23 +10,53 @@ import Messagerie from './Messagerie'
 import DashboardDirecteur from './DashboardDirecteur'
 import Sidebar from './Sidebar'
 import RechercheAnimateurs from './RechercheAnimateurs'
+import Favoris from './Favoris'
+import Parametres from './Parametres'
+import CalendrierSejours from './CalendrierSejours'
+import DashboardAnimateur from './DashboardAnimateur'
+import ProfilPublic from './ProfilPublic'
 import './App.css'
 
 function App() {
   const [sejours, setSejours] = useState([])
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
+
+  // ── Dark mode ──────────────────────────────────────────────────────────────
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme')
+    const isDark = saved === 'dark'
+    if (isDark) document.documentElement.classList.add('dark')
+    return isDark
+  })
+
+  const handleThemeChange = (isDark) => {
+    setDarkMode(isDark)
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', isDark)
+  }
+  // ──────────────────────────────────────────────────────────────────────────
   const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '')
-  const [page, setPage] = useState(role === 'directeur' ? 'dashboard' : 'annonces')
+  const [userPhoto, setUserPhoto] = useState('')
+  const [page, setPage] = useState(role === 'directeur' ? 'dashboard' : 'dashboard')
+  const [publicProfileId, setPublicProfileId] = useState(() => new URLSearchParams(window.location.search).get('profil'))
   const [messageDest, setMessageDest] = useState(null)
   const [postuleNotif, setPostuleNotif] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notifItems, setNotifItems] = useState([])
   const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '' })
 
   const fetchSejours = useCallback(() => {
     api.get('/sejours')
       .then(res => setSejours(res.data))
       .catch(err => console.error('Erreur récup séjours :', err))
+  }, [])
+
+  const fetchUserPhoto = useCallback(() => {
+    if (!localStorage.getItem('token')) return
+    api.get('/profiles/me')
+      .then(res => setUserPhoto(res.data.photo_url || ''))
+      .catch(() => {})
   }, [])
 
   const fetchUnread = useCallback(() => {
@@ -39,6 +69,45 @@ function App() {
       .catch(() => {})
   }, [])
 
+  const fetchNotifItems = useCallback((currentRole) => {
+    if (!localStorage.getItem('token')) return
+    // Pour les directeurs : candidatures en attente
+    if (currentRole === 'directeur') {
+      api.get('/candidatures/recues')
+        .then(res => {
+          const enAttente = (res.data || []).filter(c => c.statut === 'en attente')
+          if (enAttente.length > 0) {
+            setNotifItems([{
+              icon: '📩',
+              text: `${enAttente.length} candidature${enAttente.length > 1 ? 's' : ''} en attente`,
+              page: 'candidatures'
+            }])
+          } else {
+            setNotifItems([])
+          }
+        })
+        .catch(() => {})
+    } else {
+      // Pour les animateurs : candidatures récemment acceptées/refusées
+      api.get('/candidatures/mes-candidatures')
+        .then(res => {
+          const recentes = (res.data || []).filter(c =>
+            c.statut === 'acceptée' || c.statut === 'acceptee' || c.statut === 'refusée' || c.statut === 'refusee'
+          ).slice(0, 3)
+          if (recentes.length > 0) {
+            setNotifItems(recentes.map(c => ({
+              icon: c.statut === 'acceptée' || c.statut === 'acceptee' ? '✅' : '❌',
+              text: `Candidature ${c.statut === 'acceptée' || c.statut === 'acceptee' ? 'acceptée' : 'refusée'} : ${c.sejour_titre || 'séjour'}`,
+              page: 'candidatures'
+            })))
+          } else {
+            setNotifItems([])
+          }
+        })
+        .catch(() => {})
+    }
+  }, [])
+
   useEffect(() => {
     fetchSejours()
     const savedRole = localStorage.getItem('role')
@@ -47,13 +116,24 @@ function App() {
     if (savedEmail) setUserEmail(savedEmail)
   }, [isLoggedIn, fetchSejours])
 
-  // Polling badge non lus toutes les 30s
+  // Fetch photo de profil au login
   useEffect(() => {
     if (!isLoggedIn) return
+    fetchUserPhoto()
+  }, [isLoggedIn, fetchUserPhoto])
+
+  // Polling badge non lus + notifs toutes les 30s
+  useEffect(() => {
+    if (!isLoggedIn) return
+    const currentRole = localStorage.getItem('role') || role
     fetchUnread()
-    const interval = setInterval(fetchUnread, 30000)
+    fetchNotifItems(currentRole)
+    const interval = setInterval(() => {
+      fetchUnread()
+      fetchNotifItems(currentRole)
+    }, 30000)
     return () => clearInterval(interval)
-  }, [isLoggedIn, fetchUnread])
+  }, [isLoggedIn, fetchUnread, fetchNotifItems, role])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -63,13 +143,15 @@ function App() {
     setIsLoggedIn(false)
     setRole('animateur')
     setUserEmail('')
+    setUserPhoto('')
     setUnreadCount(0)
+    setNotifItems([])
   }
 
   const handleLoginSuccess = (userRole) => {
     setRole(userRole)
     setIsLoggedIn(true)
-    setPage(userRole === 'directeur' ? 'dashboard' : 'annonces')
+    setPage('dashboard')
     const email = localStorage.getItem('userEmail') || ''
     setUserEmail(email)
   }
@@ -93,6 +175,28 @@ function App() {
     if (newPage !== 'messages') setMessageDest(null)
     if (newPage === 'messages') fetchUnread()
     setPage(newPage)
+  }
+
+  // ─── PROFIL PUBLIC (accessible sans connexion) ─────────────────────────
+  if (publicProfileId) {
+    return (
+      <div className="site-wrapper" style={{ minHeight: '100vh', background: 'var(--bg, #f8fafc)', padding: '24px 16px' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="sidebar-logo-icon" style={{ fontSize: '1.4rem' }}>🧡</span>
+            <strong style={{ fontSize: '1.1rem' }}>BafaConnect</strong>
+          </div>
+          <ProfilPublic
+            userId={publicProfileId}
+            onContacter={isLoggedIn ? handleContacter : null}
+            onRetour={() => {
+              setPublicProfileId(null)
+              window.history.replaceState({}, '', window.location.pathname)
+            }}
+          />
+        </div>
+      </div>
+    )
   }
 
   // ─── LANDING PAGE (non connecté) ───────────────────────────────────────
@@ -255,9 +359,22 @@ function App() {
         unreadCount={unreadCount}
         onLogout={handleLogout}
         userEmail={userEmail}
+        userPhoto={userPhoto}
+        notifItems={notifItems}
       />
 
       <main className="app-main">
+
+        {/* ── ANIMATEUR : Tableau de bord ── */}
+        {role === 'animateur' && page === 'dashboard' && (
+          <div className="page-content">
+            <div className="page-header">
+              <h1 className="page-title">Tableau de bord</h1>
+              <p className="page-subtitle">Vos statistiques personnelles</p>
+            </div>
+            <DashboardAnimateur onNavigate={handleSetPage} />
+          </div>
+        )}
 
         {/* ── ANIMATEUR : Annonces ── */}
         {role === 'animateur' && page === 'annonces' && (
@@ -393,6 +510,17 @@ function App() {
           </div>
         )}
 
+        {/* ── DIRECTEUR : Favoris ── */}
+        {role === 'directeur' && page === 'favoris' && (
+          <div className="page-content">
+            <div className="page-header">
+              <h1 className="page-title">Mes favoris</h1>
+              <p className="page-subtitle">Les animateurs que vous avez sauvegardés</p>
+            </div>
+            <Favoris onContacter={handleContacter} />
+          </div>
+        )}
+
         {/* ── DIRECTEUR : Candidatures reçues ── */}
         {role === 'directeur' && page === 'candidatures' && (
           <div className="page-content">
@@ -428,7 +556,31 @@ function App() {
               <h1 className="page-title">Mon profil</h1>
               <p className="page-subtitle">Vos informations personnelles</p>
             </div>
-            <Profile />
+            <Profile onPhotoChange={setUserPhoto} />
+          </div>
+        )}
+
+        {/* ── CALENDRIER (commun) ── */}
+        {page === 'calendrier' && (
+          <div className="page-content">
+            <div className="page-header">
+              <h1 className="page-title">Planning des séjours</h1>
+              <p className="page-subtitle">
+                {role === 'directeur' ? 'Vue calendrier de vos séjours publiés' : 'Visualisez et postulez aux séjours disponibles'}
+              </p>
+            </div>
+            <CalendrierSejours onPostuler={handlePostuler} onContacter={handleContacter} />
+          </div>
+        )}
+
+        {/* ── PARAMÈTRES (commun) ── */}
+        {page === 'parametres' && (
+          <div className="page-content">
+            <div className="page-header">
+              <h1 className="page-title">Paramètres</h1>
+              <p className="page-subtitle">Sécurité et informations de connexion</p>
+            </div>
+            <Parametres onEmailChange={setUserEmail} darkMode={darkMode} onThemeChange={handleThemeChange} />
           </div>
         )}
 

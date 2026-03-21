@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import api from './api/axios'
 
-function Parametres({ onEmailChange }) {
+function Parametres({ onEmailChange, darkMode, onThemeChange }) {
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
   const [emailForm, setEmailForm] = useState({ newEmail: '', password: '' })
   const [pwMsg, setPwMsg] = useState(null)
@@ -56,6 +56,35 @@ function Parametres({ onEmailChange }) {
 
   return (
     <div className="parametres-container">
+
+      {/* ── Apparence ── */}
+      <div className="parametres-card">
+        <div className="parametres-card-header">
+          <span className="parametres-icon">🎨</span>
+          <div>
+            <h2 className="parametres-title">Apparence</h2>
+            <p className="parametres-subtitle">Personnalisez l'affichage de BafaConnect</p>
+          </div>
+        </div>
+        <div>
+          <div className="theme-toggle-row">
+            <div>
+              <div className="theme-toggle-label">{darkMode ? '🌙 Mode sombre' : '☀️ Mode clair'}</div>
+              <div className="theme-toggle-desc">
+                {darkMode ? 'Interface sombre pour moins de fatigue oculaire' : 'Interface lumineuse, idéale en journée'}
+              </div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={!!darkMode}
+                onChange={e => onThemeChange && onThemeChange(e.target.checked)}
+              />
+              <span className="switch-slider" />
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* ── Changer mot de passe ── */}
       <div className="parametres-card">

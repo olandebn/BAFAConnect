@@ -43,9 +43,118 @@ function GestionCandidatures({ onContacter }) {
     return { label: 'En attente', cls: 'statut-attente' };
   };
 
+  const exportCSV = () => {
+    const header = ['Candidat', 'Séjour', 'Statut', 'Date candidature']
+    const rows = candidats.map(c => [
+      c.candidat_nom || 'Anonyme',
+      c.sejour_titre || '—',
+      c.statut || '—',
+      c.date_candidature ? new Date(c.date_candidature).toLocaleDateString('fr-FR') : '—'
+    ])
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `candidatures_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportPDF = () => {
+    // Grouper par séjour
+    const grouped = {}
+    candidats.forEach(c => {
+      const titre = c.sejour_titre || 'Séjour sans titre'
+      if (!grouped[titre]) grouped[titre] = []
+      grouped[titre].push(c)
+    })
+
+    const statutColor = (s) => {
+      if (s === 'acceptée' || s === 'acceptee') return '#16a34a'
+      if (s === 'refusée' || s === 'refusee') return '#dc2626'
+      return '#d97706'
+    }
+    const statutText = (s) => {
+      if (s === 'acceptée' || s === 'acceptee') return 'Acceptée'
+      if (s === 'refusée' || s === 'refusee') return 'Refusée'
+      return 'En attente'
+    }
+
+    const sections = Object.entries(grouped).map(([titre, cands]) => `
+      <div class="annonce-section">
+        <div class="annonce-title">📋 ${titre}</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Candidat</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${cands.map(c => `
+              <tr>
+                <td>${c.candidat_nom || 'Anonyme'}</td>
+                <td style="color:${statutColor(c.statut)};font-weight:600">${statutText(c.statut)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p style="font-size:0.8rem;color:#666;margin-top:6px">
+          Total : ${cands.length} candidature${cands.length > 1 ? 's' : ''}
+          · ${cands.filter(c => c.statut === 'acceptée' || c.statut === 'acceptee').length} acceptée${cands.filter(c => c.statut === 'acceptée' || c.statut === 'acceptee').length !== 1 ? 's' : ''}
+        </p>
+      </div>
+    `).join('')
+
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Candidatures — BafaConnect</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:28px;color:#1a1a1a;max-width:800px;margin:0 auto}
+    h1{color:#f97316;font-size:1.5rem;margin-bottom:4px}
+    .meta{color:#6b7280;font-size:0.82rem;margin-bottom:24px;border-bottom:1px solid #e5e7eb;padding-bottom:12px}
+    .annonce-section{margin-top:24px}
+    .annonce-title{font-size:1.05rem;font-weight:700;padding-bottom:6px;border-bottom:2px solid #f97316;margin-bottom:10px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f97316;color:#fff;padding:8px 14px;text-align:left;font-size:0.82rem}
+    td{padding:8px 14px;border-bottom:1px solid #f3f4f6;font-size:0.85rem}
+    tr:nth-child(even) td{background:#fafafa}
+    @media print{body{padding:0}}
+  </style>
+</head>
+<body>
+  <h1>📩 Candidatures reçues</h1>
+  <div class="meta">
+    BafaConnect · Exporté le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')} · ${candidats.length} candidature${candidats.length > 1 ? 's' : ''} au total
+  </div>
+  ${sections}
+</body>
+</html>`
+
+    const win = window.open('', '_blank')
+    win.document.write(html)
+    win.document.close()
+    setTimeout(() => win.print(), 400)
+  };
+
   return (
     <div className="candidatures-section">
-      <h2 className="candidatures-title">📩 Candidatures reçues</h2>
+      <div className="candidatures-title-row">
+        <h2 className="candidatures-title">📩 Candidatures reçues</h2>
+        {candidats.length > 0 && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-export-pdf" onClick={exportPDF} title="Exporter en PDF">
+              📄 PDF
+            </button>
+            <button className="btn-export-pdf" onClick={exportCSV} title="Exporter en CSV" style={{ background: '#16a34a' }}>
+              📊 CSV
+            </button>
+          </div>
+        )}
+      </div>
 
       {error && <div className="profile-alert profile-alert-error">{error}</div>}
 
