@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import api from './api/axios';
 
-function Messagerie({ destinataireInitial = null }) {
+function Messagerie({ destinataireInitial = null, onNewMessage, onVoirProfil }) {
   const [conversations, setConversations] = useState([]);
   const [interlocuteurActif, setInterlocuteurActif] = useState(destinataireInitial);
   const [messages, setMessages] = useState([]);
@@ -161,12 +161,21 @@ function Messagerie({ destinataireInitial = null }) {
               <div className="conv-avatar">
                 {interlocuteurActif.role === 'directeur' ? '🏕️' : '🎒'}
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <strong>{interlocuteurActif.nom}</strong>
                 <span className="messagerie-role">
                   {interlocuteurActif.role === 'directeur' ? 'Directeur de structure' : 'Animateur'}
                 </span>
               </div>
+              {onVoirProfil && (
+                <button
+                  className="btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '6px 12px', whiteSpace: 'nowrap', flexShrink: 0 }}
+                  onClick={() => onVoirProfil(interlocuteurActif.id, interlocuteurActif.role || 'animateur')}
+                >
+                  👤 Voir le profil
+                </button>
+              )}
             </div>
 
             <div className="messagerie-fil" ref={filRef}>

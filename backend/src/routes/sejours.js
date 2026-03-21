@@ -34,7 +34,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT sejours.*, structures_directeurs.nom_structure, structures_directeurs.flyer_url
+            `SELECT sejours.*,
+                    structures_directeurs.nom_structure,
+                    structures_directeurs.flyer_url,
+                    (SELECT COUNT(*) FROM candidatures
+                     WHERE sejour_id = sejours.id
+                     AND (statut = 'acceptée' OR statut = 'acceptee')) AS postes_pourvus
              FROM sejours
              LEFT JOIN structures_directeurs ON sejours.directeur_id = structures_directeurs.user_id
              ORDER BY sejours.date_debut ASC`

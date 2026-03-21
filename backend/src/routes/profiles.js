@@ -35,11 +35,12 @@ router.post('/me', authenticateToken, async (req, res) => {
         const { id, role } = req.user;
         
 if (role === 'animateur') {
-            const { nom, prenom, bafa_status, ville, competences, experiences, disponibilites: dispoRaw, dispo_debut, dispo_fin, photo_url, cv_url } = req.body;
+            const { nom, prenom, bafa_status, approfondissement, ville, competences, experiences, disponibilites: dispoRaw, dispo_debut, dispo_fin, photo_url, cv_url } = req.body;
 
-            const nomComplet = `${prenom} ${nom}`.trim();
+            const nomComplet = `${prenom || ''} ${nom || ''}`.trim() || null;
             const competencesArr = Array.isArray(competences) ? competences : (competences ? [competences] : []);
             const experiencesArr = Array.isArray(experiences) ? experiences : (experiences ? [experiences] : []);
+            const diplomesArr = [bafa_status].concat(approfondissement ? [approfondissement] : []).filter(Boolean);
             // Accepte tableau de plages (nouveau) ou debut/fin (ancien)
             let disponibilites = null;
             if (dispoRaw !== undefined && dispoRaw !== null) {
@@ -66,7 +67,7 @@ if (role === 'animateur') {
                 RETURNING *;
             `;
 
-            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites, photo_url || null, cv_url !== undefined ? cv_url : null];
+            const values = [id, nomComplet, diplomesArr, ville || null, competencesArr, experiencesArr, disponibilites, photo_url || null, cv_url !== undefined ? cv_url : null];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil animateur mis à jour", profil: result.rows[0] });
         }
@@ -103,7 +104,7 @@ router.get('/animateurs', authenticateToken, async (req, res) => {
     const { role } = req.user;
     if (role !== 'directeur') return res.status(403).json({ error: 'Accès réservé aux directeurs.' });
 
-    const { ville, statut, q } = req.query;
+    const { ville, statut, q, appro } = req.query;
 
     try {
         let query = `
@@ -123,6 +124,10 @@ router.get('/animateurs', authenticateToken, async (req, res) => {
             params.push(statut);
             query += ` AND $${params.length} = ANY(ap.diplomes)`;
         }
+        if (appro) {
+            params.push(`%${appro.toLowerCase()}%`);
+            query += ` AND EXISTS (SELECT 1 FROM unnest(ap.diplomes) d WHERE LOWER(d) LIKE $${params.length})`;
+        }
         if (q) {
             params.push(`%${q.toLowerCase()}%`);
             const idx = params.length;
@@ -139,6 +144,39 @@ router.get('/animateurs', authenticateToken, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Erreur recherche animateurs :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// PROFIL PUBLIC DIRECTEUR (sans authentification)
+router.get('/public-directeur/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [profilRes, sejoursRes] = await Promise.all([
+            pool.query(`
+                SELECT sd.user_id, sd.nom_structure, sd.type_structure, sd.ville,
+                       sd.description, sd.photo_url, sd.flyer_url, u.email
+                FROM structures_directeurs sd
+                JOIN users u ON u.id = sd.user_id
+                WHERE sd.user_id = $1 AND u.role = 'directeur'
+            `, [userId]),
+            pool.query(`
+                SELECT id, titre, type, lieu, date_debut, date_fin, nombre_postes, description
+                FROM sejours
+                WHERE directeur_id = $1
+                  AND (date_fin IS NULL OR date_fin >= NOW())
+                ORDER BY date_debut ASC
+                LIMIT 10
+            `, [userId])
+        ]);
+
+        if (profilRes.rows.length === 0) {
+            return res.status(404).json({ error: 'Profil introuvable.' });
+        }
+
+        res.json({ profil: profilRes.rows[0], sejours: sejoursRes.rows });
+    } catch (err) {
+        console.error('Erreur profil public directeur :', err);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

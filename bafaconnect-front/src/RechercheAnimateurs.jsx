@@ -2,6 +2,8 @@ import { useState } from 'react'
 import api from './api/axios'
 import InviterModal from './InviterModal'
 
+const COMPETENCES_RAPIDES = ['PSC1', 'Natation', 'Sport', 'Théâtre', 'Musique', 'Cuisine', 'Bricolage', 'Informatique', 'Langues', 'Arts plastiques']
+
 function getBadges(a) {
   const badges = []
   if (a.diplomes?.some(d => /diplômé bafa/i.test(d) || /diplome bafa/i.test(d))) {
@@ -13,8 +15,21 @@ function getBadges(a) {
   return badges
 }
 
-function RechercheAnimateurs({ onContacter }) {
-  const [filtres, setFiltres] = useState({ q: '', ville: '', statut: '' })
+const APPROFONDISSEMENTS = [
+  'Activités physiques et sportives',
+  'Activités nautiques',
+  'Surveillant de baignade',
+  'Animation musicale',
+  'Théâtre / Arts du spectacle',
+  'Activités de pleine nature',
+  'Animation auprès des jeunes enfants',
+  'Numérique / Informatique',
+  'Animation interculturelle',
+  'Approfondissement général',
+]
+
+function RechercheAnimateurs({ onContacter, onVoirProfil }) {
+  const [filtres, setFiltres] = useState({ q: '', ville: '', statut: '', appro: '' })
   const [resultats, setResultats] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -53,6 +68,7 @@ function RechercheAnimateurs({ onContacter }) {
       if (filtres.q)      params.append('q', filtres.q)
       if (filtres.ville)  params.append('ville', filtres.ville)
       if (filtres.statut) params.append('statut', filtres.statut)
+      if (filtres.appro)  params.append('appro', filtres.appro)
       const res = await api.get(`/profiles/animateurs?${params}`)
       setResultats(res.data)
     } catch {
@@ -63,10 +79,27 @@ function RechercheAnimateurs({ onContacter }) {
   }
 
   const handleReset = () => {
-    setFiltres({ q: '', ville: '', statut: '' })
+    setFiltres({ q: '', ville: '', statut: '', appro: '' })
     setResultats([])
     setSearched(false)
     setError('')
+  }
+
+  const searchByCompetence = (comp) => {
+    const newFiltres = { ...filtres, q: comp }
+    setFiltres(newFiltres)
+    setLoading(true)
+    setError('')
+    setSearched(true)
+    const params = new URLSearchParams()
+    params.append('q', comp)
+    if (newFiltres.ville) params.append('ville', newFiltres.ville)
+    if (newFiltres.statut) params.append('statut', newFiltres.statut)
+    if (newFiltres.appro) params.append('appro', newFiltres.appro)
+    api.get(`/profiles/animateurs?${params}`)
+      .then(res => setResultats(res.data))
+      .catch(() => setError('Erreur lors de la recherche.'))
+      .finally(() => setLoading(false))
   }
 
   const getDispos = (dispos) => {
@@ -86,7 +119,7 @@ function RechercheAnimateurs({ onContacter }) {
       )}
       {/* Formulaire de recherche */}
       <form onSubmit={handleSearch} className="recherche-form">
-        <div className="filtres-grid">
+        <div className="recherche-fields-grid">
           <div className="form-group">
             <label>🔍 Nom ou compétence</label>
             <input
@@ -108,21 +141,46 @@ function RechercheAnimateurs({ onContacter }) {
           <div className="form-group">
             <label>🎓 Statut BAFA</label>
             <select value={filtres.statut} onChange={set('statut')} className="profile-select">
-              <option value="">Tous</option>
+              <option value="">Tous statuts</option>
               <option value="Diplômé BAFA">Diplômé BAFA</option>
-              <option value="En cours de formation">En cours de formation</option>
+              <option value="En cours de formation">En cours</option>
               <option value="Non diplômé">Non diplômé</option>
             </select>
           </div>
-          <div className="recherche-actions">
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Recherche...' : 'Rechercher'}
+          <div className="form-group">
+            <label>📚 Approfondissement</label>
+            <select value={filtres.appro} onChange={set('appro')} className="profile-select">
+              <option value="">Tous</option>
+              {APPROFONDISSEMENTS.map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="recherche-actions-row">
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Recherche...' : 'Rechercher'}
+          </button>
+          {searched && (
+            <button type="button" className="btn-secondary" onClick={handleReset}>
+              Réinitialiser
             </button>
-            {searched && (
-              <button type="button" className="btn-secondary" onClick={handleReset}>
-                Réinitialiser
+          )}
+        </div>
+        {/* Filtres compétences rapides */}
+        <div className="competences-rapides">
+          <span className="competences-rapides-label">🏅 Filtrer par compétence :</span>
+          <div className="competences-rapides-chips">
+            {COMPETENCES_RAPIDES.map(c => (
+              <button
+                key={c}
+                type="button"
+                className={`competence-chip${filtres.q === c ? ' competence-chip-active' : ''}`}
+                onClick={() => filtres.q === c ? handleReset() : searchByCompetence(c)}
+              >
+                {c}
               </button>
-            )}
+            ))}
           </div>
         </div>
       </form>
@@ -149,6 +207,7 @@ function RechercheAnimateurs({ onContacter }) {
                   const badges = getBadges(a)
                   return (
                     <div key={a.user_id} className="animateur-card">
+                      <div className="animateur-card-content">
                       <div className="animateur-card-top">
                         <div className="animateur-avatar">
                           {a.photo_url
@@ -157,10 +216,20 @@ function RechercheAnimateurs({ onContacter }) {
                           }
                         </div>
                         <div className="animateur-card-info">
-                          <h3 className="animateur-card-nom">{a.nom || 'Anonyme'}</h3>
+                          <h3 className="animateur-card-nom">
+                            {a.nom && !a.nom.includes('undefined') ? a.nom : 'Profil incomplet'}
+                          </h3>
                           {a.ville && <p className="animateur-card-ville">📍 {a.ville}</p>}
                           {a.diplomes?.[0] && (
                             <span className="animateur-card-statut">{a.diplomes[0]}</span>
+                          )}
+                          {a.diplomes?.[1] && (
+                            <div className="appro-tag-row">
+                              <span className="appro-tag">📚 {a.diplomes[1]}</span>
+                              <span className="appro-autodeclare" title="Qualification déclarée par l'animateur — demandez un justificatif pour vérifier">
+                                ⚠️ Auto-déclaré
+                              </span>
+                            </div>
                           )}
                           {badges.length > 0 && (
                             <div className="animateur-badges">
@@ -199,8 +268,17 @@ function RechercheAnimateurs({ onContacter }) {
                       {dispos && (
                         <p className="animateur-card-dispos">🗓️ Disponible : {dispos}</p>
                       )}
+                      </div>{/* end animateur-card-content */}
 
                       <div className="animateur-card-actions-row">
+                        {onVoirProfil && (
+                          <button
+                            className="btn-secondary animateur-card-btn"
+                            onClick={() => onVoirProfil(a.user_id, 'animateur')}
+                          >
+                            👤 Voir le profil
+                          </button>
+                        )}
                         {onContacter && (
                           <button
                             className="btn-primary animateur-card-btn"

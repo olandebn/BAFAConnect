@@ -1,6 +1,34 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
 
+function ShareCard() {
+  const userId = localStorage.getItem('userId')
+  const [copied, setCopied] = useState(false)
+  if (!userId) return null
+  const link = `${window.location.origin}?profil=${userId}`
+  const handleCopy = () => {
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    })
+  }
+  return (
+    <div className="share-card">
+      <div className="share-card-icon">🔗</div>
+      <div className="share-card-body">
+        <div className="share-card-title">Mon lien de profil public</div>
+        <p className="share-card-sub">Partagez ce lien avec les directeurs pour qu'ils consultent votre profil directement.</p>
+        <div className="share-card-link-row">
+          <code className="share-card-url">{link}</code>
+          <button className={`share-card-btn ${copied ? 'share-card-btn-ok' : ''}`} onClick={handleCopy}>
+            {copied ? '✅ Copié !' : '📋 Copier'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Stars({ note }) {
   return (
     <span>
@@ -196,6 +224,9 @@ function DashboardAnimateur({ onNavigate }) {
           </button>
         </div>
       </div>
+
+      {/* ── Lien de profil partageable ── */}
+      <ShareCard />
 
       {stats.nb_total === 0 && (
         <div className="empty-state">

@@ -15,6 +15,7 @@ import Parametres from './Parametres'
 import CalendrierSejours from './CalendrierSejours'
 import DashboardAnimateur from './DashboardAnimateur'
 import ProfilPublic from './ProfilPublic'
+import ProfilPublicDirecteur from './ProfilPublicDirecteur'
 import CarteSejoursMap from './CarteSejoursMap'
 import './App.css'
 
@@ -33,6 +34,7 @@ function App() {
   const [userPhoto, setUserPhoto] = useState('')
   const [page, setPage] = useState('dashboard')
   const [publicProfileId, setPublicProfileId] = useState(() => new URLSearchParams(window.location.search).get('profil'))
+  const [publicProfileRole, setPublicProfileRole] = useState('animateur')
   const [messageDest, setMessageDest] = useState(null)
   const [postuleNotif, setPostuleNotif] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
@@ -40,6 +42,7 @@ function App() {
   const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' })
   const [annoncesView, setAnnoncesView] = useState('liste')
   const [animateurDispo, setAnimateurDispo] = useState(null) // { debut, fin } pour le matching
+  const [cacherPassees, setCacherPassees] = useState(true) // masquer les séjours passés par défaut
 
   const handleThemeChange = (isDark) => {
     setDarkMode(isDark)
@@ -186,11 +189,21 @@ function App() {
   const handleSetPage = (newPage) => {
     if (newPage !== 'messages') setMessageDest(null)
     if (newPage === 'messages') fetchUnread()
+    setPublicProfileId(null)
     setPage(newPage)
+  }
+
+  const handleVoirProfil = (userId, userRole = 'animateur') => {
+    setPublicProfileRole(userRole)
+    setPublicProfileId(userId)
   }
 
   // ─── PROFIL PUBLIC (accessible sans connexion) ─────────────────────────
   if (publicProfileId) {
+    const onRetourProfil = () => {
+      setPublicProfileId(null)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
     return (
       <div className="site-wrapper" style={{ minHeight: '100vh', background: 'var(--bg, #f8fafc)', padding: '24px 16px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -198,14 +211,20 @@ function App() {
             <span className="sidebar-logo-icon" style={{ fontSize: '1.4rem' }}>🧡</span>
             <strong style={{ fontSize: '1.1rem' }}>BafaConnect</strong>
           </div>
-          <ProfilPublic
-            userId={publicProfileId}
-            onContacter={isLoggedIn ? handleContacter : null}
-            onRetour={() => {
-              setPublicProfileId(null)
-              window.history.replaceState({}, '', window.location.pathname)
-            }}
-          />
+          {publicProfileRole === 'directeur' ? (
+            <ProfilPublicDirecteur
+              userId={publicProfileId}
+              onContacter={isLoggedIn ? handleContacter : null}
+              onPostuler={isLoggedIn ? handlePostuler : null}
+              onRetour={onRetourProfil}
+            />
+          ) : (
+            <ProfilPublic
+              userId={publicProfileId}
+              onContacter={isLoggedIn ? handleContacter : null}
+              onRetour={onRetourProfil}
+            />
+          )}
         </div>
       </div>
     )
@@ -355,7 +374,11 @@ function App() {
   }
 
   // ─── DASHBOARD (connecté) ───────────────────────────────────────────────
+  const now = new Date()
+
   const sejoursFiltres = sejours.filter(s => {
+    if (cacherPassees && s.date_fin && new Date(s.date_fin) < now) return false
+    if (cacherPassees && !s.date_fin && s.date_debut && new Date(s.date_debut) < now) return false
     if (filtres.lieu && !s.lieu?.toLowerCase().includes(filtres.lieu.toLowerCase())) return false
     if (filtres.type && s.type !== filtres.type) return false
     if (filtres.date_debut && s.date_debut && s.date_debut < filtres.date_debut) return false
@@ -364,6 +387,12 @@ function App() {
     return true
   })
   const nbFiltresActifs = Object.values(filtres).filter(Boolean).length
+
+  const isComplet = (s) => s.nombre_postes && parseInt(s.postes_pourvus || 0) >= parseInt(s.nombre_postes)
+  const nbPassees = sejours.filter(s => {
+    const fin = s.date_fin ? new Date(s.date_fin) : (s.date_debut ? new Date(s.date_debut) : null)
+    return fin && fin < now
+  }).length
 
   // Matching : vérifie si un séjour chevauche au moins une plage de dispo de l'animateur
   const isCompatible = (s) => {
@@ -482,6 +511,16 @@ function App() {
                   </button>
                 )}
               </div>
+              <div className="filtres-toggles">
+                <label className="filtre-toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={cacherPassees}
+                    onChange={e => setCacherPassees(e.target.checked)}
+                  />
+                  Masquer les séjours passés {nbPassees > 0 && <span className="filtres-count-badge">{nbPassees}</span>}
+                </label>
+              </div>
             </div>
 
             {postuleNotif && (
@@ -497,11 +536,16 @@ function App() {
               </div>
             ) : (
               <div className="annonces-grid">
-                {sejoursFiltres.map(s => (
-                  <div key={s.id} className={`annonce-card ${isCompatible(s) ? 'annonce-card-compatible' : ''}`}>
-                    {isCompatible(s) && (
+                {sejoursFiltres.map(s => {
+                  const complet = isComplet(s)
+                  const passe = s.date_fin ? new Date(s.date_fin) < now : (s.date_debut ? new Date(s.date_debut) < now : false)
+                  return (
+                  <div key={s.id} className={`annonce-card ${isCompatible(s) ? 'annonce-card-compatible' : ''} ${complet ? 'annonce-card-complet' : ''} ${passe ? 'annonce-card-passe' : ''}`}>
+                    {isCompatible(s) && !complet && (
                       <div className="annonce-match-badge">✨ Compatible avec vos disponibilités</div>
                     )}
+                    {complet && <div className="annonce-complet-badge">🔒 Complet</div>}
+                    {passe && !complet && <div className="annonce-passe-badge">📦 Séjour terminé</div>}
                     <div className="annonce-card-header">
                       <span className="annonce-card-lieu">📍 {s.lieu}</span>
                       {s.type && <span className="annonce-card-type">{s.type}</span>}
@@ -515,13 +559,21 @@ function App() {
                       </p>
                     )}
                     {s.nombre_postes && (
-                      <p className="annonce-card-postes">👥 {s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''}</p>
+                      <p className="annonce-card-postes">
+                        👥 {parseInt(s.postes_pourvus || 0)}/{s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''} pourvu{parseInt(s.postes_pourvus || 0) > 1 ? 's' : ''}
+                      </p>
                     )}
                     {s.description && <p className="annonce-card-desc">{s.description}</p>}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <button className="btn-primary annonce-card-btn" onClick={() => handlePostuler(s.id)}>
-                        Postuler au séjour
-                      </button>
+                      {!complet && !passe ? (
+                        <button className="btn-primary annonce-card-btn" onClick={() => handlePostuler(s.id)}>
+                          Postuler au séjour
+                        </button>
+                      ) : (
+                        <button className="btn-secondary annonce-card-btn" disabled style={{ opacity: 0.5 }}>
+                          {complet ? '🔒 Complet' : '📦 Terminé'}
+                        </button>
+                      )}
                       {s.flyer_url && (
                         <button
                           className="btn-document"
@@ -536,7 +588,8 @@ function App() {
                       )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             </div>
@@ -590,7 +643,7 @@ function App() {
               <h1 className="page-title">Trouver un animateur</h1>
               <p className="page-subtitle">Recherchez des profils par nom, compétence, ville ou statut BAFA</p>
             </div>
-            <RechercheAnimateurs onContacter={handleContacter} />
+            <RechercheAnimateurs onContacter={handleContacter} onVoirProfil={handleVoirProfil} />
           </div>
         )}
 
@@ -628,6 +681,7 @@ function App() {
                 key={messageDest?.id || 'default'}
                 destinataireInitial={messageDest}
                 onNewMessage={fetchUnread}
+                onVoirProfil={handleVoirProfil}
               />
             </div>
           </div>

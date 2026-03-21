@@ -2539,6 +2539,14 @@ a {
   object-fit: cover;
 }
 
+.animateur-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
 .animateur-card-info { flex: 1; min-width: 0; }
 
 .animateur-card-nom {
@@ -2862,7 +2870,8 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 12px;
   flex-wrap: wrap;
 }
 
@@ -4237,4 +4246,911 @@ html.dark .calendrier-dispo-barre {
   color: var(--muted);
   margin: 0 0 14px;
   line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════
+   Section Disponibilités Pro (CalendrierSejours)
+   ═══════════════════════════════════════════════ */
+
+.dispo-section {
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Header */
+.dispo-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.dispo-section-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dispo-section-icon-wrap {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #22c55e15, #16a34a15);
+  border: 1px solid #22c55e30;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+html.dark .dispo-section-icon-wrap {
+  background: rgba(34,197,94,0.12);
+  border-color: rgba(34,197,94,0.25);
+  color: #4ade80;
+}
+
+.dispo-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.dispo-section-subtitle {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Bouton Ajouter */
+.dispo-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1.5px dashed #22c55e;
+  background: transparent;
+  color: #16a34a;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.dispo-add-btn:hover {
+  background: #22c55e12;
+  border-style: solid;
+}
+html.dark .dispo-add-btn {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+html.dark .dispo-add-btn:hover {
+  background: rgba(74,222,128,0.1);
+}
+
+.dispo-add-btn-center {
+  margin-top: 12px;
+  border-style: solid;
+}
+
+/* Liste des plages */
+.dispo-cards-list {
+  padding: 4px 0;
+}
+
+/* État vide */
+.dispo-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.dispo-empty-icon {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.dispo-empty-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+
+.dispo-empty-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* Carte plage individuelle */
+.dispo-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.dispo-card:last-child { border-bottom: none; }
+.dispo-card:hover { background: var(--bg); }
+
+.dispo-card-left {
+  flex-shrink: 0;
+}
+
+.dispo-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px #22c55e20;
+}
+html.dark .dispo-card-dot {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74,222,128,0.2);
+}
+
+.dispo-card-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dispo-card-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dispo-card-date-start,
+.dispo-card-date-end {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.dispo-card-arrow {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.dispo-card-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.73rem;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+html.dark .dispo-card-badge {
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
+  border-color: rgba(34,197,94,0.3);
+}
+
+.dispo-card-delete {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+.dispo-card:hover .dispo-card-delete { opacity: 1; }
+.dispo-card-delete:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fecaca;
+  opacity: 1;
+}
+html.dark .dispo-card-delete:hover {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+  border-color: rgba(239,68,68,0.3);
+}
+
+/* Formulaire d'ajout */
+.dispo-add-form {
+  margin: 8px 16px 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.dispo-add-form-header {
+  margin-bottom: 14px;
+}
+
+.dispo-add-form-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dispo-add-form-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dispo-add-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.dispo-add-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 5px;
+}
+
+.dispo-add-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.dispo-add-input:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px #22c55e18;
+}
+
+.dispo-add-field-sep {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.dispo-add-preview {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #16a34a;
+  font-weight: 500;
+}
+html.dark .dispo-add-preview { color: #4ade80; }
+
+.dispo-add-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
+/* Barre de sauvegarde */
+.dispo-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: #fefce8;
+  flex-wrap: wrap;
+}
+html.dark .dispo-save-bar {
+  background: rgba(234,179,8,0.08);
+}
+
+.dispo-save-bar-ok {
+  background: #f0fdf4;
+}
+html.dark .dispo-save-bar-ok {
+  background: rgba(34,197,94,0.08);
+}
+
+.dispo-save-bar-err {
+  background: #fef2f2;
+}
+html.dark .dispo-save-bar-err {
+  background: rgba(239,68,68,0.08);
+}
+
+.dispo-save-pending {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #92400e;
+  font-weight: 500;
+}
+html.dark .dispo-save-pending { color: #fcd34d; }
+
+.dispo-save-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.dispo-save-msg {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.dispo-save-btn {
+  font-size: 0.82rem;
+  padding: 6px 16px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@media (max-width: 600px) {
+  .dispo-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dispo-add-form-fields {
+    flex-direction: column;
+  }
+  .dispo-add-field-sep { display: none; }
+  .dispo-save-bar { flex-direction: column; align-items: flex-start; }
+}
+
+/* ═══════════════════════════════════
+   Annonces : badge Complet / Passé
+   ═══════════════════════════════════ */
+
+.annonce-complet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+html.dark .annonce-complet-badge {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.annonce-passe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+html.dark .annonce-passe-badge {
+  background: rgba(100,116,139,0.15);
+  color: #94a3b8;
+  border-color: rgba(100,116,139,0.3);
+}
+
+.annonce-card-complet {
+  opacity: 0.72;
+  border-color: #fecaca !important;
+}
+html.dark .annonce-card-complet { border-color: rgba(239,68,68,0.3) !important; }
+
+.annonce-card-passe {
+  opacity: 0.6;
+}
+
+/* Toggle filtres passés */
+.filtres-toggles {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.filtre-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.filtre-toggle-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--primary, #f97316);
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════
+   Compétences rapides (RechercheAnimateurs)
+   ═══════════════════════════════════ */
+
+.competences-rapides {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.competences-rapides-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 4px;
+}
+
+.competences-rapides-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.competence-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.competence-chip:hover {
+  border-color: var(--primary, #f97316);
+  color: var(--primary, #f97316);
+  background: rgba(249,115,22,0.05);
+}
+.competence-chip-active {
+  border-color: var(--primary, #f97316) !important;
+  background: rgba(249,115,22,0.1) !important;
+  color: var(--primary, #f97316) !important;
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════
+   Formulaire Avis (ProfilPublic)
+   ═══════════════════════════════════ */
+
+.profil-avis-form-card {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+
+.profil-avis-form-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.profil-avis-form-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.profil-avis-form-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 3px;
+}
+
+.profil-avis-form-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.profil-avis-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.profil-avis-note-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.profil-avis-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--bg);
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+  margin-bottom: 14px;
+}
+.profil-avis-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+
+.profil-avis-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profil-avis-ok {
+  font-size: 0.84rem;
+  color: #16a34a;
+  font-weight: 500;
+}
+.profil-avis-err {
+  font-size: 0.84rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════
+   Share Card (DashboardAnimateur)
+   ═══════════════════════════════════ */
+
+.share-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-top: 4px;
+}
+html.dark .share-card {
+  background: rgba(14,165,233,0.08);
+  border-color: rgba(14,165,233,0.2);
+}
+
+.share-card-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.share-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.share-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.share-card-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.share-card-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-card-url {
+  flex: 1;
+  font-size: 0.76rem;
+  color: #0369a1;
+  background: rgba(14,165,233,0.08);
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  word-break: break-all;
+  min-width: 0;
+}
+html.dark .share-card-url {
+  color: #38bdf8;
+  background: rgba(56,189,248,0.08);
+  border-color: rgba(56,189,248,0.2);
+}
+
+.share-card-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #0369a1;
+  background: transparent;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.share-card-btn:hover {
+  background: rgba(3,105,161,0.08);
+}
+.share-card-btn-ok {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: rgba(22,163,74,0.06);
+}
+html.dark .share-card-btn {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* ═══════════════════════════════════
+   Profil Public Directeur
+   ═══════════════════════════════════ */
+
+.pdir-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pdir-badge-actif {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+html.dark .pdir-badge-actif {
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
+  border-color: rgba(34,197,94,0.3);
+}
+
+.pdir-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: flex-end;
+}
+
+.pdir-sejours-section {
+  margin-top: 20px;
+}
+
+.pdir-sejours-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pdir-sejours-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: var(--primary, #f97316);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pdir-sejours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdir-sejour-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pdir-sejour-card:hover {
+  border-color: var(--primary, #f97316);
+  box-shadow: 0 2px 8px rgba(249,115,22,0.1);
+}
+
+.pdir-sejour-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.pdir-sejour-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pdir-sejour-titre {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.pdir-sejour-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.pdir-sejour-dates {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.pdir-sejour-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 6px 0 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .pdir-actions { flex-direction: row; align-items: flex-start; }
+  .pdir-sejour-top { flex-direction: column; }
+}
+
+/* ═══════════════════════════════════
+   Grille recherche animateurs (4 colonnes alignées)
+   ═══════════════════════════════════ */
+
+.recherche-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.recherche-fields-grid .form-group {
+  margin: 0;
+}
+
+.recherche-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .recherche-fields-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .recherche-fields-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════
+   Badge Approfondissement Auto-déclaré
+   ═══════════════════════════════════ */
+
+.appro-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.appro-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+html.dark .appro-tag {
+  background: rgba(29,78,216,0.15);
+  color: #60a5fa;
+  border-color: rgba(96,165,250,0.3);
+}
+
+.appro-autodeclare {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+  border-radius: 20px;
+  font-size: 0.71rem;
+  font-weight: 600;
+  cursor: help;
+}
+html.dark .appro-autodeclare {
+  background: rgba(234,179,8,0.1);
+  color: #fcd34d;
+  border-color: rgba(234,179,8,0.3);
 }

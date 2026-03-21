@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
 
-function Stars({ note }) {
+function Stars({ note, interactive = false, onSelect }) {
   return (
-    <span>
+    <span style={{ cursor: interactive ? 'pointer' : 'default' }}>
       {[1,2,3,4,5].map(i => (
-        <span key={i} style={{ color: i <= Math.round(note) ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>★</span>
+        <span
+          key={i}
+          style={{ color: i <= Math.round(note) ? '#f59e0b' : '#d1d5db', fontSize: interactive ? '1.6rem' : '1.1rem', transition: 'color 0.1s' }}
+          onClick={() => interactive && onSelect && onSelect(i)}
+        >★</span>
       ))}
     </span>
   )
@@ -15,8 +19,13 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [avisForm, setAvisForm] = useState({ note: 0, commentaire: '' })
+  const [avisMsg, setAvisMsg] = useState('')
+  const [avisSaving, setAvisSaving] = useState(false)
+  const [monAvis, setMonAvis] = useState(null)
   const isLoggedIn = !!localStorage.getItem('token')
   const role = localStorage.getItem('role')
+  const myId = localStorage.getItem('userId')
 
   useEffect(() => {
     if (!userId) return
@@ -24,7 +33,36 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
       .then(res => setData(res.data))
       .catch(() => setError('Profil introuvable ou non disponible.'))
       .finally(() => setLoading(false))
-  }, [userId])
+    // Charger mon avis existant
+    if (isLoggedIn) {
+      api.get(`/avis/mon-avis/${userId}`)
+        .then(res => {
+          if (res.data) {
+            setMonAvis(res.data)
+            setAvisForm({ note: res.data.note, commentaire: res.data.commentaire || '' })
+          }
+        })
+        .catch(() => {})
+    }
+  }, [userId, isLoggedIn])
+
+  const submitAvis = async () => {
+    if (!avisForm.note) return
+    setAvisSaving(true)
+    setAvisMsg('')
+    try {
+      await api.post('/avis', { cible_id: userId, note: avisForm.note, commentaire: avisForm.commentaire })
+      setAvisMsg('success')
+      setMonAvis({ note: avisForm.note, commentaire: avisForm.commentaire })
+      // Recharger les avis
+      const res = await api.get(`/profiles/public/${userId}`)
+      setData(res.data)
+    } catch (err) {
+      setAvisMsg(err.response?.data?.error || 'error')
+    } finally {
+      setAvisSaving(false)
+    }
+  }
 
   const getDispos = (disponibilites) => {
     if (!disponibilites) return null
@@ -101,6 +139,14 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
                 <span className="animateur-card-statut">{profil.diplomes[0]}</span>
               )}
             </div>
+            {profil.diplomes?.[1] && (
+              <div className="appro-tag-row" style={{ marginTop: 6 }}>
+                <span className="appro-tag">📚 {profil.diplomes[1]}</span>
+                <span className="appro-autodeclare" title="Qualification déclarée par l'animateur — demandez un justificatif pour confirmer">
+                  ⚠️ Auto-déclaré
+                </span>
+              </div>
+            )}
             {moyenne && (
               <div className="profil-public-avis-ligne">
                 <Stars note={moyenne} />
@@ -210,6 +256,52 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Laisser un avis (directeur connecté seulement, pas son propre profil) ── */}
+      {isLoggedIn && userId !== myId && (
+        <div className="profil-avis-form-card">
+          <div className="profil-avis-form-header">
+            <span className="profil-avis-form-icon">⭐</span>
+            <div>
+              <h3 className="profil-avis-form-title">
+                {monAvis ? 'Modifier votre avis' : 'Laisser un avis'}
+              </h3>
+              <p className="profil-avis-form-sub">
+                {monAvis
+                  ? `Votre note actuelle : ${monAvis.note}/5`
+                  : 'Partagez votre expérience avec cet animateur'
+                }
+              </p>
+            </div>
+          </div>
+          <div className="profil-avis-stars-row">
+            <Stars note={avisForm.note} interactive onSelect={n => setAvisForm(f => ({ ...f, note: n }))} />
+            {avisForm.note > 0 && (
+              <span className="profil-avis-note-label">
+                {['', 'Insuffisant', 'Passable', 'Bien', 'Très bien', 'Excellent'][avisForm.note]}
+              </span>
+            )}
+          </div>
+          <textarea
+            className="profil-avis-textarea"
+            placeholder="Ajoutez un commentaire (facultatif)..."
+            value={avisForm.commentaire}
+            onChange={e => setAvisForm(f => ({ ...f, commentaire: e.target.value }))}
+            rows={3}
+          />
+          <div className="profil-avis-form-footer">
+            <button
+              className="btn-primary"
+              onClick={submitAvis}
+              disabled={!avisForm.note || avisSaving}
+            >
+              {avisSaving ? 'Envoi...' : monAvis ? '✏️ Modifier mon avis' : '⭐ Envoyer mon avis'}
+            </button>
+            {avisMsg === 'success' && <span className="profil-avis-ok">✅ Avis enregistré !</span>}
+            {avisMsg && avisMsg !== 'success' && <span className="profil-avis-err">❌ {avisMsg === 'error' ? 'Erreur' : avisMsg}</span>}
           </div>
         </div>
       )}

@@ -11,7 +11,7 @@ function Profile({ onPhotoChange }) {
 
   const [formData, setFormData] = useState({
     // Commun animateur
-    nom: '', prenom: '', bafa_status: '', ville: '',
+    nom: '', prenom: '', bafa_status: '', approfondissement: '', ville: '',
     // Animateur avancé
     competencesText: '',   // texte brut → tableau à l'envoi
     experiencesText: '',   // idem
@@ -53,6 +53,7 @@ function Profile({ onPhotoChange }) {
           prenom: nomParts[0] || '',
           nom: nomParts.slice(1).join(' ') || '',
           bafa_status: res.data.diplomes?.[0] || 'Non diplômé',
+          approfondissement: res.data.diplomes?.[1] || '',
           ville: res.data.ville || '',
           competencesText: (res.data.competences || []).join('\n'),
           experiencesText: (res.data.experiences || []).join('\n'),
@@ -282,6 +283,12 @@ function Profile({ onPhotoChange }) {
                 <span className="profile-label">Statut BAFA</span>
                 <strong>{user?.diplomes?.[0] || 'Non renseigné'}</strong>
               </div>
+              {user?.diplomes?.[1] && (
+                <div className="profile-info-box">
+                  <span className="profile-label">Approfondissement</span>
+                  <strong>{user.diplomes[1]}</strong>
+                </div>
+              )}
               <div className="profile-info-box">
                 <span className="profile-label">Ville</span>
                 <strong>{user?.ville || 'Non renseignée'}</strong>
@@ -378,6 +385,22 @@ function Profile({ onPhotoChange }) {
                     <option value="Stagiaire BAFA">Stagiaire BAFA</option>
                     <option value="Diplômé BAFA">Diplômé BAFA</option>
                     <option value="Diplômé BAFD">Diplômé BAFD</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="approfondissement">📚 Approfondissement BAFA</label>
+                  <select id="approfondissement" value={formData.approfondissement} onChange={set('approfondissement')} className="profile-select">
+                    <option value="">Aucun / Non renseigné</option>
+                    <option value="Activités physiques et sportives">Activités physiques et sportives</option>
+                    <option value="Activités nautiques">Activités nautiques</option>
+                    <option value="Surveillant de baignade">Surveillant de baignade</option>
+                    <option value="Animation musicale">Animation musicale</option>
+                    <option value="Théâtre / Arts du spectacle">Théâtre / Arts du spectacle</option>
+                    <option value="Activités de pleine nature">Activités de pleine nature</option>
+                    <option value="Animation auprès des jeunes enfants">Animation auprès des jeunes enfants</option>
+                    <option value="Numérique / Informatique">Numérique / Informatique</option>
+                    <option value="Animation interculturelle">Animation interculturelle</option>
+                    <option value="Approfondissement général">Approfondissement général</option>
                   </select>
                 </div>
                 <div className="form-group">
