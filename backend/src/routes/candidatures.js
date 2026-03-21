@@ -2,6 +2,7 @@ import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { createNotif } from './notifications.js';
+import { sendNouvellePostulation } from '../emailService.js';
 
 const router = express.Router();
 
@@ -30,20 +31,28 @@ router.post('/', authenticateToken, async (req, res) => {
             [sejour_id, id]
         );
 
-        // Notification in-app pour le directeur
+        // Notification in-app + email pour le directeur
         try {
             const infoRes = await pool.query(
                 `SELECT s.directeur_id, s.titre AS sejour_titre,
-                        COALESCE(ap.nom, u.email) AS animateur_nom
+                        COALESCE(ap.nom, u.email) AS animateur_nom,
+                        ud.email AS directeur_email
                  FROM sejours s
                  JOIN users u ON u.id = $1
+                 JOIN users ud ON ud.id = s.directeur_id
                  LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
                  WHERE s.id = $2`,
                 [id, sejour_id]
             );
             if (infoRes.rows.length > 0) {
-                const { directeur_id, sejour_titre, animateur_nom } = infoRes.rows[0];
+                const { directeur_id, sejour_titre, animateur_nom, directeur_email } = infoRes.rows[0];
                 await createNotif(directeur_id, 'candidature', `📬 ${animateur_nom} a postulé à "${sejour_titre}"`);
+                sendNouvellePostulation({
+                    emailDirecteur: directeur_email,
+                    animateurNom: animateur_nom,
+                    sejourTitre: sejour_titre,
+                    appUrl: process.env.APP_URL
+                }).catch(() => {});
             }
         } catch {}
 

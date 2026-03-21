@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import api from './api/axios'
 
 function Login({ onLoginSuccess }) {
-  const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot' | 'reset'
+  const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot' | 'reset' | 'check-email' | 'verify-success'
 
   // Connexion
   const [email, setEmail] = useState('')
@@ -25,14 +25,24 @@ function Login({ onLoginSuccess }) {
   const [newPassword, setNewPassword] = useState('')
   const [newPassword2, setNewPassword2] = useState('')
 
-  // Détecter le token de reset dans l'URL (?reset=TOKEN)
+  // Email non vérifié après login
+  const [unverifiedEmail, setUnverifiedEmail] = useState('')
+  const [resendMsg, setResendMsg] = useState('')
+
+  // Détecter les tokens dans l'URL (?reset=TOKEN ou ?verify=TOKEN)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const token = params.get('reset')
-    if (token) {
-      setResetToken(token)
+    const resetTok = params.get('reset')
+    const verifyTok = params.get('verify')
+    if (resetTok) {
+      setResetToken(resetTok)
       setMode('reset')
-      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    } else if (verifyTok) {
+      // Vérification automatique du token
+      api.get(`/auth/verify-email/${verifyTok}`)
+        .then(() => setMode('verify-success'))
+        .catch(() => { setError('Lien de vérification invalide ou expiré.'); setMode('login') })
       window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [])
@@ -56,6 +66,10 @@ function Login({ onLoginSuccess }) {
         localStorage.setItem('role', userRole)
         localStorage.setItem('userId', res.data.user.id)
         localStorage.setItem('userEmail', res.data.user.email)
+        if (res.data.emailVerified === false) {
+          setUnverifiedEmail(email)
+          setError('⚠️ Votre email n\'est pas encore vérifié. Consultez votre boîte mail.')
+        }
         onLoginSuccess(userRole)
       } else {
         setError("Impossible de récupérer les informations de connexion.")
@@ -76,10 +90,9 @@ function Login({ onLoginSuccess }) {
     setIsLoading(true)
     try {
       await api.post('/auth/register', { email: regEmail, password: regPassword, role: regRole })
-      setSuccess('Compte créé ! Vous pouvez maintenant vous connecter.')
+      setUnverifiedEmail(regEmail)
       setRegEmail(''); setRegPassword(''); setRegPassword2('')
-      setMode('login')
-      setEmail(regEmail)
+      setMode('check-email')
     } catch (err) {
       setError(err.response?.data?.error || "Erreur lors de la création du compte.")
     } finally {
@@ -99,6 +112,17 @@ function Login({ onLoginSuccess }) {
       setError('Erreur serveur. Réessayez.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return
+    setResendMsg('')
+    try {
+      const res = await api.post('/auth/resend-verification', { email: unverifiedEmail })
+      setResendMsg(res.data.message)
+    } catch {
+      setResendMsg('Erreur lors du renvoi.')
     }
   }
 
@@ -125,7 +149,7 @@ function Login({ onLoginSuccess }) {
     <div className="login-box">
 
       {/* ── Onglets principaux (masqués sur forgot/reset) ── */}
-      {mode !== 'forgot' && mode !== 'reset' && (
+      {!['forgot', 'reset', 'check-email', 'verify-success'].includes(mode) && (
         <div className="login-tabs">
           <button
             className={`login-tab ${mode === 'login' ? 'active' : ''}`}
@@ -250,6 +274,41 @@ function Login({ onLoginSuccess }) {
               ← Retour à la connexion
             </button>
           </form>
+        </>
+      )}
+
+      {/* ── VÉRIFICATION EMAIL — écran post-inscription ── */}
+      {mode === 'check-email' && (
+        <>
+          <div className="login-header">
+            <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: 8 }}>📬</div>
+            <h2>Vérifiez votre email</h2>
+            <p>Un lien de confirmation a été envoyé à <strong>{unverifiedEmail}</strong>. Cliquez dessus pour activer votre compte.</p>
+          </div>
+          <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: '16px', marginBottom: 16, fontSize: '0.9rem', color: '#9a3412' }}>
+            💡 Si vous ne voyez pas l'email, vérifiez vos spams ou renvoyez-en un nouveau.
+          </div>
+          {resendMsg && <div className="login-success">{resendMsg}</div>}
+          <button type="button" className="login-submit" onClick={handleResendVerification}>
+            🔁 Renvoyer l'email de vérification
+          </button>
+          <button type="button" className="forgot-link" onClick={() => { setMode('login'); setEmail(unverifiedEmail) }}>
+            ← Retour à la connexion
+          </button>
+        </>
+      )}
+
+      {/* ── VÉRIFICATION RÉUSSIE ── */}
+      {mode === 'verify-success' && (
+        <>
+          <div className="login-header">
+            <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: 8 }}>✅</div>
+            <h2>Email vérifié !</h2>
+            <p>Votre adresse email a bien été confirmée. Vous pouvez maintenant vous connecter.</p>
+          </div>
+          <button type="button" className="login-submit" onClick={() => setMode('login')}>
+            Se connecter
+          </button>
         </>
       )}
 

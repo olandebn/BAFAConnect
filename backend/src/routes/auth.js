@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { pool } from '../db.js';
-import { sendPasswordResetEmail } from '../emailService.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../emailService.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -12,29 +12,69 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
     const { email, password, role } = req.body;
 
-    // Logs de debug
-    console.log("BODY REÇU :", req.body);
-    console.log("INSERT :", email, password, role);
-
     try {
         const hashed = await bcrypt.hash(password, 10);
+        const verificationToken = crypto.randomBytes(32).toString('hex');
 
         const result = await pool.query(
-            `INSERT INTO users (email, password_hash, role)
-             VALUES ($1, $2, $3) RETURNING id, email, role`,
-            [email, hashed, role]
+            `INSERT INTO users (email, password_hash, role, verification_token, email_verified)
+             VALUES ($1, $2, $3, $4, false) RETURNING id, email, role`,
+            [email, hashed, role, verificationToken]
         );
 
-        res.json(result.rows[0]);
+        const verifyUrl = `${process.env.APP_URL || 'http://localhost:5173'}?verify=${verificationToken}`;
+        sendVerificationEmail({ email, verifyUrl }).catch(err =>
+            console.error('[register] Erreur email vérification :', err.message)
+        );
+
+        res.json({ ...result.rows[0], emailSent: true });
     } catch (err) {
         console.error("ERREUR SQL :", err);
-
-        // Erreur email déjà utilisé
         if (err.code === '23505') {
             return res.status(400).json({ error: 'Email déjà utilisé' });
         }
-
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// VÉRIFICATION EMAIL
+router.get('/verify-email/:token', async (req, res) => {
+    const { token } = req.params;
+    try {
+        const result = await pool.query(
+            `UPDATE users SET email_verified = true, verification_token = NULL
+             WHERE verification_token = $1 RETURNING id, email, role`,
+            [token]
+        );
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Lien invalide ou déjà utilisé.' });
+        }
+        res.json({ message: 'Email vérifié avec succès !', user: result.rows[0] });
+    } catch (err) {
+        console.error('Erreur verify-email :', err);
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+});
+
+// RENVOYER L'EMAIL DE VÉRIFICATION
+router.post('/resend-verification', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email requis.' });
+    try {
+        const userRes = await pool.query(
+            `SELECT id, email_verified FROM users WHERE email = $1`, [email]
+        );
+        if (userRes.rows.length === 0 || userRes.rows[0].email_verified) {
+            return res.json({ message: 'Si ce compte existe et n\'est pas vérifié, un nouvel email a été envoyé.' });
+        }
+        const newToken = crypto.randomBytes(32).toString('hex');
+        await pool.query(`UPDATE users SET verification_token = $1 WHERE email = $2`, [newToken, email]);
+        const verifyUrl = `${process.env.APP_URL || 'http://localhost:5173'}?verify=${newToken}`;
+        sendVerificationEmail({ email, verifyUrl }).catch(() => {});
+        res.json({ message: 'Email de vérification renvoyé !' });
+    } catch (err) {
+        console.error('Erreur resend-verification :', err);
+        res.status(500).json({ error: 'Erreur serveur.' });
     }
 });
 
@@ -69,6 +109,7 @@ router.post('/login', async (req, res) => {
         res.json({
             message: 'Connexion réussie',
             token,
+            emailVerified: user.email_verified === true,
             user: {
                 id: user.id,
                 email: user.email,
