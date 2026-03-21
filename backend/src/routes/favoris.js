@@ -11,7 +11,7 @@ router.get('/', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT f.animateur_id, ap.nom, ap.ville, ap.diplomes, ap.photo_url,
-                   ap.competences, ap.disponibilites, u.email, f.created_at
+                   ap.competences, ap.disponibilites, ap.cv_url, u.email, f.created_at
             FROM favoris f
             JOIN animateurs_profiles ap ON ap.user_id = f.animateur_id
             JOIN users u ON u.id = f.animateur_id

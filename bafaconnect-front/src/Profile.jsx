@@ -15,11 +15,14 @@ function Profile({ onPhotoChange }) {
     // Animateur avancé
     competencesText: '',   // texte brut → tableau à l'envoi
     experiencesText: '',   // idem
-    dispo_debut: '', dispo_fin: '',
+    plages: [{ debut: '', fin: '' }],  // multi-disponibilités
     // Directeur
     nom_structure: '', type_structure: '', description: '',
     // Commun
-    photo_url: ''
+    photo_url: '',
+    // Documents
+    cv_url: '',
+    flyer_url: ''
   })
 
   useEffect(() => { fetchProfile() }, [])
@@ -32,11 +35,20 @@ function Profile({ onPhotoChange }) {
 
       if (role === 'animateur') {
         const nomParts = (res.data.nom || '').split(' ')
-        const dispo = res.data.disponibilites
+        const rawDispo = res.data.disponibilites
           ? (typeof res.data.disponibilites === 'string'
             ? JSON.parse(res.data.disponibilites)
             : res.data.disponibilites)
-          : {}
+          : null
+        // Normalise en tableau de plages
+        let plages = [{ debut: '', fin: '' }]
+        if (rawDispo) {
+          if (Array.isArray(rawDispo)) {
+            plages = rawDispo.length > 0 ? rawDispo : [{ debut: '', fin: '' }]
+          } else if (rawDispo.debut) {
+            plages = [{ debut: rawDispo.debut || '', fin: rawDispo.fin || '' }]
+          }
+        }
         setFormData({
           prenom: nomParts[0] || '',
           nom: nomParts.slice(1).join(' ') || '',
@@ -44,10 +56,11 @@ function Profile({ onPhotoChange }) {
           ville: res.data.ville || '',
           competencesText: (res.data.competences || []).join('\n'),
           experiencesText: (res.data.experiences || []).join('\n'),
-          dispo_debut: dispo.debut || '',
-          dispo_fin: dispo.fin || '',
+          plages,
           nom_structure: '', type_structure: '', description: '',
-          photo_url: res.data.photo_url || ''
+          photo_url: res.data.photo_url || '',
+          cv_url: res.data.cv_url || '',
+          flyer_url: ''
         })
       } else {
         setFormData({
@@ -56,8 +69,11 @@ function Profile({ onPhotoChange }) {
           dispo_debut: '', dispo_fin: '',
           nom_structure: res.data.nom_structure || '',
           type_structure: res.data.type_structure || '',
+          ville: res.data.ville || '',
           description: res.data.description || '',
-          photo_url: res.data.photo_url || ''
+          photo_url: res.data.photo_url || '',
+          cv_url: '',
+          flyer_url: res.data.flyer_url || ''
         })
       }
     } catch (err) {
@@ -77,6 +93,8 @@ function Profile({ onPhotoChange }) {
             ...formData,
             competences: formData.competencesText.split('\n').map(s => s.trim()).filter(Boolean),
             experiences: formData.experiencesText.split('\n').map(s => s.trim()).filter(Boolean),
+            // Multi-dispo : on envoie le tableau filtré des plages renseignées
+            disponibilites: formData.plages.filter(p => p.debut),
           }
         : formData
 
@@ -107,6 +125,29 @@ function Profile({ onPhotoChange }) {
     reader.readAsDataURL(file)
   }
 
+  const handleDocumentChange = (field) => (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Document trop lourd (max 5 Mo).')
+      return
+    }
+    if (file.type !== 'application/pdf') {
+      setError('Seuls les fichiers PDF sont acceptés.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => setFormData(prev => ({ ...prev, [field]: ev.target.result }))
+    reader.readAsDataURL(file)
+  }
+
+  const openDocument = (dataUrl) => {
+    const win = window.open()
+    if (win) {
+      win.document.write(`<iframe src="${dataUrl}" style="width:100%;height:100%;border:none;" />`)
+    }
+  }
+
   const getCompletude = () => {
     if (role === 'animateur') {
       const champs = [
@@ -116,7 +157,7 @@ function Profile({ onPhotoChange }) {
         { label: 'Ville', ok: !!formData.ville },
         { label: 'Compétences', ok: formData.competencesText.trim().length > 0 },
         { label: 'Expériences', ok: formData.experiencesText.trim().length > 0 },
-        { label: 'Disponibilités', ok: !!formData.dispo_debut },
+        { label: 'Disponibilités', ok: formData.plages?.some(p => !!p.debut) },
         { label: 'Photo de profil', ok: !!formData.photo_url },
       ]
       const done = champs.filter(c => c.ok).length
@@ -256,19 +297,32 @@ function Profile({ onPhotoChange }) {
               {(user?.disponibilites) && (
                 <div className="profile-info-box profile-info-box-full">
                   <span className="profile-label">Disponibilités</span>
-                  <strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                     {(() => {
-                      const d = typeof user.disponibilites === 'string'
+                      const raw = typeof user.disponibilites === 'string'
                         ? JSON.parse(user.disponibilites)
                         : user.disponibilites
-                      if (d?.debut && d?.fin)
-                        return `Du ${new Date(d.debut).toLocaleDateString('fr-FR')} au ${new Date(d.fin).toLocaleDateString('fr-FR')}`
-                      if (d?.debut) return `À partir du ${new Date(d.debut).toLocaleDateString('fr-FR')}`
-                      return 'Non renseignées'
+                      const plages = Array.isArray(raw) ? raw : (raw?.debut ? [raw] : [])
+                      if (plages.length === 0) return <span>Non renseignées</span>
+                      return plages.map((p, i) => (
+                        <span key={i} className="profile-chip">
+                          🗓️ {p.debut ? new Date(p.debut).toLocaleDateString('fr-FR') : '?'}
+                          {p.fin ? ` → ${new Date(p.fin).toLocaleDateString('fr-FR')}` : ''}
+                        </span>
+                      ))
                     })()}
-                  </strong>
+                  </div>
                 </div>
               )}
+              <div className="profile-info-box profile-info-box-full">
+                <span className="profile-label">Mon CV</span>
+                {user?.cv_url
+                  ? <button type="button" className="btn-document" onClick={() => openDocument(user.cv_url)}>
+                      📄 Voir mon CV
+                    </button>
+                  : <span className="profile-empty-chip">Aucun CV déposé</span>
+                }
+              </div>
             </>
           ) : (
             <>
@@ -287,6 +341,15 @@ function Profile({ onPhotoChange }) {
               <div className="profile-info-box profile-info-box-full">
                 <span className="profile-label">Description</span>
                 <strong>{user?.description || 'Aucune description renseignée'}</strong>
+              </div>
+              <div className="profile-info-box profile-info-box-full">
+                <span className="profile-label">Flyer de la structure</span>
+                {user?.flyer_url
+                  ? <button type="button" className="btn-document" onClick={() => openDocument(user.flyer_url)}>
+                      📋 Voir le flyer
+                    </button>
+                  : <span className="profile-empty-chip">Aucun flyer déposé</span>
+                }
               </div>
             </>
           )}
@@ -351,14 +414,47 @@ function Profile({ onPhotoChange }) {
                 />
               </div>
 
-              <div className="profile-form-grid">
-                <div className="form-group">
-                  <label htmlFor="dispo_debut">Disponible à partir du</label>
-                  <input id="dispo_debut" type="date" value={formData.dispo_debut} onChange={set('dispo_debut')} />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="dispo_fin">Disponible jusqu'au</label>
-                  <input id="dispo_fin" type="date" value={formData.dispo_fin} onChange={set('dispo_fin')} />
+              <div className="form-group">
+                <label>🗓️ Disponibilités <span className="form-hint">(plusieurs plages possibles)</span></label>
+                <div className="plages-list">
+                  {formData.plages.map((p, i) => (
+                    <div key={i} className="plage-row">
+                      <input
+                        type="date"
+                        value={p.debut}
+                        onChange={e => {
+                          const updated = formData.plages.map((pl, j) => j === i ? { ...pl, debut: e.target.value } : pl)
+                          setFormData(prev => ({ ...prev, plages: updated }))
+                        }}
+                        placeholder="Début"
+                      />
+                      <span className="plage-sep">→</span>
+                      <input
+                        type="date"
+                        value={p.fin}
+                        onChange={e => {
+                          const updated = formData.plages.map((pl, j) => j === i ? { ...pl, fin: e.target.value } : pl)
+                          setFormData(prev => ({ ...prev, plages: updated }))
+                        }}
+                        placeholder="Fin"
+                      />
+                      {formData.plages.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn-delete-sm"
+                          onClick={() => setFormData(prev => ({ ...prev, plages: prev.plages.filter((_, j) => j !== i) }))}
+                        >×</button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '5px 12px', marginTop: 6 }}
+                    onClick={() => setFormData(prev => ({ ...prev, plages: [...prev.plages, { debut: '', fin: '' }] }))}
+                  >
+                    + Ajouter une plage
+                  </button>
                 </div>
               </div>
             </>
@@ -422,6 +518,70 @@ function Profile({ onPhotoChange }) {
               )}
             </div>
           </div>
+
+          {role === 'animateur' && (
+            <div className="form-group">
+              <label>{formData.cv_url ? '📄 Mon CV' : '📄 Ajouter mon CV'} <span className="form-hint">(PDF, max 5 Mo)</span></label>
+              <div className="doc-upload-area">
+                {formData.cv_url && (
+                  <button type="button" className="btn-document" onClick={() => openDocument(formData.cv_url)}>
+                    👁️ Aperçu du CV
+                  </button>
+                )}
+                <label className="btn-secondary photo-upload-btn" htmlFor="cv-input">
+                  {formData.cv_url ? '🔄 Remplacer le CV' : '📤 Téléverser un CV'}
+                </label>
+                <input
+                  id="cv-input"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleDocumentChange('cv_url')}
+                  style={{ display: 'none' }}
+                />
+                {formData.cv_url && (
+                  <button
+                    type="button"
+                    className="btn-delete-sm"
+                    onClick={() => setFormData(prev => ({ ...prev, cv_url: null }))}
+                  >
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {role === 'directeur' && (
+            <div className="form-group">
+              <label>{formData.flyer_url ? '📋 Mon flyer' : '📋 Ajouter un flyer'} <span className="form-hint">(PDF, max 5 Mo)</span></label>
+              <div className="doc-upload-area">
+                {formData.flyer_url && (
+                  <button type="button" className="btn-document" onClick={() => openDocument(formData.flyer_url)}>
+                    👁️ Aperçu du flyer
+                  </button>
+                )}
+                <label className="btn-secondary photo-upload-btn" htmlFor="flyer-input">
+                  {formData.flyer_url ? '🔄 Remplacer le flyer' : '📤 Téléverser un flyer'}
+                </label>
+                <input
+                  id="flyer-input"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleDocumentChange('flyer_url')}
+                  style={{ display: 'none' }}
+                />
+                {formData.flyer_url && (
+                  <button
+                    type="button"
+                    className="btn-delete-sm"
+                    onClick={() => setFormData(prev => ({ ...prev, flyer_url: null }))}
+                  >
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="profile-actions">
             <button type="submit" className="btn-primary profile-action-btn">Enregistrer</button>

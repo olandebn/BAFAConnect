@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { createNotif } from './notifications.js';
 
 const router = express.Router();
 
@@ -22,10 +23,10 @@ router.post('/', authenticateToken, async (req, res) => {
 
         const sejourTitre = sejourRes.rows[0].titre;
 
-        // Récupérer le nom du directeur
+        // Récupérer le nom du directeur (via structures_directeurs)
         const dirRes = await pool.query(
-            `SELECT COALESCE(dp.nom, u.email) AS nom
-             FROM users u LEFT JOIN directeurs_profiles dp ON dp.user_id = u.id
+            `SELECT COALESCE(sd.nom_structure, u.email) AS nom
+             FROM users u LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
              WHERE u.id = $1`,
             [directeurId]
         );
@@ -47,6 +48,9 @@ router.post('/', authenticateToken, async (req, res) => {
             `INSERT INTO messages (expediteur_id, destinataire_id, contenu) VALUES ($1, $2, $3)`,
             [directeurId, animateur_id, contenu]
         );
+
+        // Notification in-app pour l'animateur
+        await createNotif(animateur_id, 'invitation', `💌 ${dirNom} vous invite à postuler à "${sejourTitre}"`);
 
         res.status(201).json({ message: 'Invitation envoyée !' });
     } catch (err) {

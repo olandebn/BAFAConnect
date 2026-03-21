@@ -29,11 +29,15 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
   const getDispos = (disponibilites) => {
     if (!disponibilites) return null
     try {
-      const d = typeof disponibilites === 'string' ? JSON.parse(disponibilites) : disponibilites
+      const raw = typeof disponibilites === 'string' ? JSON.parse(disponibilites) : disponibilites
       const fmt = (s) => new Date(s).toLocaleDateString('fr-FR')
-      if (d.debut && d.fin) return `Du ${fmt(d.debut)} au ${fmt(d.fin)}`
-      if (d.debut) return `À partir du ${fmt(d.debut)}`
-      return null
+      const plages = Array.isArray(raw) ? raw : (raw?.debut ? [raw] : [])
+      if (plages.length === 0) return null
+      return plages.map(p => {
+        if (p.debut && p.fin) return `Du ${fmt(p.debut)} au ${fmt(p.fin)}`
+        if (p.debut) return `À partir du ${fmt(p.debut)}`
+        return null
+      }).filter(Boolean)
     } catch { return null }
   }
 
@@ -155,10 +159,30 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
           )}
 
           {/* Disponibilités */}
-          {dispos && (
+          {dispos && dispos.length > 0 && (
             <div className="profil-public-section">
               <h3 className="profil-public-section-title">Disponibilités</h3>
-              <p className="profil-public-dispos">🗓️ {dispos}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {dispos.map((d, i) => (
+                  <span key={i} className="profile-chip">🗓️ {d}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CV */}
+          {profil.cv_url && (
+            <div className="profil-public-section">
+              <h3 className="profil-public-section-title">CV</h3>
+              <button
+                className="btn-document"
+                onClick={() => {
+                  const win = window.open()
+                  if (win) win.document.write(`<iframe src="${profil.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                }}
+              >
+                📄 Voir le CV de {profil.nom?.split(' ')[0] || 'cet animateur'}
+              </button>
             </div>
           )}
         </div>

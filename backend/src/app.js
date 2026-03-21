@@ -10,6 +10,7 @@ import messageRoutes from './routes/messages.js';
 import avisRoutes from './routes/avis.js';
 import favorisRoutes from './routes/favoris.js';
 import invitationsRoutes from './routes/invitations.js';
+import notificationsRoutes from './routes/notifications.js';
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ const app = express();
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/auth', authRoutes);
@@ -29,6 +30,7 @@ app.use('/messages', messageRoutes);
 app.use('/avis', avisRoutes);
 app.use('/favoris', favorisRoutes);
 app.use('/invitations', invitationsRoutes);
+app.use('/notifications', notificationsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

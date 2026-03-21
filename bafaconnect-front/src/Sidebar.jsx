@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import NotifCloche from './NotifCloche'
 
-function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPhoto, notifItems }) {
+function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPhoto }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
 
   const navAnimateur = [
     { id: 'dashboard',    icon: '📊', label: 'Tableau de bord' },
@@ -28,13 +28,9 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
 
   const navItems = role === 'directeur' ? navDirecteur : navAnimateur
 
-  const totalNotifs = (notifItems || []).length
-  const totalBadge = unreadCount + totalNotifs
-
   const handleNav = (id) => {
     setPage(id)
     setMobileOpen(false)
-    setNotifOpen(false)
   }
 
   return (
@@ -64,51 +60,7 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
           </div>
 
           {/* Cloche notifications */}
-          <div className="sidebar-notif-wrapper">
-            <button
-              className="sidebar-notif-btn"
-              onClick={() => setNotifOpen(o => !o)}
-              title="Notifications"
-            >
-              🔔
-              {totalBadge > 0 && (
-                <span className="sidebar-notif-dot">{totalBadge > 9 ? '9+' : totalBadge}</span>
-              )}
-            </button>
-
-            {notifOpen && (
-              <div className="notif-dropdown">
-                <div className="notif-dropdown-header">Notifications</div>
-
-                {unreadCount > 0 && (
-                  <button
-                    className="notif-item notif-item-message"
-                    onClick={() => handleNav('messages')}
-                  >
-                    <span className="notif-item-icon">💬</span>
-                    <span className="notif-item-text">
-                      {unreadCount} message{unreadCount > 1 ? 's' : ''} non lu{unreadCount > 1 ? 's' : ''}
-                    </span>
-                  </button>
-                )}
-
-                {(notifItems || []).map((n, i) => (
-                  <button
-                    key={i}
-                    className="notif-item"
-                    onClick={() => handleNav(n.page || 'candidatures')}
-                  >
-                    <span className="notif-item-icon">{n.icon || '📩'}</span>
-                    <span className="notif-item-text">{n.text}</span>
-                  </button>
-                ))}
-
-                {totalBadge === 0 && (
-                  <div className="notif-empty">Aucune nouvelle notification</div>
-                )}
-              </div>
-            )}
-          </div>
+          <NotifCloche />
         </div>
 
         {/* Navigation */}

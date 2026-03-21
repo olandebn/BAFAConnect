@@ -10,24 +10,33 @@ function Messagerie({ destinataireInitial = null }) {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
   const messagesEndRef = useRef(null);
+  const filRef = useRef(null);
 
   const monId = localStorage.getItem('userId');
 
-  // Charger les conversations à l'ouverture
+  // Charger les conversations à l'ouverture + polling toutes les 10s
   useEffect(() => {
     fetchConversations();
+    const interval = setInterval(fetchConversations, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Charger les messages quand l'interlocuteur change
+  // Charger les messages quand l'interlocuteur change + polling toutes les 5s
   useEffect(() => {
-    if (interlocuteurActif) {
-      fetchMessages(interlocuteurActif.id);
-    }
-  }, [interlocuteurActif]);
+    if (!interlocuteurActif) return;
+    fetchMessages(interlocuteurActif.id);
+    const interval = setInterval(() => fetchMessages(interlocuteurActif.id), 5000);
+    return () => clearInterval(interval);
+  }, [interlocuteurActif?.id]);
 
-  // Scroll automatique vers le bas
+  // Scroll automatique vers le bas uniquement si déjà tout en bas
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const fil = filRef.current;
+    if (!fil) return;
+    const isAtBottom = fil.scrollHeight - fil.scrollTop - fil.clientHeight < 80;
+    if (isAtBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const fetchConversations = async () => {
@@ -160,7 +169,7 @@ function Messagerie({ destinataireInitial = null }) {
               </div>
             </div>
 
-            <div className="messagerie-fil">
+            <div className="messagerie-fil" ref={filRef}>
               {isLoading && <p className="messagerie-empty">Chargement...</p>}
               {error && <div className="profile-alert profile-alert-error">{error}</div>}
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
+import InviterModal from './InviterModal'
 
 function getBadges(f) {
   const badges = []
@@ -15,6 +16,7 @@ function getBadges(f) {
 function Favoris({ onContacter }) {
   const [favoris, setFavoris] = useState([])
   const [loading, setLoading] = useState(true)
+  const [inviterAnimateur, setInviterAnimateur] = useState(null)
 
   const fetchFavoris = async () => {
     setLoading(true)
@@ -65,6 +67,10 @@ function Favoris({ onContacter }) {
   )
 
   return (
+    <div>
+    {inviterAnimateur && (
+      <InviterModal animateur={inviterAnimateur} onClose={() => setInviterAnimateur(null)} />
+    )}
     <div className="animateurs-grid">
       {favoris.map(f => {
         const dispos = getDispos(f.disponibilites)
@@ -90,6 +96,19 @@ function Favoris({ onContacter }) {
                       <span key={i} className={`animateur-badge ${b.cls}`}>{b.icon} {b.label}</span>
                     ))}
                   </div>
+                )}
+                {f.cv_url && (
+                  <button
+                    type="button"
+                    className="badge-cv badge-cv-btn"
+                    title="Voir le CV"
+                    onClick={() => {
+                      const win = window.open()
+                      if (win) win.document.write(`<iframe src="${f.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                    }}
+                  >
+                    📄 Voir le CV
+                  </button>
                 )}
               </div>
             </div>
@@ -119,6 +138,13 @@ function Favoris({ onContacter }) {
                 </button>
               )}
               <button
+                className="btn-inviter"
+                onClick={() => setInviterAnimateur({ id: f.animateur_id, nom: f.nom })}
+                title="Inviter à postuler"
+              >
+                🔗 Inviter
+              </button>
+              <button
                 className="btn-favori-retirer"
                 onClick={() => retirerFavori(f.animateur_id)}
                 title="Retirer des favoris"
@@ -129,6 +155,7 @@ function Favoris({ onContacter }) {
           </div>
         )
       })}
+    </div>
     </div>
   )
 }

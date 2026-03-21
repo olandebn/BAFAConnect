@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { createNotif } from './notifications.js';
 
 const router = express.Router();
 
@@ -22,6 +23,19 @@ router.post('/', authenticateToken, async (req, res) => {
              VALUES ($1, $2, $3) RETURNING *`,
             [expediteur_id, destinataire_id, contenu.trim()]
         );
+        // Notification in-app pour le destinataire
+        try {
+            const expediteurRes = await pool.query(
+                `SELECT COALESCE(ap.nom, sd.nom_structure, u.email) AS nom
+                 FROM users u
+                 LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
+                 LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
+                 WHERE u.id = $1`, [expediteur_id]
+            );
+            const expediteurNom = expediteurRes.rows[0]?.nom || 'Quelqu\'un';
+            await createNotif(destinataire_id, 'message', `💬 Nouveau message de ${expediteurNom}`);
+        } catch {}
+
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Erreur envoi message :', err);

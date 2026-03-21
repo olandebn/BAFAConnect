@@ -13,13 +13,18 @@ function Stars({ note }) {
 
 function DashboardAnimateur({ onNavigate }) {
   const [stats, setStats] = useState(null)
+  const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/candidatures/stats')
-      .then(res => setStats(res.data))
-      .catch(() => setError('Impossible de charger les statistiques.'))
+    Promise.all([
+      api.get('/candidatures/stats'),
+      api.get('/invitations').catch(() => ({ data: [] }))
+    ]).then(([statsRes, invitRes]) => {
+      setStats(statsRes.data)
+      setInvitations(invitRes.data || [])
+    }).catch(() => setError('Impossible de charger les statistiques.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -142,6 +147,55 @@ function DashboardAnimateur({ onNavigate }) {
           </div>
         </div>
       )}
+
+      {/* ── Invitations reçues ── */}
+      {invitations.length > 0 && (
+        <div className="dashboard-section">
+          <div className="dashboard-section-header">
+            <h3 className="dashboard-section-title">💌 Invitations reçues</h3>
+            <span className="dashboard-section-hint">{invitations.length} invitation{invitations.length > 1 ? 's' : ''}</span>
+          </div>
+          <div className="annonces-stats-list">
+            {invitations.slice(0, 3).map((inv, i) => (
+              <div key={i} className="annonce-stats-row">
+                <div className="annonce-stats-left">
+                  <span className="annonce-stats-titre">{inv.sejour_titre}</span>
+                  <div className="annonce-stats-meta">
+                    {inv.lieu && <span>📍 {inv.lieu}</span>}
+                    <span>de {inv.directeur_nom}</span>
+                    {inv.date_debut && <span>🗓️ {new Date(inv.date_debut).toLocaleDateString('fr-FR')}</span>}
+                  </div>
+                </div>
+                <button
+                  className="btn-primary"
+                  style={{ fontSize: '0.78rem', padding: '5px 12px', whiteSpace: 'nowrap' }}
+                  onClick={() => onNavigate && onNavigate('annonces')}
+                >
+                  Voir →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Actions rapides ── */}
+      <div className="dashboard-section">
+        <div className="dashboard-section-header">
+          <h3 className="dashboard-section-title">Actions rapides</h3>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn-primary" onClick={() => onNavigate && onNavigate('annonces')}>
+            🏠 Voir les annonces
+          </button>
+          <button className="btn-secondary" onClick={() => onNavigate && onNavigate('profil')}>
+            👤 Compléter mon profil
+          </button>
+          <button className="btn-secondary" onClick={() => onNavigate && onNavigate('candidatures')}>
+            📋 Mes candidatures
+          </button>
+        </div>
+      </div>
 
       {stats.nb_total === 0 && (
         <div className="empty-state">

@@ -15,6 +15,7 @@ import Parametres from './Parametres'
 import CalendrierSejours from './CalendrierSejours'
 import DashboardAnimateur from './DashboardAnimateur'
 import ProfilPublic from './ProfilPublic'
+import CarteSejoursMap from './CarteSejoursMap'
 import './App.css'
 
 function App() {
@@ -22,29 +23,29 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
   const [role, setRole] = useState(localStorage.getItem('role') || 'animateur')
 
-  // ── Dark mode ──────────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
     const isDark = saved === 'dark'
     if (isDark) document.documentElement.classList.add('dark')
     return isDark
   })
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '')
+  const [userPhoto, setUserPhoto] = useState('')
+  const [page, setPage] = useState('dashboard')
+  const [publicProfileId, setPublicProfileId] = useState(() => new URLSearchParams(window.location.search).get('profil'))
+  const [messageDest, setMessageDest] = useState(null)
+  const [postuleNotif, setPostuleNotif] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifItems, setNotifItems] = useState([])
+  const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' })
+  const [annoncesView, setAnnoncesView] = useState('liste')
+  const [animateurDispo, setAnimateurDispo] = useState(null) // { debut, fin } pour le matching
 
   const handleThemeChange = (isDark) => {
     setDarkMode(isDark)
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
     document.documentElement.classList.toggle('dark', isDark)
   }
-  // ──────────────────────────────────────────────────────────────────────────
-  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '')
-  const [userPhoto, setUserPhoto] = useState('')
-  const [page, setPage] = useState(role === 'directeur' ? 'dashboard' : 'dashboard')
-  const [publicProfileId, setPublicProfileId] = useState(() => new URLSearchParams(window.location.search).get('profil'))
-  const [messageDest, setMessageDest] = useState(null)
-  const [postuleNotif, setPostuleNotif] = useState('')
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [notifItems, setNotifItems] = useState([])
-  const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '' })
 
   const fetchSejours = useCallback(() => {
     api.get('/sejours')
@@ -55,7 +56,18 @@ function App() {
   const fetchUserPhoto = useCallback(() => {
     if (!localStorage.getItem('token')) return
     api.get('/profiles/me')
-      .then(res => setUserPhoto(res.data.photo_url || ''))
+      .then(res => {
+        setUserPhoto(res.data.photo_url || '')
+        // Récupère les dispos de l'animateur pour le matching (tableau ou objet)
+        if (res.data.disponibilites) {
+          try {
+            const d = typeof res.data.disponibilites === 'string'
+              ? JSON.parse(res.data.disponibilites)
+              : res.data.disponibilites
+            setAnimateurDispo(d) // peut être tableau ou {debut,fin}
+          } catch {}
+        }
+      })
       .catch(() => {})
   }, [])
 
@@ -347,8 +359,27 @@ function App() {
     if (filtres.lieu && !s.lieu?.toLowerCase().includes(filtres.lieu.toLowerCase())) return false
     if (filtres.type && s.type !== filtres.type) return false
     if (filtres.date_debut && s.date_debut && s.date_debut < filtres.date_debut) return false
+    if (filtres.date_fin && s.date_fin && s.date_fin > filtres.date_fin) return false
+    if (filtres.postes_min && s.nombre_postes && Number(s.nombre_postes) < Number(filtres.postes_min)) return false
     return true
   })
+  const nbFiltresActifs = Object.values(filtres).filter(Boolean).length
+
+  // Matching : vérifie si un séjour chevauche au moins une plage de dispo de l'animateur
+  const isCompatible = (s) => {
+    if (!animateurDispo || !s.date_debut) return false
+    const sejourDebut = new Date(s.date_debut)
+    const sejourFin   = s.date_fin ? new Date(s.date_fin) : sejourDebut
+    const plages = Array.isArray(animateurDispo) ? animateurDispo : (animateurDispo.debut ? [animateurDispo] : [])
+    return plages.some(p => {
+      if (!p.debut) return false
+      const dispoDebut = new Date(p.debut)
+      const dispoFin   = p.fin ? new Date(p.fin) : null
+      if (dispoFin && sejourDebut > dispoFin) return false
+      if (sejourFin < dispoDebut) return false
+      return true
+    })
+  }
 
   return (
     <div className="app-layout">
@@ -382,10 +413,33 @@ function App() {
             <div className="page-header">
               <div>
                 <h1 className="page-title">Annonces disponibles</h1>
-                <p className="page-subtitle">{sejours.length} mission{sejours.length !== 1 ? 's' : ''} publiée{sejours.length !== 1 ? 's' : ''}</p>
+                <p className="page-subtitle">
+                  {nbFiltresActifs > 0
+                    ? `${sejoursFiltres.length} résultat${sejoursFiltres.length !== 1 ? 's' : ''} sur ${sejours.length} annonce${sejours.length !== 1 ? 's' : ''}`
+                    : `${sejours.length} mission${sejours.length !== 1 ? 's' : ''} publiée${sejours.length !== 1 ? 's' : ''}`
+                  }
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  className={annoncesView === 'liste' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+                  onClick={() => setAnnoncesView('liste')}
+                >📋 Liste</button>
+                <button
+                  className={annoncesView === 'carte' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+                  onClick={() => setAnnoncesView('carte')}
+                >🗺️ Carte</button>
               </div>
             </div>
 
+            {annoncesView === 'carte' && (
+              <CarteSejoursMap onPostuler={handlePostuler} role={role} />
+            )}
+
+            {annoncesView === 'liste' && (
+            <div>
             {/* Filtres */}
             <div className="filtres-bar">
               <div className="filtres-grid">
@@ -410,10 +464,21 @@ function App() {
                   <input type="date" value={filtres.date_debut}
                     onChange={e => setFiltres({ ...filtres, date_debut: e.target.value })} />
                 </div>
-                {(filtres.lieu || filtres.type || filtres.date_debut) && (
+                <div className="form-group">
+                  <label>🗓️ Jusqu'au</label>
+                  <input type="date" value={filtres.date_fin}
+                    onChange={e => setFiltres({ ...filtres, date_fin: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>👥 Postes min.</label>
+                  <input type="number" min="1" max="50" placeholder="Ex : 2"
+                    value={filtres.postes_min}
+                    onChange={e => setFiltres({ ...filtres, postes_min: e.target.value })} />
+                </div>
+                {nbFiltresActifs > 0 && (
                   <button className="btn-secondary filtres-reset"
-                    onClick={() => setFiltres({ lieu: '', type: '', date_debut: '' })}>
-                    ✕ Réinitialiser
+                    onClick={() => setFiltres({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' })}>
+                    ✕ Réinitialiser {nbFiltresActifs > 0 && <span className="filtres-count-badge">{nbFiltresActifs}</span>}
                   </button>
                 )}
               </div>
@@ -433,7 +498,10 @@ function App() {
             ) : (
               <div className="annonces-grid">
                 {sejoursFiltres.map(s => (
-                  <div key={s.id} className="annonce-card">
+                  <div key={s.id} className={`annonce-card ${isCompatible(s) ? 'annonce-card-compatible' : ''}`}>
+                    {isCompatible(s) && (
+                      <div className="annonce-match-badge">✨ Compatible avec vos disponibilités</div>
+                    )}
                     <div className="annonce-card-header">
                       <span className="annonce-card-lieu">📍 {s.lieu}</span>
                       {s.type && <span className="annonce-card-type">{s.type}</span>}
@@ -450,12 +518,28 @@ function App() {
                       <p className="annonce-card-postes">👥 {s.nombre_postes} poste{s.nombre_postes > 1 ? 's' : ''}</p>
                     )}
                     {s.description && <p className="annonce-card-desc">{s.description}</p>}
-                    <button className="btn-primary annonce-card-btn" onClick={() => handlePostuler(s.id)}>
-                      Postuler au séjour
-                    </button>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button className="btn-primary annonce-card-btn" onClick={() => handlePostuler(s.id)}>
+                        Postuler au séjour
+                      </button>
+                      {s.flyer_url && (
+                        <button
+                          className="btn-document"
+                          style={{ fontSize: '0.8rem', padding: '7px 13px' }}
+                          onClick={() => {
+                            const win = window.open()
+                            if (win) win.document.write(`<iframe src="${s.flyer_url}" style="width:100%;height:100%;border:none;" />`)
+                          }}
+                        >
+                          📋 Voir le flyer
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
+            )}
+            </div>
             )}
           </div>
         )}

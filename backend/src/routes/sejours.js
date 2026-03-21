@@ -34,7 +34,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT sejours.*, structures_directeurs.nom_structure
+            `SELECT sejours.*, structures_directeurs.nom_structure, structures_directeurs.flyer_url
              FROM sejours
              LEFT JOIN structures_directeurs ON sejours.directeur_id = structures_directeurs.user_id
              ORDER BY sejours.date_debut ASC`
@@ -42,6 +42,21 @@ router.get('/', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error("ERREUR RÉCUPÉRATION SÉJOURS :", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// Route alias simplifiée pour le modal d'invitation
+router.get('/mes-annonces', authenticateToken, async (req, res) => {
+    const { id, role } = req.user;
+    if (role !== 'directeur') return res.status(403).json({ error: "Accès réservé aux directeurs." });
+    try {
+        const result = await pool.query(
+            'SELECT id, titre, lieu FROM sejours WHERE directeur_id = $1 ORDER BY created_at DESC',
+            [id]
+        );
+        res.json(result.rows);
+    } catch (err) {
         res.status(500).json({ error: "Erreur serveur" });
     }
 });

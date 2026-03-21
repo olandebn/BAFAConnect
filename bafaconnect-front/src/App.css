@@ -3758,3 +3758,483 @@ html.dark .btn-inviter:hover { background: #064e20; }
 }
 .carte-dot-orange { background: #f97316; }
 .carte-dot-green  { background: #16a34a; }
+
+/* ═══════════════════════════════════════════════════════════
+   📄 CV & FLYER — DOCUMENTS
+   ═══════════════════════════════════════════════════════════ */
+.btn-document {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  text-decoration: none;
+}
+.btn-document:hover {
+  background: var(--primary);
+  color: white;
+}
+html.dark .btn-document {
+  background: rgba(249,115,22,0.08);
+  color: #fb923c;
+  border-color: rgba(249,115,22,0.4);
+}
+html.dark .btn-document:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.doc-upload-area {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+/* Badge CV sur les cartes animateurs */
+.badge-cv {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+html.dark .badge-cv {
+  background: #1e3a5f;
+  color: #93c5fd;
+  border-color: rgba(59,130,246,0.3);
+}
+
+/* Badge CV cliquable */
+.badge-cv-btn {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.badge-cv-btn:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+html.dark .badge-cv-btn:hover {
+  background: #1e3a8a;
+  color: #bfdbfe;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🔔 NOTIFICATIONS IN-APP
+   ═══════════════════════════════════════════════════════════ */
+.notif-cloche-wrapper {
+  position: relative;
+}
+
+.notif-cloche-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.notif-cloche-btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+html.dark .notif-cloche-btn:hover {
+  background: rgba(255,255,255,0.08);
+}
+.notif-cloche-active {
+  animation: cloche-shake 0.5s ease;
+}
+@keyframes cloche-shake {
+  0%,100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-15deg); }
+  40%      { transform: rotate(15deg); }
+  60%      { transform: rotate(-10deg); }
+  80%      { transform: rotate(10deg); }
+}
+
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Panel dropdown */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+  z-index: 300;
+  overflow: hidden;
+}
+
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.notif-panel-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.notif-panel-clear {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.notif-panel-clear:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.notif-empty span { font-size: 1.8rem; }
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  transition: background 0.12s;
+  position: relative;
+}
+.notif-item:hover {
+  background: var(--bg);
+}
+.notif-item-new {
+  background: rgba(249,115,22,0.05);
+  border-left: 3px solid var(--primary);
+}
+html.dark .notif-item-new {
+  background: rgba(249,115,22,0.08);
+}
+
+.notif-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+.notif-contenu {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.notif-date {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+  display: block;
+}
+.notif-dismiss {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.notif-dismiss:hover { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   🔍 FILTRES — badge count
+   ═══════════════════════════════════════════════════════════ */
+.filtres-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ✨ MATCHING AUTOMATIQUE
+   ═══════════════════════════════════════════════════════════ */
+.annonce-card-compatible {
+  border-color: #16a34a !important;
+  box-shadow: 0 0 0 2px rgba(22,163,74,0.15), var(--shadow-sm);
+}
+.annonce-match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+html.dark .annonce-match-badge {
+  background: #052e16;
+  color: #4ade80;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📱 RESPONSIVE MOBILE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Sidebar */
+  .sidebar {
+    width: 100%;
+    max-width: 280px;
+    position: fixed;
+    left: -100%;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: left 0.25s ease;
+    overflow-y: auto;
+  }
+  .sidebar.sidebar-mobile-open {
+    left: 0;
+  }
+  .app-main {
+    padding: 16px 12px;
+    margin-left: 0 !important;
+  }
+
+  /* Page header */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .page-title { font-size: 1.4rem; }
+
+  /* Grids → 1 colonne */
+  .annonces-grid,
+  .animateurs-grid,
+  .stats-grid,
+  .filtres-grid,
+  .profile-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Messagerie → panel unique */
+  .messagerie-wrapper {
+    flex-direction: column;
+    height: auto;
+  }
+  .messagerie-sidebar {
+    width: 100% !important;
+    max-height: 220px;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .messagerie-main { height: 420px; }
+
+  /* Cartes */
+  .animateur-card-actions-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .annonce-card-btn,
+  .animateur-card-btn {
+    width: 100%;
+  }
+
+  /* Notif panel */
+  .notif-panel {
+    right: -50px;
+    width: 280px;
+  }
+
+  /* Profil */
+  .profile-card { padding: 16px; }
+  .profile-header { flex-direction: column; gap: 12px; }
+  .profile-header-left { flex-direction: column; }
+  .profile-edit-btn { width: 100%; }
+
+  /* Ajouter marge en haut pour le burger */
+  .page-content { padding-top: 52px; }
+}
+
+@media (max-width: 480px) {
+  .annonce-card { padding: 14px; }
+  .animateur-card { padding: 14px; }
+  .profile-grid { grid-template-columns: 1fr !important; }
+  .dashboard-v2 { gap: 16px; }
+  .stat-card { padding: 16px 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📅 MULTI-DISPONIBILITÉS
+   ═══════════════════════════════════════════════════════════ */
+.plages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.plage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.plage-row input[type="date"] {
+  flex: 1;
+  min-width: 130px;
+}
+.plage-sep {
+  color: var(--muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📅 CALENDRIER — DISPONIBILITÉS ANIMATEUR
+   ═══════════════════════════════════════════════════════════ */
+.calendrier-dispo-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(34,197,94,0.06);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.calendrier-dispo-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #15803d;
+  white-space: nowrap;
+  width: 100px;
+  flex-shrink: 0;
+}
+html.dark .calendrier-dispo-label { color: #4ade80; }
+
+.calendrier-dispo-barre-wrapper {
+  position: relative;
+  flex: 1;
+  height: 14px;
+}
+.calendrier-dispo-barre {
+  position: absolute;
+  height: 100%;
+  background: rgba(34,197,94,0.35);
+  border: 1.5px solid #22c55e;
+  border-radius: 4px;
+}
+html.dark .calendrier-dispo-barre {
+  background: rgba(34,197,94,0.2);
+  border-color: #4ade80;
+}
+
+/* Panneau de gestion */
+.calendrier-dispo-panel {
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.calendrier-dispo-toggle {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: none;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+.calendrier-dispo-toggle:hover { background: var(--bg); }
+
+.calendrier-dispo-form {
+  padding: 16px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.calendrier-dispo-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}

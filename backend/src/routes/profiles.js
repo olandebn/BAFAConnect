@@ -35,22 +35,25 @@ router.post('/me', authenticateToken, async (req, res) => {
         const { id, role } = req.user;
         
 if (role === 'animateur') {
-            const { nom, prenom, bafa_status, ville, competences, experiences, dispo_debut, dispo_fin, photo_url } = req.body;
+            const { nom, prenom, bafa_status, ville, competences, experiences, disponibilites: dispoRaw, dispo_debut, dispo_fin, photo_url, cv_url } = req.body;
 
             const nomComplet = `${prenom} ${nom}`.trim();
-
-            // competences et experiences sont envoyés comme tableaux depuis le front
             const competencesArr = Array.isArray(competences) ? competences : (competences ? [competences] : []);
             const experiencesArr = Array.isArray(experiences) ? experiences : (experiences ? [experiences] : []);
-
-            // disponibilites stocké comme JSON { debut, fin }
-            const disponibilites = (dispo_debut || dispo_fin)
-                ? JSON.stringify({ debut: dispo_debut || null, fin: dispo_fin || null })
-                : null;
+            // Accepte tableau de plages (nouveau) ou debut/fin (ancien)
+            let disponibilites = null;
+            if (dispoRaw !== undefined && dispoRaw !== null) {
+                if (Array.isArray(dispoRaw) && dispoRaw.length > 0)
+                    disponibilites = JSON.stringify(dispoRaw);
+                else if (typeof dispoRaw === 'object' && dispoRaw?.debut)
+                    disponibilites = JSON.stringify(dispoRaw);
+            } else if (dispo_debut || dispo_fin) {
+                disponibilites = JSON.stringify({ debut: dispo_debut || null, fin: dispo_fin || null });
+            }
 
             const query = `
-                INSERT INTO animateurs_profiles (user_id, nom, diplomes, ville, competences, experiences, disponibilites, photo_url)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO animateurs_profiles (user_id, nom, diplomes, ville, competences, experiences, disponibilites, photo_url, cv_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (user_id) DO UPDATE SET
                     nom           = EXCLUDED.nom,
                     diplomes      = EXCLUDED.diplomes,
@@ -58,31 +61,33 @@ if (role === 'animateur') {
                     competences   = EXCLUDED.competences,
                     experiences   = EXCLUDED.experiences,
                     disponibilites = EXCLUDED.disponibilites,
-                    photo_url     = COALESCE(EXCLUDED.photo_url, animateurs_profiles.photo_url)
+                    photo_url     = COALESCE(EXCLUDED.photo_url, animateurs_profiles.photo_url),
+                    cv_url        = CASE WHEN EXCLUDED.cv_url IS NOT NULL THEN EXCLUDED.cv_url ELSE animateurs_profiles.cv_url END
                 RETURNING *;
             `;
 
-            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites, photo_url || null];
+            const values = [id, nomComplet, [bafa_status], ville || null, competencesArr, experiencesArr, disponibilites, photo_url || null, cv_url !== undefined ? cv_url : null];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil animateur mis à jour", profil: result.rows[0] });
         }
 
         else if (role === 'directeur') {
-            const { nom_structure, type_structure, ville, description, photo_url } = req.body;
+            const { nom_structure, type_structure, ville, description, photo_url, flyer_url } = req.body;
 
             const query = `
-                INSERT INTO structures_directeurs (user_id, nom_structure, type_structure, ville, description, photo_url)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO structures_directeurs (user_id, nom_structure, type_structure, ville, description, photo_url, flyer_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (user_id) DO UPDATE SET
                     nom_structure  = EXCLUDED.nom_structure,
                     type_structure = EXCLUDED.type_structure,
                     ville          = EXCLUDED.ville,
                     description    = EXCLUDED.description,
-                    photo_url      = COALESCE(EXCLUDED.photo_url, structures_directeurs.photo_url)
+                    photo_url      = COALESCE(EXCLUDED.photo_url, structures_directeurs.photo_url),
+                    flyer_url      = CASE WHEN EXCLUDED.flyer_url IS NOT NULL THEN EXCLUDED.flyer_url ELSE structures_directeurs.flyer_url END
                 RETURNING *;
             `;
 
-            const values = [id, nom_structure, type_structure, ville, description, photo_url || null];
+            const values = [id, nom_structure, type_structure, ville, description, photo_url || null, flyer_url !== undefined ? flyer_url : null];
             const result = await pool.query(query, values);
             return res.json({ message: "Profil structure mis à jour", profil: result.rows[0] });
         }
@@ -103,7 +108,7 @@ router.get('/animateurs', authenticateToken, async (req, res) => {
     try {
         let query = `
             SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
-                   ap.experiences, ap.disponibilites, ap.photo_url, u.email
+                   ap.experiences, ap.disponibilites, ap.photo_url, ap.cv_url, u.email
             FROM animateurs_profiles ap
             JOIN users u ON u.id = ap.user_id
             WHERE 1=1
@@ -145,7 +150,7 @@ router.get('/public/:userId', async (req, res) => {
     try {
         const profileRes = await pool.query(`
             SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
-                   ap.experiences, ap.disponibilites, ap.photo_url, u.email
+                   ap.experiences, ap.disponibilites, ap.photo_url, ap.cv_url, u.email
             FROM animateurs_profiles ap
             JOIN users u ON u.id = ap.user_id
             WHERE ap.user_id = $1 AND u.role = 'animateur'

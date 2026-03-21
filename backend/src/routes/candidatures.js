@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { createNotif } from './notifications.js';
 
 const router = express.Router();
 
@@ -28,6 +29,23 @@ router.post('/', authenticateToken, async (req, res) => {
             'INSERT INTO candidatures (sejour_id, animateur_id) VALUES ($1, $2) RETURNING *',
             [sejour_id, id]
         );
+
+        // Notification in-app pour le directeur
+        try {
+            const infoRes = await pool.query(
+                `SELECT s.directeur_id, s.titre AS sejour_titre,
+                        COALESCE(ap.nom, u.email) AS animateur_nom
+                 FROM sejours s
+                 JOIN users u ON u.id = $1
+                 LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
+                 WHERE s.id = $2`,
+                [id, sejour_id]
+            );
+            if (infoRes.rows.length > 0) {
+                const { directeur_id, sejour_titre, animateur_nom } = infoRes.rows[0];
+                await createNotif(directeur_id, 'candidature', `📬 ${animateur_nom} a postulé à "${sejour_titre}"`);
+            }
+        } catch {}
 
         res.status(201).json({ message: "Candidature envoyée !", candidature: result.rows[0] });
     } catch (err) {

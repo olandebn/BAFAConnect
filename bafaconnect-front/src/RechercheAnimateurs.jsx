@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import api from './api/axios'
+import InviterModal from './InviterModal'
 
 function getBadges(a) {
   const badges = []
@@ -20,6 +21,7 @@ function RechercheAnimateurs({ onContacter }) {
   const [searched, setSearched] = useState(false)
   const [favorisIds, setFavorisIds] = useState(new Set())
   const [favoriNotif, setFavoriNotif] = useState('')
+  const [inviterAnimateur, setInviterAnimateur] = useState(null)
 
   const toggleFavori = async (animateur) => {
     const isFavori = favorisIds.has(animateur.user_id)
@@ -79,6 +81,9 @@ function RechercheAnimateurs({ onContacter }) {
 
   return (
     <div>
+      {inviterAnimateur && (
+        <InviterModal animateur={inviterAnimateur} onClose={() => setInviterAnimateur(null)} />
+      )}
       {/* Formulaire de recherche */}
       <form onSubmit={handleSearch} className="recherche-form">
         <div className="filtres-grid">
@@ -164,6 +169,19 @@ function RechercheAnimateurs({ onContacter }) {
                               ))}
                             </div>
                           )}
+                          {a.cv_url && (
+                            <button
+                              type="button"
+                              className="badge-cv badge-cv-btn"
+                              title="Voir le CV"
+                              onClick={() => {
+                                const win = window.open()
+                                if (win) win.document.write(`<iframe src="${a.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                              }}
+                            >
+                              📄 Voir le CV
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -191,6 +209,13 @@ function RechercheAnimateurs({ onContacter }) {
                             💬 Contacter
                           </button>
                         )}
+                        <button
+                          className="btn-inviter"
+                          onClick={() => setInviterAnimateur({ id: a.user_id, nom: a.nom })}
+                          title="Inviter à postuler"
+                        >
+                          🔗 Inviter
+                        </button>
                         <button
                           className={`btn-favori ${favorisIds.has(a.user_id) ? 'btn-favori-active' : ''}`}
                           onClick={() => toggleFavori(a)}

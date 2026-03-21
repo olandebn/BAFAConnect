@@ -13,6 +13,12 @@ function CalendrierSejours({ onPostuler, onContacter }) {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
 
+  // Disponibilités animateur
+  const [plages, setPlages] = useState([{ debut: '', fin: '' }])
+  const [dispoSaving, setDispoSaving] = useState(false)
+  const [dispoMsg, setDispoMsg] = useState('')
+  const [dispoOpen, setDispoOpen] = useState(false)
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
@@ -20,15 +26,24 @@ function CalendrierSejours({ onPostuler, onContacter }) {
         const res = await api.get('/sejours/mes-sejours')
         setSejours(res.data)
       } else {
-        const [sejoursRes, candidaturesRes] = await Promise.all([
+        const [sejoursRes, candidaturesRes, profilRes] = await Promise.all([
           api.get('/sejours'),
-          api.get('/candidatures/me')
+          api.get('/candidatures/me'),
+          api.get('/profiles/me').catch(() => ({ data: {} }))
         ])
         setSejours(sejoursRes.data)
-        // Map sejour_id → statut
         const map = {}
         for (const c of candidaturesRes.data) map[c.sejour_id] = c.statut
         setCandidatures(map)
+        // Charger les dispos existantes
+        const rawDispo = profilRes.data?.disponibilites
+        if (rawDispo) {
+          try {
+            const d = typeof rawDispo === 'string' ? JSON.parse(rawDispo) : rawDispo
+            const loaded = Array.isArray(d) ? d : (d?.debut ? [d] : [{ debut: '', fin: '' }])
+            setPlages(loaded.length > 0 ? loaded : [{ debut: '', fin: '' }])
+          } catch {}
+        }
       }
     } catch (err) {
       console.error('Erreur calendrier :', err)
@@ -36,6 +51,21 @@ function CalendrierSejours({ onPostuler, onContacter }) {
       setLoading(false)
     }
   }, [role])
+
+  const saveDispo = async () => {
+    setDispoSaving(true)
+    setDispoMsg('')
+    try {
+      const filtered = plages.filter(p => p.debut)
+      await api.post('/profiles/me', { disponibilites: filtered })
+      setDispoMsg('✅ Disponibilités enregistrées !')
+    } catch {
+      setDispoMsg('❌ Erreur lors de la sauvegarde.')
+    } finally {
+      setDispoSaving(false)
+      setTimeout(() => setDispoMsg(''), 3000)
+    }
+  }
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -110,6 +140,22 @@ function CalendrierSejours({ onPostuler, onContacter }) {
 
   const isPassee = (s) => s.date_fin ? new Date(s.date_fin) < now : new Date(s.date_debut) < now
 
+  // Calcule le style d'une plage de dispo sur la règle du mois
+  const getDispoBarStyle = (p) => {
+    if (!p.debut) return null
+    const debut = new Date(p.debut)
+    const fin = p.fin ? new Date(p.fin) : debut
+    if (debut > finMois || fin < debutMois) return null
+    const startClamped = debut < debutMois ? debutMois : debut
+    const endClamped = fin > finMois ? finMois : fin
+    const startDay = startClamped.getDate() - 1
+    const endDay = endClamped.getDate() - 1
+    return {
+      left: `${(startDay / nbJours) * 100}%`,
+      width: `${Math.max(((endDay - startDay + 1) / nbJours) * 100, 2)}%`
+    }
+  }
+
   return (
     <div className="calendrier-wrapper">
 
@@ -133,6 +179,27 @@ function CalendrierSejours({ onPostuler, onContacter }) {
           </div>
         ))}
       </div>
+
+      {/* ── Bande disponibilités animateur ── */}
+      {role === 'animateur' && (
+        <div className="calendrier-dispo-track" title="Mes disponibilités">
+          <span className="calendrier-dispo-label">Mes dispos</span>
+          <div className="calendrier-dispo-barre-wrapper">
+            {plages.map((p, i) => {
+              const style = getDispoBarStyle(p)
+              if (!style) return null
+              return (
+                <div
+                  key={i}
+                  className="calendrier-dispo-barre"
+                  style={style}
+                  title={`Disponible du ${p.debut}${p.fin ? ` au ${p.fin}` : ''}`}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Lignes séjours ── */}
       {loading ? (
@@ -223,13 +290,84 @@ function CalendrierSejours({ onPostuler, onContacter }) {
         </div>
       )}
 
+      {/* ── Gestion disponibilités animateur ── */}
+      {role === 'animateur' && (
+        <div className="calendrier-dispo-panel">
+          <button
+            className="calendrier-dispo-toggle"
+            onClick={() => setDispoOpen(o => !o)}
+          >
+            🗓️ Mes disponibilités {dispoOpen ? '▲' : '▼'}
+          </button>
+
+          {dispoOpen && (
+            <div className="calendrier-dispo-form">
+              <p className="calendrier-dispo-hint">
+                Indiquez vos plages de disponibilité. Elles apparaîtront en vert sur le calendrier et permettront le matching automatique avec les annonces.
+              </p>
+              <div className="plages-list">
+                {plages.map((p, i) => (
+                  <div key={i} className="plage-row">
+                    <input
+                      type="date"
+                      value={p.debut}
+                      onChange={e => {
+                        const updated = plages.map((pl, j) => j === i ? { ...pl, debut: e.target.value } : pl)
+                        setPlages(updated)
+                      }}
+                    />
+                    <span className="plage-sep">→</span>
+                    <input
+                      type="date"
+                      value={p.fin}
+                      onChange={e => {
+                        const updated = plages.map((pl, j) => j === i ? { ...pl, fin: e.target.value } : pl)
+                        setPlages(updated)
+                      }}
+                    />
+                    {plages.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn-delete-sm"
+                        onClick={() => setPlages(prev => prev.filter((_, j) => j !== i))}
+                      >×</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '5px 12px' }}
+                  onClick={() => setPlages(prev => [...prev, { debut: '', fin: '' }])}
+                >
+                  + Ajouter une plage
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ fontSize: '0.8rem', padding: '5px 16px' }}
+                  onClick={saveDispo}
+                  disabled={dispoSaving}
+                >
+                  {dispoSaving ? 'Enregistrement...' : '💾 Enregistrer'}
+                </button>
+                {dispoMsg && <span style={{ fontSize: '0.82rem' }}>{dispoMsg}</span>}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Légende ── */}
       <div className="calendrier-legende">
         {role === 'directeur' ? (
           <span className="legende-item"><span className="legende-dot" style={{ background: '#3b82f6' }} />Mes séjours</span>
         ) : (
           <>
-            <span className="legende-item"><span className="legende-dot" style={{ background: '#94a3b8' }} />Disponible</span>
+            <span className="legende-item"><span className="legende-dot" style={{ background: '#22c55e', opacity: 0.5 }} />Mes dispos</span>
+            <span className="legende-item"><span className="legende-dot" style={{ background: '#94a3b8' }} />Séjour libre</span>
             <span className="legende-item"><span className="legende-dot" style={{ background: '#eab308' }} />En attente</span>
             <span className="legende-item"><span className="legende-dot" style={{ background: '#22c55e' }} />Accepté</span>
             <span className="legende-item"><span className="legende-dot" style={{ background: '#ef4444' }} />Refusé</span>

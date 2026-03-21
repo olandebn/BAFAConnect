@@ -2,6 +2,7 @@ import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { sendCandidatureNotification } from '../emailService.js';
+import { createNotif } from './notifications.js';
 
 const router = express.Router();
 
@@ -75,6 +76,13 @@ router.patch('/candidatures/:id', authenticateToken, async (req, res) => {
             if (infoResult.rows.length > 0) {
                 const { email, nom, sejour_titre } = infoResult.rows[0];
                 await sendCandidatureNotification({ email, animateurNom: nom, sejourTitre: sejour_titre, statut });
+                const emoji = (statut === 'acceptée' || statut === 'acceptee') ? '✅' : '❌';
+                const label = (statut === 'acceptée' || statut === 'acceptee') ? 'acceptée' : 'refusée';
+                await createNotif(
+                    result.rows[0].animateur_id,
+                    'statut_candidature',
+                    `${emoji} Votre candidature pour "${sejour_titre}" a été ${label}`
+                );
             }
         } catch (emailErr) {
             console.error('Erreur envoi notif email :', emailErr.message);
