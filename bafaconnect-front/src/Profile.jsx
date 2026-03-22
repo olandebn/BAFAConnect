@@ -2,6 +2,21 @@ import { useEffect, useState } from 'react'
 import api from './api/axios'
 import AvisSection from './AvisSection'
 
+const SUPABASE_URL = 'https://rzjfhucnftglbdvgosld.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6amZodWNuZnRnbGJkdmdvc2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NzMwNjMsImV4cCI6MjA4NzU0OTA2M30.qLsPBLmRwMU8-lfmZzcPdRGjvGGa8mBrF51xSRrvAw8'
+
+async function uploadToSupabase(file, bucket, folder) {
+  const ext = file.name.split('.').pop()
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
+    body: file,
+  })
+  if (!res.ok) throw new Error('Upload échoué')
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`
+}
+
 function Profile({ onPhotoChange }) {
   const [user, setUser] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -114,32 +129,33 @@ function Profile({ onPhotoChange }) {
 
   const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value })
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image trop lourde (max 2 Mo).')
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = (ev) => setFormData(prev => ({ ...prev, photo_url: ev.target.result }))
-    reader.readAsDataURL(file)
+    if (file.size > 5 * 1024 * 1024) { setError('Image trop lourde (max 5 Mo).'); return }
+    setError('')
+    setSaving(true)
+    try {
+      const url = await uploadToSupabase(file, 'profile-photos', 'photos')
+      setFormData(prev => ({ ...prev, photo_url: url }))
+    } catch { setError("Erreur lors de l'upload de la photo.") }
+    finally { setSaving(false) }
   }
 
-  const handleDocumentChange = (field) => (e) => {
+  const handleDocumentChange = (field) => async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Document trop lourd (max 5 Mo).')
-      return
-    }
-    if (file.type !== 'application/pdf') {
-      setError('Seuls les fichiers PDF sont acceptés.')
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = (ev) => setFormData(prev => ({ ...prev, [field]: ev.target.result }))
-    reader.readAsDataURL(file)
+    if (file.size > 10 * 1024 * 1024) { setError('Document trop lourd (max 10 Mo).'); return }
+    if (file.type !== 'application/pdf') { setError('Seuls les fichiers PDF sont acceptés.'); return }
+    setError('')
+    setSaving(true)
+    try {
+      const bucket = field === 'cv_url' ? 'profile-photos' : 'profile-photos'
+      const folder = field === 'cv_url' ? 'cv' : 'flyers'
+      const url = await uploadToSupabase(file, bucket, folder)
+      setFormData(prev => ({ ...prev, [field]: url }))
+    } catch { setError("Erreur lors de l'upload du document.") }
+    finally { setSaving(false) }
   }
 
   const openDocument = (dataUrl) => {

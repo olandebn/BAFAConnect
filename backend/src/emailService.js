@@ -40,7 +40,7 @@ print('ok')
 }
 
 // ── Helper principal : essaie nodemailer, puis Python ──
-async function sendMail({ to, subject, html }) {
+export async function sendMail({ to, subject, html }) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';

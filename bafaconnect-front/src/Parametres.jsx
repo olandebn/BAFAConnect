@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from './api/axios'
+import { activerNotificationsPush, desactiverNotificationsPush, estAbonnePush } from './pushNotifications'
 
 function Parametres({ onEmailChange, darkMode, onThemeChange }) {
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
@@ -8,6 +9,14 @@ function Parametres({ onEmailChange, darkMode, onThemeChange }) {
   const [emailMsg, setEmailMsg] = useState(null)
   const [pwLoading, setPwLoading] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
+  const [pushAbonne, setPushAbonne] = useState(false)
+  const [pushLoading, setPushLoading] = useState(false)
+  const [pushMsg, setPushMsg] = useState(null)
+  const pushSupporte = ('serviceWorker' in navigator) && ('PushManager' in window)
+
+  useEffect(() => {
+    estAbonnePush().then(setPushAbonne)
+  }, [])
 
   const showMsg = (setter, type, text) => {
     setter({ type, text })
@@ -51,6 +60,27 @@ function Parametres({ onEmailChange, darkMode, onThemeChange }) {
       showMsg(setEmailMsg, 'error', err.response?.data?.error || 'Erreur serveur.')
     } finally {
       setEmailLoading(false)
+    }
+  }
+
+  const handleTogglePush = async () => {
+    setPushLoading(true)
+    setPushMsg(null)
+    try {
+      if (pushAbonne) {
+        await desactiverNotificationsPush(api)
+        setPushAbonne(false)
+        showMsg(setPushMsg, 'success', '🔕 Notifications push désactivées.')
+      } else {
+        const ok = await activerNotificationsPush(api)
+        setPushAbonne(ok)
+        if (ok) showMsg(setPushMsg, 'success', '🔔 Notifications push activées !')
+        else showMsg(setPushMsg, 'error', 'Impossible d\'activer les notifications (permission refusée ou clé VAPID manquante).')
+      }
+    } catch {
+      showMsg(setPushMsg, 'error', 'Erreur lors de la gestion des notifications.')
+    } finally {
+      setPushLoading(false)
     }
   }
 
@@ -184,6 +214,52 @@ function Parametres({ onEmailChange, darkMode, onThemeChange }) {
             {emailLoading ? 'Mise à jour...' : "Changer l'email"}
           </button>
         </form>
+      </div>
+
+      {/* ── Notifications push ── */}
+      <div className="parametres-card">
+        <div className="parametres-card-header">
+          <span className="parametres-icon">🔔</span>
+          <div>
+            <h2 className="parametres-title">Notifications push</h2>
+            <p className="parametres-subtitle">Recevez des alertes même quand BafaConnect est fermé</p>
+          </div>
+        </div>
+
+        {!pushSupporte ? (
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+            Votre navigateur ne supporte pas les notifications push.
+          </p>
+        ) : (
+          <div>
+            <div className="theme-toggle-row">
+              <div>
+                <div className="theme-toggle-label">
+                  {pushAbonne ? '🔔 Notifications activées' : '🔕 Notifications désactivées'}
+                </div>
+                <div className="theme-toggle-desc">
+                  {pushAbonne
+                    ? 'Vous recevrez des alertes pour les messages, candidatures et invitations.'
+                    : 'Activez pour être notifié des nouveaux messages et candidatures.'}
+                </div>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={pushAbonne}
+                  onChange={handleTogglePush}
+                  disabled={pushLoading}
+                />
+                <span className="switch-slider" />
+              </label>
+            </div>
+            {pushMsg && (
+              <div className={`parametres-alert ${pushMsg.type === 'success' ? 'alert-success' : 'alert-error'}`} style={{ marginTop: 12 }}>
+                {pushMsg.text}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
     </div>

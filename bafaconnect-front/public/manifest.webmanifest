@@ -1,0 +1,26 @@
+{
+  "name": "BafaConnect",
+  "short_name": "BafaConnect",
+  "description": "La plateforme de recrutement BAFA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#6366f1",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/logo-bafaconnect.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-bafaconnect.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "social"],
+  "orientation": "portrait-primary"
+}

@@ -4,26 +4,42 @@ import api from './api/axios'
 function ShareCard() {
   const userId = localStorage.getItem('userId')
   const [copied, setCopied] = useState(false)
+  const [showQR, setShowQR] = useState(false)
   if (!userId) return null
   const link = `${window.location.origin}?profil=${userId}`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(link)}&bgcolor=ffffff&color=1e293b&qzone=1`
+
   const handleCopy = () => {
     navigator.clipboard.writeText(link).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     })
   }
+
   return (
     <div className="share-card">
       <div className="share-card-icon">🔗</div>
       <div className="share-card-body">
         <div className="share-card-title">Mon lien de profil public</div>
-        <p className="share-card-sub">Partagez ce lien avec les directeurs pour qu'ils consultent votre profil directement.</p>
+        <p className="share-card-sub">Partagez ce lien ou ce QR code avec les directeurs pour qu'ils consultent votre profil.</p>
         <div className="share-card-link-row">
           <code className="share-card-url">{link}</code>
           <button className={`share-card-btn ${copied ? 'share-card-btn-ok' : ''}`} onClick={handleCopy}>
             {copied ? '✅ Copié !' : '📋 Copier'}
           </button>
+          <button className="share-card-btn" onClick={() => setShowQR(v => !v)}>
+            {showQR ? '🙈 Masquer QR' : '📱 QR code'}
+          </button>
         </div>
+        {showQR && (
+          <div className="share-qr-wrapper">
+            <img src={qrUrl} alt="QR code profil" className="share-qr-img" loading="lazy" />
+            <p className="share-qr-hint">Scannez pour accéder à votre profil public</p>
+            <a href={qrUrl} download="qr-profil-bafaconnect.png" className="share-card-btn" style={{ textDecoration: 'none', textAlign: 'center' }}>
+              ⬇️ Télécharger
+            </a>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -39,19 +55,47 @@ function Stars({ note }) {
   )
 }
 
+function isCompatibleSejour(sejour, disponibilites) {
+  if (!disponibilites || !sejour.date_debut) return false
+  const sejourDebut = new Date(sejour.date_debut)
+  const sejourFin = sejour.date_fin ? new Date(sejour.date_fin) : sejourDebut
+  const plages = Array.isArray(disponibilites) ? disponibilites : (disponibilites.debut ? [disponibilites] : [])
+  return plages.some(p => {
+    if (!p.debut) return false
+    const dispoDebut = new Date(p.debut)
+    const dispoFin = p.fin ? new Date(p.fin) : null
+    if (dispoFin && sejourDebut > dispoFin) return false
+    if (sejourFin < dispoDebut) return false
+    return true
+  })
+}
+
 function DashboardAnimateur({ onNavigate }) {
   const [stats, setStats] = useState(null)
   const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [sejours, setSejours] = useState([])
+  const [disponibilites, setDisponibilites] = useState(null)
 
   useEffect(() => {
     Promise.all([
       api.get('/candidatures/stats'),
-      api.get('/invitations').catch(() => ({ data: [] }))
-    ]).then(([statsRes, invitRes]) => {
+      api.get('/invitations').catch(() => ({ data: [] })),
+      api.get('/sejours').catch(() => ({ data: [] })),
+      api.get('/profiles/me').catch(() => ({ data: {} })),
+    ]).then(([statsRes, invitRes, sejoursRes, profileRes]) => {
       setStats(statsRes.data)
       setInvitations(invitRes.data || [])
+      setSejours(sejoursRes.data || [])
+      if (profileRes.data?.disponibilites) {
+        try {
+          const d = typeof profileRes.data.disponibilites === 'string'
+            ? JSON.parse(profileRes.data.disponibilites)
+            : profileRes.data.disponibilites
+          setDisponibilites(d)
+        } catch {}
+      }
     }).catch(() => setError('Impossible de charger les statistiques.'))
       .finally(() => setLoading(false))
   }, [])
@@ -224,6 +268,49 @@ function DashboardAnimateur({ onNavigate }) {
           </button>
         </div>
       </div>
+
+      {/* ── Suggestions de séjours compatibles ── */}
+      {disponibilites && (() => {
+        const now = new Date()
+        const suggestions = sejours
+          .filter(s => !s.date_fin || new Date(s.date_fin) >= now)
+          .filter(s => isCompatibleSejour(s, disponibilites))
+          .slice(0, 4)
+        if (suggestions.length === 0) return null
+        return (
+          <div className="dashboard-section">
+            <div className="dashboard-section-header">
+              <h3 className="dashboard-section-title">✨ Séjours compatibles avec vos disponibilités</h3>
+              <button className="btn-link" onClick={() => onNavigate && onNavigate('annonces')}>
+                Voir tout →
+              </button>
+            </div>
+            <div className="suggestions-grid">
+              {suggestions.map(s => (
+                <div key={s.id} className="suggestion-card">
+                  <div className="suggestion-card-header">
+                    {s.type && <span className="annonce-card-type">{s.type}</span>}
+                    <span className="annonce-card-lieu">📍 {s.lieu}</span>
+                  </div>
+                  <div className="suggestion-card-titre">{s.titre}</div>
+                  {s.date_debut && (
+                    <div className="suggestion-card-dates">
+                      🗓️ {new Date(s.date_debut).toLocaleDateString('fr-FR')}
+                      {s.date_fin && ` → ${new Date(s.date_fin).toLocaleDateString('fr-FR')}`}
+                    </div>
+                  )}
+                  <button
+                    className="btn-primary suggestion-card-btn"
+                    onClick={() => onNavigate && onNavigate('annonces')}
+                  >
+                    Postuler →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Lien de profil partageable ── */}
       <ShareCard />

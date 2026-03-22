@@ -2,16 +2,17 @@ import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { createNotif } from './notifications.js';
+import { io } from '../app.js';
 
 const router = express.Router();
 
 // 1. ENVOYER UN MESSAGE
 router.post('/', authenticateToken, async (req, res) => {
     const { id: expediteur_id } = req.user;
-    const { destinataire_id, contenu } = req.body;
+    const { destinataire_id, contenu, fichier_url, fichier_nom } = req.body;
 
-    if (!destinataire_id || !contenu?.trim()) {
-        return res.status(400).json({ error: 'destinataire_id et contenu sont requis.' });
+    if (!destinataire_id || (!contenu?.trim() && !fichier_url)) {
+        return res.status(400).json({ error: 'destinataire_id et contenu (ou fichier) sont requis.' });
     }
     if (expediteur_id === destinataire_id) {
         return res.status(400).json({ error: 'Vous ne pouvez pas vous envoyer un message.' });
@@ -19,9 +20,9 @@ router.post('/', authenticateToken, async (req, res) => {
 
     try {
         const result = await pool.query(
-            `INSERT INTO messages (expediteur_id, destinataire_id, contenu)
-             VALUES ($1, $2, $3) RETURNING *`,
-            [expediteur_id, destinataire_id, contenu.trim()]
+            `INSERT INTO messages (expediteur_id, destinataire_id, contenu, fichier_url, fichier_nom)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [expediteur_id, destinataire_id, contenu?.trim() || null, fichier_url || null, fichier_nom || null]
         );
         // Notification in-app pour le destinataire
         try {
@@ -36,7 +37,19 @@ router.post('/', authenticateToken, async (req, res) => {
             await createNotif(destinataire_id, 'message', `💬 Nouveau message de ${expediteurNom}`);
         } catch {}
 
-        res.status(201).json(result.rows[0]);
+        const newMessage = result.rows[0];
+
+        // Émettre le message en temps réel au destinataire
+        try {
+            io.to(`user:${destinataire_id}`).emit('nouveau_message', {
+                ...newMessage,
+                expediteur_id,
+            });
+            // Aussi notifier l'expéditeur (pour multi-onglets)
+            io.to(`user:${expediteur_id}`).emit('message_envoye', newMessage);
+        } catch {}
+
+        res.status(201).json(newMessage);
     } catch (err) {
         console.error('Erreur envoi message :', err);
         res.status(500).json({ error: "Erreur lors de l'envoi du message" });
@@ -126,6 +139,30 @@ router.get('/:userId', authenticateToken, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Erreur fil messages :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// 4. SUPPRIMER UNE CONVERSATION (soft delete : masquer pour l'utilisateur courant)
+router.delete('/conversation/:userId', authenticateToken, async (req, res) => {
+    const { id } = req.user;
+    const { userId } = req.params;
+
+    try {
+        // On supprime physiquement tous les messages de la conv pour l'utilisateur courant
+        // en les marquant comme supprimés (on ajoute une colonne suppr_par si besoin)
+        // Approche simple : DELETE des messages où l'utilisateur est expéditeur
+        // + UPDATE pour masquer ceux reçus (ou DELETE total si les deux sont d'accord)
+        // Ici on fait un DELETE complet de la conversation côté base
+        await pool.query(
+            `DELETE FROM messages
+             WHERE (expediteur_id = $1 AND destinataire_id = $2)
+                OR (expediteur_id = $2 AND destinataire_id = $1)`,
+            [id, userId]
+        );
+        res.json({ message: 'Conversation supprimée.' });
+    } catch (err) {
+        console.error('Erreur suppression conversation :', err);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

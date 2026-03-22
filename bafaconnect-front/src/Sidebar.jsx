@@ -3,6 +3,7 @@ import NotifCloche from './NotifCloche'
 
 function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPhoto }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const navAnimateur = [
     { id: 'dashboard',    icon: '📊', label: 'Tableau de bord' },
@@ -26,11 +27,23 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
     { id: 'parametres',   icon: '⚙️', label: 'Paramètres' },
   ]
 
-  const navItems = role === 'directeur' ? navDirecteur : navAnimateur
+  const navAdmin = [
+    { id: 'admin',      icon: '🛡️', label: 'Panel Admin' },
+    { id: 'parametres', icon: '⚙️', label: 'Paramètres' },
+  ]
+
+  const navItems = role === 'admin' ? navAdmin : role === 'directeur' ? navDirecteur : navAnimateur
+
+  const filteredItems = searchQuery.trim()
+    ? navItems.filter(item =>
+        item.label.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : navItems
 
   const handleNav = (id) => {
     setPage(id)
     setMobileOpen(false)
+    setSearchQuery('')
   }
 
   return (
@@ -55,20 +68,34 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
         {/* Logo + Cloche */}
         <div className="sidebar-logo-row">
           <div className="sidebar-logo">
-            <img src="/logo-bafaconnect.png" alt="BafaConnect" className="sidebar-logo-img" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
-            <span className="sidebar-logo-fallback" style={{display:'none', alignItems:'center', gap:6}}>
-              <span className="sidebar-logo-icon">🧡</span>
-              <span className="sidebar-logo-text">BafaConnect</span>
-            </span>
+            <div className="sidebar-logo-img-wrapper">
+              <img src="/logo-bafaconnect.png" alt="BafaConnect" className="sidebar-logo-img" />
+            </div>
+            <span className="sidebar-logo-text">BafaConnect</span>
           </div>
 
           {/* Cloche notifications */}
           <NotifCloche />
         </div>
 
+        {/* Barre de recherche */}
+        <div className="sidebar-search-wrapper">
+          <span className="sidebar-search-icon">🔍</span>
+          <input
+            type="text"
+            className="sidebar-search-input"
+            placeholder="Rechercher..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="sidebar-search-clear" onClick={() => setSearchQuery('')}>✕</button>
+          )}
+        </div>
+
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {navItems.map(item => (
+          {filteredItems.length > 0 ? filteredItems.map(item => (
             <button
               key={item.id}
               className={`sidebar-nav-item ${page === item.id ? 'active' : ''}`}
@@ -80,7 +107,9 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
                 <span className="sidebar-badge">{item.badge}</span>
               )}
             </button>
-          ))}
+          )) : (
+            <p className="sidebar-search-empty">Aucun résultat</p>
+          )}
         </nav>
 
         {/* User info + déconnexion */}

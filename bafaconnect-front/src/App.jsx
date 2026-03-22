@@ -17,6 +17,8 @@ import DashboardAnimateur from './DashboardAnimateur'
 import ProfilPublic from './ProfilPublic'
 import ProfilPublicDirecteur from './ProfilPublicDirecteur'
 import CarteSejoursMap from './CarteSejoursMap'
+import OnboardingBanner from './OnboardingBanner'
+import AdminPanel from './AdminPanel'
 import './App.css'
 
 function App() {
@@ -43,6 +45,8 @@ function App() {
   const [annoncesView, setAnnoncesView] = useState('liste')
   const [animateurDispo, setAnimateurDispo] = useState(null) // { debut, fin } pour le matching
   const [cacherPassees, setCacherPassees] = useState(true) // masquer les séjours passés par défaut
+  const [filtreCompatible, setFiltreCompatible] = useState(false)
+  const [filtrePlacesDispo, setFiltrePlacesDispo] = useState(false)
 
   const handleThemeChange = (isDark) => {
     setDarkMode(isDark)
@@ -384,9 +388,11 @@ function App() {
     if (filtres.date_debut && s.date_debut && s.date_debut < filtres.date_debut) return false
     if (filtres.date_fin && s.date_fin && s.date_fin > filtres.date_fin) return false
     if (filtres.postes_min && s.nombre_postes && Number(s.nombre_postes) < Number(filtres.postes_min)) return false
+    if (filtreCompatible && !isCompatible(s)) return false
+    if (filtrePlacesDispo && isComplet(s)) return false
     return true
   })
-  const nbFiltresActifs = Object.values(filtres).filter(Boolean).length
+  const nbFiltresActifs = Object.values(filtres).filter(Boolean).length + (filtreCompatible ? 1 : 0) + (filtrePlacesDispo ? 1 : 0)
 
   const isComplet = (s) => s.nombre_postes && parseInt(s.postes_pourvus || 0) >= parseInt(s.nombre_postes)
   const nbPassees = sejours.filter(s => {
@@ -424,6 +430,8 @@ function App() {
       />
 
       <main className="app-main">
+
+        <OnboardingBanner role={role} onNavigate={handleSetPage} />
 
         {/* ── ANIMATEUR : Tableau de bord ── */}
         {role === 'animateur' && page === 'dashboard' && (
@@ -513,13 +521,35 @@ function App() {
               </div>
               <div className="filtres-toggles">
                 <label className="filtre-toggle-label">
-                  <input
-                    type="checkbox"
-                    checked={cacherPassees}
-                    onChange={e => setCacherPassees(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={cacherPassees} onChange={e => setCacherPassees(e.target.checked)} />
                   Masquer les séjours passés {nbPassees > 0 && <span className="filtres-count-badge">{nbPassees}</span>}
                 </label>
+                <label className="filtre-toggle-label">
+                  <input type="checkbox" checked={filtrePlacesDispo} onChange={e => setFiltrePlacesDispo(e.target.checked)} />
+                  Places disponibles uniquement
+                </label>
+                {animateurDispo && (
+                  <label className="filtre-toggle-label filtre-toggle-compat">
+                    <input type="checkbox" checked={filtreCompatible} onChange={e => setFiltreCompatible(e.target.checked)} />
+                    ✨ Compatible avec mes disponibilités
+                  </label>
+                )}
+              </div>
+              <div className="filtres-chips-rapides">
+                {[
+                  { label: '☀️ Cet été', action: () => setFiltres(f => ({ ...f, date_debut: `${new Date().getFullYear()}-06-01`, date_fin: `${new Date().getFullYear()}-08-31` })) },
+                  { label: '📅 Ce mois-ci', action: () => { const d = new Date(); const debut = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; const fin = new Date(d.getFullYear(), d.getMonth()+1, 0); setFiltres(f => ({ ...f, date_debut: debut, date_fin: `${fin.getFullYear()}-${String(fin.getMonth()+1).padStart(2,'0')}-${String(fin.getDate()).padStart(2,'0')}` })) }},
+                  { label: '🏕️ Colonies', action: () => setFiltres(f => ({ ...f, type: 'Colonie' })) },
+                  { label: '🏖️ Séjours vacances', action: () => setFiltres(f => ({ ...f, type: 'Séjour de vacances' })) },
+                ].map(chip => (
+                  <button key={chip.label} type="button" className="competence-chip" onClick={chip.action}>{chip.label}</button>
+                ))}
+                {nbFiltresActifs > 0 && (
+                  <button type="button" className="competence-chip" style={{ borderColor: '#ef4444', color: '#ef4444' }}
+                    onClick={() => { setFiltres({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' }); setFiltreCompatible(false); setFiltrePlacesDispo(false) }}>
+                    ✕ Tout effacer
+                  </button>
+                )}
               </div>
             </div>
 
@@ -615,7 +645,7 @@ function App() {
               <h1 className="page-title">Tableau de bord</h1>
               <p className="page-subtitle">Vue d'ensemble de votre activité</p>
             </div>
-            <DashboardDirecteur />
+            <DashboardDirecteur onNavigate={handleSetPage} />
           </div>
         )}
 
@@ -719,6 +749,27 @@ function App() {
               <p className="page-subtitle">Sécurité et informations de connexion</p>
             </div>
             <Parametres onEmailChange={setUserEmail} darkMode={darkMode} onThemeChange={handleThemeChange} />
+          </div>
+        )}
+
+        {/* ── ADMIN PANEL ── */}
+        {role === 'admin' && page === 'admin' && (
+          <div className="page-content">
+            <AdminPanel />
+          </div>
+        )}
+
+        {/* ── PAGE 404 ── */}
+        {!['dashboard','annonces','candidatures','messages','profil','calendrier','parametres','recherche','favoris','creer-annonce','mes-annonces','recrutement','admin'].includes(page) && (
+          <div className="page-content">
+            <div className="not-found-wrapper">
+              <div className="not-found-code">404</div>
+              <h2 className="not-found-title">Page introuvable</h2>
+              <p className="not-found-desc">Cette page n'existe pas ou a été déplacée.</p>
+              <button className="btn-primary" onClick={() => handleSetPage('dashboard')}>
+                Retour au tableau de bord
+              </button>
+            </div>
           </div>
         )}
 

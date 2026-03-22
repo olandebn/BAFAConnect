@@ -1,6 +1,30 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
 
+function exportCSV(data) {
+  if (!data || data.length === 0) return;
+
+  const headers = ['Animateur', 'Séjour', 'Date candidature', 'Statut'];
+  const rows = data.map(c => [
+    c.candidat_nom || '—',
+    c.sejour_titre || '—',
+    c.date_candidature ? new Date(c.date_candidature).toLocaleDateString('fr-FR') : '—',
+    c.statut || '—',
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'))
+    .join('\n');
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `candidatures-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function StatCard({ icon, value, label, color, sub }) {
   return (
     <div className="stat-card">
@@ -27,17 +51,56 @@ function TauxBar({ taux }) {
   );
 }
 
-function DashboardDirecteur() {
+function DashboardDirecteur({ onNavigate }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [voirTout, setVoirTout] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // Candidatures en attente
+  const [candidaturesAttente, setCandidaturesAttente] = useState([]);
+  const [loadingCandidatures, setLoadingCandidatures] = useState(true);
+  const [actionId, setActionId] = useState(null); // ID en cours de traitement
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get('/recrutement/candidats-recus');
+      exportCSV(res.data);
+    } catch {
+      alert("Impossible d'exporter les candidatures.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const fetchCandidaturesAttente = async () => {
+    try {
+      const res = await api.get('/recrutement/candidats-recus');
+      setCandidaturesAttente((res.data || []).filter(c => c.statut === 'en attente'));
+    } catch {}
+    finally { setLoadingCandidatures(false); }
+  };
+
+  const handleAction = async (id, statut) => {
+    setActionId(id);
+    try {
+      await api.patch(`/recrutement/candidatures/${id}`, { statut });
+      await fetchCandidaturesAttente();
+      // Refresh stats
+      const res = await api.get('/sejours/stats');
+      setStats(res.data);
+    } catch {}
+    finally { setActionId(null); }
+  };
 
   useEffect(() => {
     api.get('/sejours/stats')
       .then(res => setStats(res.data))
       .catch(() => setError('Impossible de charger les statistiques.'))
       .finally(() => setLoading(false));
+    fetchCandidaturesAttente();
   }, []);
 
   if (loading) return <p className="candidatures-empty">Chargement du tableau de bord...</p>;
@@ -49,6 +112,19 @@ function DashboardDirecteur() {
 
   return (
     <div className="dashboard-v2">
+
+      {/* ── En-tête avec bouton export ── */}
+      <div className="dashboard-topbar">
+        <h2 className="dashboard-topbar-title">Tableau de bord</h2>
+        <button
+          className="btn-secondary dashboard-export-btn"
+          onClick={handleExport}
+          disabled={exporting || stats?.nb_candidatures === 0}
+          title="Exporter toutes les candidatures en CSV"
+        >
+          {exporting ? '⏳ Export...' : '📥 Exporter CSV'}
+        </button>
+      </div>
 
       {/* ── Chiffres clés ── */}
       <div className="stats-grid">
@@ -153,6 +229,59 @@ function DashboardDirecteur() {
         <div className="empty-state">
           <span>📋</span>
           <p>Publiez votre première annonce pour commencer à recevoir des candidatures.</p>
+        </div>
+      )}
+
+      {/* ── Candidatures en attente ── */}
+      {!loadingCandidatures && candidaturesAttente.length > 0 && (
+        <div className="dashboard-section">
+          <div className="dashboard-section-header">
+            <h3 className="dashboard-section-title">
+              📬 Candidatures en attente
+              <span className="dashboard-attente-badge">{candidaturesAttente.length}</span>
+            </h3>
+            {onNavigate && (
+              <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '5px 12px' }}
+                onClick={() => onNavigate('candidatures')}>
+                Tout voir →
+              </button>
+            )}
+          </div>
+          <div className="candidatures-attente-list">
+            {candidaturesAttente.slice(0, 6).map(c => (
+              <div key={c.candidature_id} className="candidature-attente-row">
+                <div className="candidature-attente-info">
+                  <span className="candidature-attente-nom">👤 {c.candidat_nom || 'Animateur'}</span>
+                  <span className="candidature-attente-sejour">{c.sejour_titre}</span>
+                  <span className="candidature-attente-date">
+                    {c.date_candidature ? new Date(c.date_candidature).toLocaleDateString('fr-FR') : ''}
+                  </span>
+                </div>
+                <div className="candidature-attente-actions">
+                  <button
+                    className="btn-accepter"
+                    disabled={actionId === c.candidature_id}
+                    onClick={() => handleAction(c.candidature_id, 'acceptée')}
+                  >
+                    {actionId === c.candidature_id ? '...' : '✅ Accepter'}
+                  </button>
+                  <button
+                    className="btn-refuser"
+                    disabled={actionId === c.candidature_id}
+                    onClick={() => handleAction(c.candidature_id, 'refusée')}
+                  >
+                    {actionId === c.candidature_id ? '...' : '❌ Refuser'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loadingCandidatures && candidaturesAttente.length === 0 && stats?.nb_candidatures > 0 && (
+        <div className="dashboard-section" style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '0.9rem', padding: '20px' }}>
+          ✅ Toutes les candidatures ont été traitées
         </div>
       )}
     </div>

@@ -104,8 +104,9 @@ function NotifCloche() {
 
           {notifs.length === 0 ? (
             <div className="notif-empty">
-              <span>🔕</span>
-              <p>Aucune notification</p>
+              <span style={{ fontSize: '2rem' }}>🔔</span>
+              <p>Tout est à jour !</p>
+              <span style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>Aucune nouvelle notification</span>
             </div>
           ) : (
             <ul className="notif-list">

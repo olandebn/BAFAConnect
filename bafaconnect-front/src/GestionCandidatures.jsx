@@ -9,6 +9,11 @@ function GestionCandidatures({ onContacter }) {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
+  // Filtres avancés
+  const [filtreStatut, setFiltreStatut] = useState('');
+  const [filtreSejour, setFiltreSejour] = useState('');
+  const [filtreNom, setFiltreNom] = useState('');
+
   const fetchCandidats = () => {
     setIsLoading(true);
     api.get('/recrutement/candidats-recus')
@@ -41,6 +46,23 @@ function GestionCandidatures({ onContacter }) {
     if (statut === 'acceptée' || statut === 'acceptee') return { label: 'Acceptée', cls: 'statut-accepte' };
     if (statut === 'refusée' || statut === 'refusee') return { label: 'Refusée', cls: 'statut-refuse' };
     return { label: 'En attente', cls: 'statut-attente' };
+  };
+
+  // Liste unique des séjours pour le filtre
+  const sejoursTitres = [...new Set(candidats.map(c => c.sejour_titre).filter(Boolean))];
+
+  // Candidats filtrés
+  const candidatsFiltres = candidats.filter(c => {
+    if (filtreStatut && c.statut !== filtreStatut) return false;
+    if (filtreSejour && c.sejour_titre !== filtreSejour) return false;
+    if (filtreNom && !c.candidat_nom?.toLowerCase().includes(filtreNom.toLowerCase())) return false;
+    return true;
+  });
+
+  const resetFiltres = () => {
+    setFiltreStatut('');
+    setFiltreSejour('');
+    setFiltreNom('');
   };
 
   const exportCSV = () => {
@@ -158,13 +180,52 @@ function GestionCandidatures({ onContacter }) {
 
       {error && <div className="profile-alert profile-alert-error">{error}</div>}
 
+      {/* ── Barre de filtres ── */}
+      {!isLoading && candidats.length > 0 && (
+        <div className="filtres-bar">
+          <input
+            type="text"
+            className="filtres-input"
+            placeholder="🔍 Nom du candidat..."
+            value={filtreNom}
+            onChange={e => setFiltreNom(e.target.value)}
+          />
+          <select
+            className="filtres-select"
+            value={filtreStatut}
+            onChange={e => setFiltreStatut(e.target.value)}
+          >
+            <option value="">Tous les statuts</option>
+            <option value="en attente">En attente</option>
+            <option value="acceptée">Acceptée</option>
+            <option value="refusée">Refusée</option>
+          </select>
+          <select
+            className="filtres-select"
+            value={filtreSejour}
+            onChange={e => setFiltreSejour(e.target.value)}
+          >
+            <option value="">Tous les séjours</option>
+            {sejoursTitres.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          {(filtreNom || filtreStatut || filtreSejour) && (
+            <button className="filtres-reset" onClick={resetFiltres}>✕ Réinitialiser</button>
+          )}
+          <span className="filtres-count">{candidatsFiltres.length} résultat{candidatsFiltres.length !== 1 ? 's' : ''}</span>
+        </div>
+      )}
+
       {isLoading ? (
         <p className="candidatures-empty">Chargement...</p>
       ) : candidats.length === 0 ? (
         <p className="candidatures-empty">Aucune candidature reçue pour le moment.</p>
+      ) : candidatsFiltres.length === 0 ? (
+        <p className="candidatures-empty">Aucun résultat pour ces filtres.</p>
       ) : (
         <div className="candidatures-list">
-          {candidats.map(c => {
+          {candidatsFiltres.map(c => {
             const { label, cls } = statutLabel(c.statut);
             const loading = actionLoading === c.candidature_id;
 

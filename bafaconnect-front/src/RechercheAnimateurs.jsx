@@ -28,6 +28,8 @@ const APPROFONDISSEMENTS = [
   'Approfondissement général',
 ]
 
+const PAGE_SIZE = 9
+
 function RechercheAnimateurs({ onContacter, onVoirProfil }) {
   const [filtres, setFiltres] = useState({ q: '', ville: '', statut: '', appro: '' })
   const [resultats, setResultats] = useState([])
@@ -37,6 +39,7 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
   const [favorisIds, setFavorisIds] = useState(new Set())
   const [favoriNotif, setFavoriNotif] = useState('')
   const [inviterAnimateur, setInviterAnimateur] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const toggleFavori = async (animateur) => {
     const isFavori = favorisIds.has(animateur.user_id)
@@ -71,6 +74,7 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
       if (filtres.appro)  params.append('appro', filtres.appro)
       const res = await api.get(`/profiles/animateurs?${params}`)
       setResultats(res.data)
+      setCurrentPage(1)
     } catch {
       setError('Erreur lors de la recherche.')
     } finally {
@@ -83,6 +87,7 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
     setResultats([])
     setSearched(false)
     setError('')
+    setCurrentPage(1)
   }
 
   const searchByCompetence = (comp) => {
@@ -202,7 +207,7 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
                 {resultats.length} animateur{resultats.length > 1 ? 's' : ''} trouvé{resultats.length > 1 ? 's' : ''}
               </p>
               <div className="animateurs-grid">
-                {resultats.map(a => {
+                {resultats.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(a => {
                   const dispos = getDispos(a.disponibilites)
                   const badges = getBadges(a)
                   return (
@@ -306,6 +311,39 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
                   )
                 })}
               </div>
+              {resultats.length > PAGE_SIZE && (
+                <div className="pagination-wrapper">
+                  <button
+                    className="pagination-btn"
+                    disabled={currentPage === 1}
+                    onClick={() => { setCurrentPage(p => p - 1); window.scrollTo(0, 0) }}
+                  >← Précédent</button>
+
+                  {Array.from({ length: Math.ceil(resultats.length / PAGE_SIZE) }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === Math.ceil(resultats.length / PAGE_SIZE) || Math.abs(p - currentPage) <= 1)
+                    .reduce((acc, p, i, arr) => {
+                      if (i > 0 && p - arr[i - 1] > 1) acc.push('...')
+                      acc.push(p)
+                      return acc
+                    }, [])
+                    .map((p, i) => p === '...'
+                      ? <span key={`e${i}`} className="pagination-info">…</span>
+                      : <button key={p} className={`pagination-btn ${p === currentPage ? 'active' : ''}`}
+                          onClick={() => { setCurrentPage(p); window.scrollTo(0, 0) }}>{p}</button>
+                    )
+                  }
+
+                  <button
+                    className="pagination-btn"
+                    disabled={currentPage === Math.ceil(resultats.length / PAGE_SIZE)}
+                    onClick={() => { setCurrentPage(p => p + 1); window.scrollTo(0, 0) }}
+                  >Suivant →</button>
+
+                  <span className="pagination-info">
+                    Page {currentPage}/{Math.ceil(resultats.length / PAGE_SIZE)}
+                  </span>
+                </div>
+              )}
             </>
           )}
         </div>
