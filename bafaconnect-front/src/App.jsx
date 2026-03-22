@@ -237,7 +237,7 @@ function App() {
         <nav className="navbar">
           <div className="nav-container">
             <div className="logo">
-              <span className="logo-heart">🧡</span>
+              <img src="/logo-bafaconnect.png" alt="BafaConnect" className="nav-logo-img" onError={(e) => { e.target.style.display='none' }} />
               <span>BafaConnect</span>
             </div>
             <div className="nav-menu">

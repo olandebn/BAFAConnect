@@ -55,8 +55,11 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
         {/* Logo + Cloche */}
         <div className="sidebar-logo-row">
           <div className="sidebar-logo">
-            <span className="sidebar-logo-icon">🧡</span>
-            <span className="sidebar-logo-text">BafaConnect</span>
+            <img src="/logo-bafaconnect.png" alt="BafaConnect" className="sidebar-logo-img" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+            <span className="sidebar-logo-fallback" style={{display:'none', alignItems:'center', gap:6}}>
+              <span className="sidebar-logo-icon">🧡</span>
+              <span className="sidebar-logo-text">BafaConnect</span>
+            </span>
           </div>
 
           {/* Cloche notifications */}
