@@ -155,7 +155,7 @@ router.get('/public-directeur/:userId', async (req, res) => {
         const [profilRes, sejoursRes] = await Promise.all([
             pool.query(`
                 SELECT sd.user_id, sd.nom_structure, sd.type_structure, sd.ville,
-                       sd.description, sd.photo_url, sd.flyer_url, u.email
+                       sd.description, sd.photo_url, sd.flyer_url
                 FROM structures_directeurs sd
                 JOIN users u ON u.id = sd.user_id
                 WHERE sd.user_id = $1 AND u.role = 'directeur'
@@ -188,7 +188,7 @@ router.get('/public/:userId', async (req, res) => {
     try {
         const profileRes = await pool.query(`
             SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
-                   ap.experiences, ap.disponibilites, ap.photo_url, ap.cv_url, u.email
+                   ap.experiences, ap.disponibilites, ap.photo_url, ap.cv_url
             FROM animateurs_profiles ap
             JOIN users u ON u.id = ap.user_id
             WHERE ap.user_id = $1 AND u.role = 'animateur'

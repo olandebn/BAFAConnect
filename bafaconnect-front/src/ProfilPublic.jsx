@@ -23,6 +23,7 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
   const [avisMsg, setAvisMsg] = useState('')
   const [avisSaving, setAvisSaving] = useState(false)
   const [monAvis, setMonAvis] = useState(null)
+  const [diplomesValides, setDiplomesValides] = useState([])
   const isLoggedIn = !!localStorage.getItem('token')
   const role = localStorage.getItem('role')
   const myId = localStorage.getItem('userId')
@@ -33,6 +34,10 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
       .then(res => setData(res.data))
       .catch(() => setError('Profil introuvable ou non disponible.'))
       .finally(() => setLoading(false))
+    // Charger les diplômes validés
+    api.get(`/diplomes/user/${userId}`)
+      .then(res => setDiplomesValides(res.data))
+      .catch(() => {})
     // Charger mon avis existant
     if (isLoggedIn) {
       api.get(`/avis/mon-avis/${userId}`)
@@ -132,7 +137,14 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
             }
           </div>
           <div className="profil-public-identity">
-            <h1 className="profil-public-nom">{profil.nom || 'Animateur'}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h1 className="profil-public-nom" style={{ margin: 0 }}>{profil.nom || 'Animateur'}</h1>
+              {diplomesValides.length > 0 && (
+                <span className="badge-verifie" title={`Diplômes vérifiés : ${diplomesValides.map(d => d.type).join(', ')}`}>
+                  ✅ Vérifié
+                </span>
+              )}
+            </div>
             <div className="profil-public-meta">
               {profil.ville && <span>📍 {profil.ville}</span>}
               {profil.diplomes?.[0] && (
@@ -145,6 +157,15 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
                 <span className="appro-autodeclare" title="Qualification déclarée par l'animateur — demandez un justificatif pour confirmer">
                   ⚠️ Auto-déclaré
                 </span>
+              </div>
+            )}
+            {diplomesValides.length > 0 && (
+              <div className="diplomes-verifies-row">
+                {diplomesValides.map(d => (
+                  <span key={d.type} className="diplome-verifie-tag">
+                    ✅ {d.type} <span className="diplome-verifie-label">vérifié</span>
+                  </span>
+                ))}
               </div>
             )}
             {moyenne && (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
+import ContratModal from './ContratModal';
 
 const statutColor = (statut) => {
   if (statut === 'acceptée' || statut === 'acceptee') return 'var(--color-success, #22c55e)';
@@ -20,6 +21,7 @@ function MesCandidatures({ onContacter }) {
   const [error, setError] = useState('');
   const [relanceLoading, setRelanceLoading] = useState(null);
   const [relanceMsg, setRelanceMsg] = useState({});
+  const [contratId, setContratId] = useState(null);
 
   useEffect(() => {
     fetchMesCandidatures();
@@ -64,6 +66,7 @@ function MesCandidatures({ onContacter }) {
   }
 
   return (
+    <>
     <div className="candidatures-section">
       <h2 className="candidatures-title">📂 Mes candidatures</h2>
 
@@ -116,6 +119,14 @@ function MesCandidatures({ onContacter }) {
                       💬 Contacter
                     </button>
                   )}
+                  {(c.statut === 'acceptée' || c.statut === 'acceptee') && (
+                    <button
+                      className="btn-contrat"
+                      onClick={() => setContratId(c.id)}
+                    >
+                      📄 Contrat
+                    </button>
+                  )}
                 </div>
                 {msg && (
                   <div className={`relance-toast ${msg.type}`}>{msg.text}</div>
@@ -126,6 +137,14 @@ function MesCandidatures({ onContacter }) {
         </div>
       )}
     </div>
+
+    {contratId && (
+      <ContratModal
+        candidatureId={contratId}
+        onClose={() => setContratId(null)}
+      />
+    )}
+    </>
   );
 }
 

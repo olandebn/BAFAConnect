@@ -1,91 +1,47 @@
-// Service d'envoi d'emails
-// Priorité 1 : nodemailer (npm install nodemailer dans /backend)
-// Priorité 2 : fallback Python smtplib (aucune dépendance supplémentaire)
-// Configurez dans .env : SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, APP_URL
+// Service d'envoi d'emails via Resend (https://resend.com)
+// Configurez dans .env : RESEND_API_KEY=re_xxxx  et  EMAIL_FROM=noreply@votredomaine.com
 
-import { spawn } from 'child_process';
-
-// ── Envoi via Python smtplib (fallback sans nodemailer) ──
-function sendMailPython({ to, subject, html, smtpHost, smtpPort, smtpUser, smtpPass }) {
-  return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({ to, subject, html, smtp_host: smtpHost, smtp_port: smtpPort, smtp_user: smtpUser, smtp_pass: smtpPass });
-    const py = spawn('python3', ['-c', `
-import sys, json, smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-d = json.loads(sys.stdin.read())
-msg = MIMEMultipart('alternative')
-msg['Subject'] = d['subject']
-msg['From'] = 'BafaConnect <' + d['smtp_user'] + '>'
-msg['To'] = d['to']
-msg.attach(MIMEText(d['html'], 'html'))
-with smtplib.SMTP(d.get('smtp_host','smtp.gmail.com'), int(d.get('smtp_port',587))) as s:
-    s.ehlo()
-    s.starttls()
-    s.login(d['smtp_user'], d['smtp_pass'])
-    s.sendmail(d['smtp_user'], d['to'], msg.as_string())
-print('ok')
-`]);
-    py.stdin.write(payload);
-    py.stdin.end();
-    let out = '';
-    let err = '';
-    py.stdout.on('data', d => out += d);
-    py.stderr.on('data', d => err += d);
-    py.on('close', code => {
-      if (code === 0) resolve();
-      else reject(new Error(err.trim() || `python exit ${code}`));
-    });
-  });
-}
-
-// ── Helper principal : essaie nodemailer, puis Python ──
+// ── Envoi principal via l'API Resend ──────────────────────────────────────
 export async function sendMail({ to, subject, html }) {
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpPort = process.env.SMTP_PORT || '587';
+  const apiKey = process.env.RESEND_API_KEY;
 
-  if (!smtpUser || smtpUser === 'votre@gmail.com' || !smtpPass || smtpPass === 'votre_mot_de_passe_application') {
-    console.log(`\n📧 [DEV - SMTP non configuré] À: ${to}\n   Sujet: ${subject}\n`);
+  // Mode dev : pas de clé → log dans le terminal
+  if (!apiKey || apiKey === 'VOTRE_CLE_RESEND') {
+    console.log(`\n📧 [DEV - Resend non configuré]\n   À      : ${to}\n   Sujet  : ${subject}\n   (Ajoutez RESEND_API_KEY dans .env pour envoyer de vrais emails)\n`);
     return;
   }
 
-  // Essai 1 : nodemailer
+  const from = process.env.EMAIL_FROM || 'BafaConnect <noreply@resend.dev>';
+
   try {
-    const nodemailer = (await import('nodemailer')).default;
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: parseInt(smtpPort),
-      secure: false,
-      auth: { user: smtpUser, pass: smtpPass },
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to, subject, html }),
     });
-    await transporter.sendMail({
-      from: `"BafaConnect" <${smtpUser}>`,
-      to, subject, html,
-    });
-    console.log(`✉️  [nodemailer] Email envoyé à ${to}`);
-    return;
-  } catch (err) {
-    if (!err.message.includes('Cannot find module')) {
-      console.error('Erreur nodemailer :', err.message);
-      return;
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.message || `Resend error ${response.status}`);
     }
-    // nodemailer pas installé → fallback Python
-    console.log('nodemailer absent, utilisation du fallback Python...');
-  }
 
-  // Essai 2 : Python smtplib
-  try {
-    await sendMailPython({ to, subject, html, smtpHost, smtpPort, smtpUser, smtpPass });
-    console.log(`✉️  [python] Email envoyé à ${to}`);
+    console.log(`✉️  [Resend] Email envoyé à ${to} (id: ${data.id})`);
   } catch (err) {
-    console.error('Erreur envoi email (python) :', err.message);
+    console.error(`❌ Erreur envoi email à ${to} :`, err.message);
   }
 }
 
-// ── Email de vérification après inscription ──
+// ── Email de vérification après inscription ───────────────────────────────
 export async function sendVerificationEmail({ email, verifyUrl }) {
+  // En dev sans clé, affiche le lien dans le terminal
+  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'VOTRE_CLE_RESEND') {
+    console.log(`\n📧 [DEV] Lien de vérification pour ${email} :\n${verifyUrl}\n`);
+  }
+
   const subject = 'BafaConnect — Vérifiez votre adresse email';
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#fffbf5;border-radius:16px;">
@@ -109,13 +65,10 @@ export async function sendVerificationEmail({ email, verifyUrl }) {
       <p style="color:#a8a29e;font-size:0.85rem;margin-top:24px;">BafaConnect — La plateforme qui relie directeurs et animateurs BAFA.</p>
     </div>
   `;
-  if (!process.env.SMTP_USER || process.env.SMTP_USER === 'votre@gmail.com') {
-    console.log(`\n📧 [DEV] Lien de vérification pour ${email} :\n${verifyUrl}\n`);
-  }
   await sendMail({ to: email, subject, html });
 }
 
-// ── Email au directeur quand un animateur postule ──
+// ── Email au directeur quand un animateur postule ─────────────────────────
 export async function sendNouvellePostulation({ emailDirecteur, animateurNom, sejourTitre, appUrl }) {
   const subject = `BafaConnect — Nouvelle candidature pour "${sejourTitre}"`;
   const html = `
@@ -145,7 +98,7 @@ export async function sendNouvellePostulation({ emailDirecteur, animateurNom, se
   await sendMail({ to: emailDirecteur, subject, html });
 }
 
-// ── Email à l'animateur quand candidature acceptée/refusée ──
+// ── Email à l'animateur quand candidature acceptée/refusée ───────────────
 export async function sendCandidatureNotification({ email, animateurNom, sejourTitre, statut }) {
   const isAccepted = statut === 'acceptée' || statut === 'acceptee';
   const statutLabel = isAccepted ? 'acceptée ✅' : 'refusée ❌';
@@ -183,8 +136,13 @@ export async function sendCandidatureNotification({ email, animateurNom, sejourT
   await sendMail({ to: email, subject, html });
 }
 
-// ── Email de réinitialisation de mot de passe ──
+// ── Email de réinitialisation de mot de passe ─────────────────────────────
 export async function sendPasswordResetEmail({ email, resetUrl }) {
+  // En dev sans clé, affiche le lien dans le terminal
+  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'VOTRE_CLE_RESEND') {
+    console.log(`\n🔑 [DEV] Lien de réinitialisation pour ${email} :\n${resetUrl}\n`);
+  }
+
   const subject = 'BafaConnect — Réinitialisation de votre mot de passe';
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#fffbf5;border-radius:16px;">
@@ -209,8 +167,5 @@ export async function sendPasswordResetEmail({ email, resetUrl }) {
       <p style="color:#a8a29e;font-size:0.85rem;margin-top:24px;">BafaConnect — La plateforme qui relie directeurs et animateurs BAFA.</p>
     </div>
   `;
-  if (!process.env.SMTP_USER || process.env.SMTP_USER === 'votre@gmail.com') {
-    console.log(`\n🔑 [DEV] Lien de réinitialisation pour ${email} :\n${resetUrl}\n`);
-  }
   await sendMail({ to: email, subject, html });
 }

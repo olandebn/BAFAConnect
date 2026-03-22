@@ -19,6 +19,7 @@ import ProfilPublicDirecteur from './ProfilPublicDirecteur'
 import CarteSejoursMap from './CarteSejoursMap'
 import OnboardingBanner from './OnboardingBanner'
 import AdminPanel from './AdminPanel'
+import GuideBafa from './GuideBafa'
 import './App.css'
 
 function App() {
@@ -28,7 +29,8 @@ function App() {
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
-    const isDark = saved === 'dark'
+    // Dark mode par défaut — sauf si l'utilisateur a explicitement choisi le mode clair
+    const isDark = saved !== 'light'
     if (isDark) document.documentElement.classList.add('dark')
     return isDark
   })
@@ -92,7 +94,7 @@ function App() {
     if (!localStorage.getItem('token')) return
     // Pour les directeurs : candidatures en attente
     if (currentRole === 'directeur') {
-      api.get('/candidatures/recues')
+      api.get('/recrutement/candidats-recus')
         .then(res => {
           const enAttente = (res.data || []).filter(c => c.statut === 'en attente')
           if (enAttente.length > 0) {
@@ -487,7 +489,7 @@ function App() {
                 </div>
                 <div className="form-group">
                   <label>🏕️ Type de séjour</label>
-                  <select value={filtres.type} onChange={e => setFiltres({ ...filtres, type: e.target.value })} className="profile-select">
+                  <select value={filtres.type} onChange={e => setFiltres({ ...filtres, type: e.target.value })}>
                     <option value="">Tous les types</option>
                     <option value="Séjour de vacances">Séjour de vacances</option>
                     <option value="Accueil de loisirs">Accueil de loisirs</option>
@@ -594,7 +596,7 @@ function App() {
                       </p>
                     )}
                     {s.description && <p className="annonce-card-desc">{s.description}</p>}
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 'auto' }}>
                       {!complet && !passe ? (
                         <button className="btn-primary annonce-card-btn" onClick={() => handlePostuler(s.id)}>
                           Postuler au séjour
@@ -759,8 +761,15 @@ function App() {
           </div>
         )}
 
+        {/* ── GUIDE BAFA ── */}
+        {page === 'guide-bafa' && (
+          <div className="page-content">
+            <GuideBafa />
+          </div>
+        )}
+
         {/* ── PAGE 404 ── */}
-        {!['dashboard','annonces','candidatures','messages','profil','calendrier','parametres','recherche','favoris','creer-annonce','mes-annonces','recrutement','admin'].includes(page) && (
+        {!['dashboard','annonces','candidatures','messages','profil','calendrier','parametres','recherche','favoris','creer-annonce','mes-annonces','recrutement','admin','guide-bafa'].includes(page) && (
           <div className="page-content">
             <div className="not-found-wrapper">
               <div className="not-found-code">404</div>

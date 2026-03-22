@@ -134,4 +134,75 @@ router.get('/stats', authenticateToken, async (req, res) => {
     }
 });
 
+// GÉNÉRER UN CONTRAT (candidature acceptée uniquement)
+router.get('/:id/contrat', authenticateToken, async (req, res) => {
+    const { id: userId, role } = req.user;
+    const { id: candidatureId } = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT
+                c.id AS candidature_id,
+                c.statut,
+                c.date_candidature,
+
+                -- Animateur
+                u_anim.id       AS animateur_user_id,
+                u_anim.email    AS animateur_email,
+                ap.nom          AS animateur_nom,
+                ap.ville        AS animateur_ville,
+                ap.diplomes     AS animateur_diplomes,
+                ap.photo_url    AS animateur_photo,
+
+                -- Directeur / Structure
+                u_dir.id        AS directeur_user_id,
+                u_dir.email     AS directeur_email,
+                sd.nom_structure,
+                sd.type_structure,
+                sd.ville        AS structure_ville,
+                sd.description  AS structure_description,
+
+                -- Séjour
+                s.id            AS sejour_id,
+                s.titre         AS sejour_titre,
+                s.type          AS sejour_type,
+                s.lieu          AS sejour_lieu,
+                s.date_debut,
+                s.date_fin,
+                s.description   AS sejour_description,
+                s.nombre_postes
+
+             FROM candidatures c
+             JOIN users u_anim ON u_anim.id = c.animateur_id
+             LEFT JOIN animateurs_profiles ap ON ap.user_id = u_anim.id
+             JOIN sejours s ON s.id = c.sejour_id
+             JOIN users u_dir ON u_dir.id = s.directeur_id
+             LEFT JOIN structures_directeurs sd ON sd.user_id = u_dir.id
+             WHERE c.id = $1`,
+            [candidatureId]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ error: 'Candidature introuvable.' });
+        }
+
+        const contrat = result.rows[0];
+
+        // Vérifier que l'utilisateur est bien le directeur ou l'animateur concerné
+        if (contrat.animateur_user_id !== userId && contrat.directeur_user_id !== userId && role !== 'admin') {
+            return res.status(403).json({ error: 'Accès refusé.' });
+        }
+
+        // Vérifier que la candidature est acceptée
+        if (!['acceptée', 'acceptee'].includes(contrat.statut)) {
+            return res.status(400).json({ error: 'Le contrat n\'est disponible que pour les candidatures acceptées.' });
+        }
+
+        res.json(contrat);
+    } catch (err) {
+        console.error('Erreur génération contrat :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 export default router;

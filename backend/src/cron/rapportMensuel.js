@@ -24,7 +24,7 @@ async function genererRapport(directeurId, email, nomDirecteur) {
     const sejoursRes = await pool.query(
       `SELECT COUNT(*) AS total,
         SUM(CASE WHEN date_fin IS NULL OR date_fin >= NOW() THEN 1 ELSE 0 END) AS actifs
-       FROM sejours WHERE user_id = $1`,
+       FROM sejours WHERE directeur_id = $1`,
       [directeurId]
     );
 
@@ -36,7 +36,7 @@ async function genererRapport(directeurId, email, nomDirecteur) {
         SUM(CASE WHEN c.statut = 'en attente' THEN 1 ELSE 0 END) AS en_attente
        FROM candidatures c
        JOIN sejours s ON s.id = c.sejour_id
-       WHERE s.user_id = $1
+       WHERE s.directeur_id = $1
          AND c.date_candidature BETWEEN $2 AND $3`,
       [directeurId, debutMois, finMois]
     );
@@ -47,7 +47,7 @@ async function genererRapport(directeurId, email, nomDirecteur) {
        FROM sejours s
        LEFT JOIN candidatures c ON c.sejour_id = s.id
          AND c.date_candidature BETWEEN $2 AND $3
-       WHERE s.user_id = $1
+       WHERE s.directeur_id = $1
        GROUP BY s.id, s.titre
        ORDER BY nb_candidatures DESC
        LIMIT 5`,
@@ -156,7 +156,7 @@ export function startRapportMensuel() {
         `SELECT DISTINCT u.id, u.email,
             COALESCE(sd.nom_structure, u.email) AS nom
          FROM users u
-         JOIN sejours s ON s.user_id = u.id
+         JOIN sejours s ON s.directeur_id = u.id
          LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
          WHERE u.role = 'directeur'`
       );

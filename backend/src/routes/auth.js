@@ -5,12 +5,28 @@ import crypto from 'crypto';
 import { pool } from '../db.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../emailService.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authRateLimit } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // INSCRIPTION
 router.post('/register', async (req, res) => {
     const { email, password, role } = req.body;
+
+    // ── Validation des inputs ────────────────────────────────────────────────
+    if (!email || !password || !role) {
+        return res.status(400).json({ error: 'Email, mot de passe et rôle sont requis.' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Adresse email invalide.' });
+    }
+    if (password.length < 8) {
+        return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
+    }
+    if (!['animateur', 'directeur'].includes(role)) {
+        return res.status(400).json({ error: 'Rôle invalide.' });
+    }
 
     try {
         const hashed = await bcrypt.hash(password, 10);
@@ -78,18 +94,23 @@ router.post('/resend-verification', async (req, res) => {
     }
 });
 
-// CONNEXION
-router.post('/login', async (req, res) => {
+// CONNEXION — rate limit strict : 10 tentatives / 15 min
+router.post('/login', authRateLimit, async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email et mot de passe requis.' });
+    }
 
     try {
         const result = await pool.query(
-            `SELECT * FROM users WHERE email = $1`,
+            `SELECT id, email, role, password_hash, email_verified FROM users WHERE email = $1`,
             [email]
         );
 
+        // Message générique : ne pas révéler si l'email existe ou non
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'Utilisateur introuvable' });
+            return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
         }
 
         const user = result.rows[0];
@@ -97,7 +118,7 @@ router.post('/login', async (req, res) => {
         const isValid = await bcrypt.compare(password, user.password_hash);
 
         if (!isValid) {
-            return res.status(400).json({ error: 'Mot de passe incorrect' });
+            return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
         }
 
         const token = jwt.sign(

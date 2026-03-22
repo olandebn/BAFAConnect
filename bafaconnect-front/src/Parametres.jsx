@@ -99,9 +99,9 @@ function Parametres({ onEmailChange, darkMode, onThemeChange }) {
         <div>
           <div className="theme-toggle-row">
             <div>
-              <div className="theme-toggle-label">{darkMode ? '🌙 Mode sombre' : '☀️ Mode clair'}</div>
+              <div className="theme-toggle-label">{darkMode ? '☀️ Passer en mode clair' : '🌙 Passer en mode sombre'}</div>
               <div className="theme-toggle-desc">
-                {darkMode ? 'Interface sombre pour moins de fatigue oculaire' : 'Interface lumineuse, idéale en journée'}
+                {darkMode ? 'Interface lumineuse, idéale en journée' : 'Interface sombre — activée par défaut'}
               </div>
             </div>
             <label className="switch">

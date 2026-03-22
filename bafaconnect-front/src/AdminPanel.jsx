@@ -13,7 +13,7 @@ function StatCard({ icon, value, label, sub, color }) {
 }
 
 function AdminPanel() {
-  const [tab, setTab] = useState('stats'); // 'stats' | 'users' | 'sejours'
+  const [tab, setTab] = useState('diplomes'); // 'stats' | 'users' | 'sejours' | 'diplomes'
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [sejours, setSejours] = useState([]);
@@ -33,6 +33,16 @@ function AdminPanel() {
   const [sejourTotal, setSejourTotal] = useState(0);
   const [sejourSearch, setSejourSearch] = useState('');
 
+  // Diplômes
+  const [diplomes, setDiplomes] = useState([]);
+  const [diplomeStatutFiltre, setDiplomeStatutFiltre] = useState('en_attente');
+  const [diplomeTotal, setDiplomeTotal] = useState(0);
+  const [diplomePage, setDiplomePage] = useState(1);
+  const [diplomePages, setDiplomePages] = useState(1);
+  const [actionDiplome, setActionDiplome] = useState(null); // { id, statut en cours }
+  const [commentaire, setCommentaire] = useState('');
+  const [confirmDiplome, setConfirmDiplome] = useState(null); // { id, action: 'validé'|'refusé', type, nom }
+
   // Actions
   const [deletingUser, setDeletingUser] = useState(null);
   const [deletingSejour, setDeletingSejour] = useState(null);
@@ -42,7 +52,33 @@ function AdminPanel() {
     if (tab === 'stats') fetchStats();
     if (tab === 'users') fetchUsers(1);
     if (tab === 'sejours') fetchSejours(1);
+    if (tab === 'diplomes') fetchDiplomes(1, diplomeStatutFiltre);
   }, [tab]);
+
+  const fetchDiplomes = async (page = 1, statut = diplomeStatutFiltre) => {
+    setLoading(true); setError('');
+    try {
+      const res = await api.get('/admin/diplomes', { params: { statut, page, limit: 20 } });
+      setDiplomes(res.data.diplomes);
+      setDiplomeTotal(res.data.total);
+      setDiplomePage(res.data.page);
+      setDiplomePages(res.data.pages);
+    } catch { setError('Impossible de charger les diplômes.'); }
+    finally { setLoading(false); }
+  };
+
+  const handleDiplomeAction = async (id, statut) => {
+    setActionDiplome(id);
+    try {
+      await api.patch(`/admin/diplomes/${id}`, { statut, commentaire: commentaire || undefined });
+      setDiplomes(prev => prev.filter(d => d.id !== id));
+      setDiplomeTotal(t => t - 1);
+      setCommentaire('');
+      setConfirmDiplome(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de la mise à jour.');
+    } finally { setActionDiplome(null); }
+  };
 
   const fetchStats = async () => {
     setLoading(true); setError('');
@@ -119,6 +155,7 @@ function AdminPanel() {
       {/* Onglets */}
       <div className="admin-tabs">
         {[
+          { id: 'diplomes', label: `🎓 Diplômes${diplomeStatutFiltre === 'en_attente' && diplomeTotal > 0 ? ` (${diplomeTotal})` : ''}` },
           { id: 'stats', label: '📊 Statistiques' },
           { id: 'users', label: '👥 Utilisateurs' },
           { id: 'sejours', label: '🏕️ Séjours' },
@@ -332,6 +369,140 @@ function AdminPanel() {
               <button className="pagination-btn" disabled={sejourPage <= 1} onClick={() => fetchSejours(sejourPage - 1)}>← Précédent</button>
               <span className="pagination-info">Page {sejourPage} / {sejourPages}</span>
               <button className="pagination-btn" disabled={sejourPage >= sejourPages} onClick={() => fetchSejours(sejourPage + 1)}>Suivant →</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DIPLÔMES ── */}
+      {!loading && tab === 'diplomes' && (
+        <div>
+          {/* Modale confirmation */}
+          {confirmDiplome && (
+            <div className="admin-confirm-overlay">
+              <div className="admin-confirm-box">
+                <p>
+                  {confirmDiplome.action === 'validé' ? '✅' : '❌'}{' '}
+                  {confirmDiplome.action === 'validé' ? 'Valider' : 'Refuser'} le diplôme{' '}
+                  <strong>{confirmDiplome.type}</strong> de <strong>{confirmDiplome.nom}</strong> ?
+                </p>
+                {confirmDiplome.action === 'refusé' && (
+                  <div style={{ marginTop: 12 }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--muted)', display: 'block', marginBottom: 6 }}>
+                      Motif du refus (optionnel)
+                    </label>
+                    <input
+                      type="text"
+                      className="filtres-input"
+                      style={{ width: '100%' }}
+                      placeholder="Ex : document illisible, mauvais type..."
+                      value={commentaire}
+                      onChange={e => setCommentaire(e.target.value)}
+                    />
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 14 }}>
+                  <button className="btn-secondary" onClick={() => { setConfirmDiplome(null); setCommentaire(''); }}>
+                    Annuler
+                  </button>
+                  <button
+                    className={confirmDiplome.action === 'validé' ? 'btn-primary' : 'btn-danger'}
+                    disabled={actionDiplome === confirmDiplome.id}
+                    onClick={() => handleDiplomeAction(confirmDiplome.id, confirmDiplome.action)}
+                  >
+                    {actionDiplome === confirmDiplome.id ? 'En cours...' : 'Confirmer'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filtres statut */}
+          <div className="diplomes-admin-filtres">
+            {['en_attente', 'validé', 'refusé'].map(s => (
+              <button
+                key={s}
+                className={`diplome-filtre-btn ${diplomeStatutFiltre === s ? 'active' : ''}`}
+                onClick={() => {
+                  setDiplomeStatutFiltre(s);
+                  fetchDiplomes(1, s);
+                }}
+              >
+                {s === 'en_attente' && '⏳ En attente'}
+                {s === 'validé' && '✅ Validés'}
+                {s === 'refusé' && '❌ Refusés'}
+                {' '}
+                {diplomeStatutFiltre === s && diplomeTotal > 0 && (
+                  <span className="diplome-filtre-count">{diplomeTotal}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {diplomes.length === 0 ? (
+            <div className="diplomes-empty">
+              <span>🎓</span>
+              <p>Aucun diplôme {diplomeStatutFiltre === 'en_attente' ? 'en attente' : diplomeStatutFiltre === 'validé' ? 'validé' : 'refusé'} pour le moment.</p>
+            </div>
+          ) : (
+            <div className="diplomes-admin-list">
+              {diplomes.map(d => (
+                <div key={d.id} className="diplome-admin-card">
+                  <div className="diplome-admin-info">
+                    <div className="diplome-admin-user">
+                      <span className="diplome-type-badge">{d.type}</span>
+                      <span className="admin-user-nom">{d.user_nom}</span>
+                      <span className={`admin-role-badge ${d.user_role}`}>
+                        {d.user_role === 'animateur' ? '🎒' : '🏕️'} {d.user_role}
+                      </span>
+                    </div>
+                    <span className="admin-user-email">{d.user_email}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
+                      <a
+                        href={d.fichier_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="diplome-fichier-link"
+                      >
+                        📄 {d.fichier_nom}
+                      </a>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+                        Soumis le {new Date(d.created_at).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    {d.commentaire_admin && (
+                      <p className="diplome-commentaire">💬 {d.commentaire_admin}</p>
+                    )}
+                  </div>
+
+                  {diplomeStatutFiltre === 'en_attente' && (
+                    <div className="diplome-admin-actions">
+                      <button
+                        className="btn-accepter"
+                        disabled={actionDiplome === d.id}
+                        onClick={() => setConfirmDiplome({ id: d.id, action: 'validé', type: d.type, nom: d.user_nom })}
+                      >
+                        ✅ Valider
+                      </button>
+                      <button
+                        className="btn-refuser"
+                        disabled={actionDiplome === d.id}
+                        onClick={() => setConfirmDiplome({ id: d.id, action: 'refusé', type: d.type, nom: d.user_nom })}
+                      >
+                        ❌ Refuser
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {diplomePages > 1 && (
+            <div className="pagination-wrapper">
+              <button className="pagination-btn" disabled={diplomePage <= 1} onClick={() => fetchDiplomes(diplomePage - 1)}>← Précédent</button>
+              <span className="pagination-info">Page {diplomePage} / {diplomePages}</span>
+              <button className="pagination-btn" disabled={diplomePage >= diplomePages} onClick={() => fetchDiplomes(diplomePage + 1)}>Suivant →</button>
             </div>
           )}
         </div>

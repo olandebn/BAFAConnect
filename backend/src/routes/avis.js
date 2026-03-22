@@ -24,8 +24,8 @@ router.post('/', authenticateToken, async (req, res) => {
         const relation = await pool.query(
             `SELECT 1 FROM candidatures c
              JOIN sejours s ON s.id = c.sejour_id
-             WHERE (c.animateur_id = $1 AND s.directeur_id = $2)
-                OR (c.animateur_id = $2 AND s.directeur_id = $1)
+             WHERE ((c.animateur_id = $1 AND s.directeur_id = $2)
+                OR (c.animateur_id = $2 AND s.directeur_id = $1))
              AND (c.statut = 'acceptée' OR c.statut = 'acceptee')
              LIMIT 1`,
             [auteur_id, cible_id]

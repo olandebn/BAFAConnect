@@ -317,7 +317,7 @@ function Messagerie({ destinataireInitial = null, onNewMessage, onVoirProfil }) 
               {isLoading && <p className="messagerie-empty">Chargement...</p>}
 
               {messages.map((m) => {
-                const estMoi = m.expediteur_id !== interlocuteurActif.id;
+                const estMoi = String(m.expediteur_id) === String(monId);
                 return (
                   <div key={m.id} className={`message-bulle ${estMoi ? 'moi' : 'eux'}`}>
                     {m.contenu && <p className="message-contenu">{m.contenu}</p>}

@@ -126,14 +126,14 @@ router.get('/sejours', authenticateToken, requireAdmin, async (req, res) => {
         const params = search ? [`%${search}%`] : [];
         const where = search ? 'WHERE s.titre ILIKE $1 OR s.lieu ILIKE $1' : '';
 
-        const countRes = await pool.query(`SELECT COUNT(*) FROM sejours s ${where}`, params);
+        const countRes = await pool.query(`SELECT COUNT(*) FROM sejours s LEFT JOIN users u ON u.id = s.directeur_id LEFT JOIN structures_directeurs sd ON sd.user_id = u.id ${where}`, params);
         params.push(limit, offset);
         const sejoursRes = await pool.query(
             `SELECT s.id, s.titre, s.lieu, s.date_debut, s.date_fin, s.created_at,
                 COALESCE(sd.nom_structure, u.email) AS directeur_nom,
                 u.email AS directeur_email
              FROM sejours s
-             JOIN users u ON u.id = s.user_id
+             JOIN users u ON u.id = s.directeur_id
              LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
              ${where}
              ORDER BY s.created_at DESC
@@ -161,6 +161,84 @@ router.delete('/sejours/:id', authenticateToken, requireAdmin, async (req, res) 
         res.json({ message: 'Séjour supprimé.' });
     } catch (err) {
         console.error('Erreur suppression séjour admin :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// 6. LISTE DES DIPLÔMES À VALIDER (admin)
+router.get('/diplomes', authenticateToken, requireAdmin, async (req, res) => {
+    const { statut = 'en_attente', page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    try {
+        const countRes = await pool.query(
+            `SELECT COUNT(*) FROM diplomes WHERE statut = $1`, [statut]
+        );
+
+        const result = await pool.query(
+            `SELECT d.*,
+                u.email AS user_email,
+                u.role AS user_role,
+                COALESCE(ap.nom, sd.nom_structure, u.email) AS user_nom
+             FROM diplomes d
+             JOIN users u ON u.id = d.user_id
+             LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
+             LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
+             WHERE d.statut = $1
+             ORDER BY d.created_at ASC
+             LIMIT $2 OFFSET $3`,
+            [statut, limit, offset]
+        );
+
+        res.json({
+            diplomes: result.rows,
+            total: parseInt(countRes.rows[0].count),
+            page: parseInt(page),
+            pages: Math.ceil(countRes.rows[0].count / limit),
+        });
+    } catch (err) {
+        console.error('Erreur liste diplômes admin :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// 7. VALIDER OU REFUSER UN DIPLÔME
+router.patch('/diplomes/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { statut, commentaire } = req.body;
+
+    if (!['validé', 'refusé'].includes(statut)) {
+        return res.status(400).json({ error: 'Statut invalide. Valeurs acceptées : validé, refusé.' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE diplomes
+             SET statut = $1, commentaire_admin = $2, updated_at = NOW()
+             WHERE id = $3
+             RETURNING *, (SELECT email FROM users WHERE id = user_id) AS user_email`,
+            [statut, commentaire || null, id]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ error: 'Diplôme introuvable.' });
+        }
+
+        const diplome = result.rows[0];
+
+        // Notif in-app pour l'utilisateur
+        try {
+            const emoji = statut === 'validé' ? '✅' : '❌';
+            const msg = statut === 'validé'
+                ? `${emoji} Votre diplôme ${diplome.type} a été validé !`
+                : `${emoji} Votre diplôme ${diplome.type} a été refusé.${commentaire ? ` Raison : ${commentaire}` : ''}`;
+            const { createNotif } = await import('./notifications.js');
+            await createNotif(diplome.user_id, 'diplome', msg);
+        } catch {}
+
+        res.json(diplome);
+    } catch (err) {
+        console.error('Erreur validation diplôme admin :', err);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

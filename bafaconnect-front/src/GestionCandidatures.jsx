@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from './api/axios';
 import AvisSection from './AvisSection';
+import ContratModal from './ContratModal';
 
 function GestionCandidatures({ onContacter }) {
   const [candidats, setCandidats] = useState([]);
@@ -8,6 +9,7 @@ function GestionCandidatures({ onContacter }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  const [contratId, setContratId] = useState(null); // candidatureId pour le contrat ouvert
 
   // Filtres avancés
   const [filtreStatut, setFiltreStatut] = useState('');
@@ -163,6 +165,7 @@ function GestionCandidatures({ onContacter }) {
   };
 
   return (
+    <>
     <div className="candidatures-section">
       <div className="candidatures-title-row">
         <h2 className="candidatures-title">📩 Candidatures reçues</h2>
@@ -262,13 +265,21 @@ function GestionCandidatures({ onContacter }) {
                       </button>
                     )}
                     {(c.statut === 'acceptée' || c.statut === 'acceptee') && (
-                      <button
-                        className="btn-secondary"
-                        style={{ fontSize: '0.82rem', padding: '6px 12px' }}
-                        onClick={() => setAvisOuvert(avisOuvert === c.animateur_id ? null : c.animateur_id)}
-                      >
-                        ⭐ Avis
-                      </button>
+                      <>
+                        <button
+                          className="btn-secondary"
+                          style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                          onClick={() => setAvisOuvert(avisOuvert === c.animateur_id ? null : c.animateur_id)}
+                        >
+                          ⭐ Avis
+                        </button>
+                        <button
+                          className="btn-contrat"
+                          onClick={() => setContratId(c.candidature_id)}
+                        >
+                          📄 Contrat
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -283,6 +294,15 @@ function GestionCandidatures({ onContacter }) {
         </div>
       )}
     </div>
+
+    {/* Modal contrat */}
+    {contratId && (
+      <ContratModal
+        candidatureId={contratId}
+        onClose={() => setContratId(null)}
+      />
+    )}
+    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from './api/axios'
 import AvisSection from './AvisSection'
+import MesDiplomes from './MesDiplomes'
 
 const SUPABASE_URL = 'https://rzjfhucnftglbdvgosld.supabase.co'
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6amZodWNuZnRnbGJkdmdvc2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NzMwNjMsImV4cCI6MjA4NzU0OTA2M30.qLsPBLmRwMU8-lfmZzcPdRGjvGGa8mBrF51xSRrvAw8'
@@ -635,7 +636,14 @@ function Profile({ onPhotoChange }) {
       {/* Avis reçus sur ce profil */}
       {user && !isEditing && (
         <div style={{ marginTop: 32 }}>
-          <AvisSection cibleId={user.id} canLeaveAvis={false} />
+          <AvisSection cibleId={user.user_id || localStorage.getItem('userId')} canLeaveAvis={false} />
+        </div>
+      )}
+
+      {/* Mes diplômes */}
+      {user && !isEditing && (
+        <div style={{ marginTop: 32 }}>
+          <MesDiplomes />
         </div>
       )}
     </div>

@@ -11,6 +11,7 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
     { id: 'calendrier',   icon: '📅', label: 'Planning' },
     { id: 'candidatures', icon: '📋', label: 'Mes candidatures' },
     { id: 'messages',     icon: '💬', label: 'Messages', badge: unreadCount },
+    { id: 'guide-bafa',   icon: '🎓', label: 'Guide BAFA' },
     { id: 'profil',       icon: '👤', label: 'Mon profil' },
     { id: 'parametres',   icon: '⚙️', label: 'Paramètres' },
   ]
