@@ -35,8 +35,19 @@ function App() {
     return isDark
   })
   const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '')
+  const [emailVerified, setEmailVerified] = useState(localStorage.getItem('emailVerified') !== 'false')
+  const [resendEmailMsg, setResendEmailMsg] = useState('')
+  const [resendEmailLoading, setResendEmailLoading] = useState(false)
   const [userPhoto, setUserPhoto] = useState('')
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState(() => {
+    // Si on revient d'une impersonation, forcer le dashboard et nettoyer l'URL
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('impersonate')) {
+      window.history.replaceState({}, '', '/')
+      return 'dashboard'
+    }
+    return 'dashboard'
+  })
   const [publicProfileId, setPublicProfileId] = useState(() => new URLSearchParams(window.location.search).get('profil'))
   const [publicProfileRole, setPublicProfileRole] = useState('animateur')
   const [messageDest, setMessageDest] = useState(null)
@@ -143,6 +154,21 @@ function App() {
     fetchUserPhoto()
   }, [isLoggedIn, fetchUserPhoto])
 
+  // Vérification email via ?verify=TOKEN (si déjà connecté au clic du lien)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const verifyToken = params.get('verify')
+    if (!verifyToken) return
+    window.history.replaceState({}, '', '/')
+    api.get(`/auth/verify-email/${verifyToken}`)
+      .then(() => {
+        localStorage.setItem('emailVerified', 'true')
+        setEmailVerified(true)
+        setResendEmailMsg('✅ Email vérifié avec succès !')
+      })
+      .catch(() => {})
+  }, [])
+
   // Polling badge non lus + notifs toutes les 30s
   useEffect(() => {
     if (!isLoggedIn) return
@@ -161,12 +187,14 @@ function App() {
     localStorage.removeItem('role')
     localStorage.removeItem('userId')
     localStorage.removeItem('userEmail')
+    localStorage.removeItem('emailVerified')
     setIsLoggedIn(false)
     setRole('animateur')
     setUserEmail('')
     setUserPhoto('')
     setUnreadCount(0)
     setNotifItems([])
+    setEmailVerified(true) // reset pour pas afficher le bandeau sur la page login
   }
 
   const handleLoginSuccess = (userRole) => {
@@ -175,6 +203,20 @@ function App() {
     setPage('dashboard')
     const email = localStorage.getItem('userEmail') || ''
     setUserEmail(email)
+    setEmailVerified(localStorage.getItem('emailVerified') !== 'false')
+  }
+
+  const handleResendVerifEmail = async () => {
+    setResendEmailLoading(true)
+    setResendEmailMsg('')
+    try {
+      await api.post('/auth/resend-verification', { email: userEmail })
+      setResendEmailMsg('Email renvoyé ! Vérifiez votre boîte mail.')
+    } catch {
+      setResendEmailMsg('Erreur lors du renvoi, réessayez.')
+    } finally {
+      setResendEmailLoading(false)
+    }
   }
 
   const handleContacter = (interlocuteur) => {
@@ -432,6 +474,68 @@ function App() {
       />
 
       <main className="app-main">
+
+        {/* Bandeau impersonation admin */}
+        {localStorage.getItem('adminToken') && (
+          <div style={{
+            background: '#7c3aed', color: '#fff', padding: '10px 20px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            fontSize: '0.9rem', fontWeight: 500, borderRadius: 0,
+            marginBottom: 0, position: 'sticky', top: 0, zIndex: 100,
+          }}>
+            <span>🔐 Mode impersonation — vous naviguez en tant que <strong>{localStorage.getItem('userEmail')}</strong></span>
+            <button
+              onClick={() => {
+                localStorage.setItem('token', localStorage.getItem('adminToken'));
+                localStorage.setItem('userId', localStorage.getItem('adminUserId'));
+                localStorage.setItem('userEmail', localStorage.getItem('adminEmail'));
+                localStorage.setItem('role', localStorage.getItem('adminRole') || 'admin');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUserId');
+                localStorage.removeItem('adminEmail');
+                localStorage.removeItem('adminRole');
+                window.location.href = '/';
+              }}
+              style={{
+                marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
+                color: '#fff', borderRadius: 6, padding: '4px 14px', cursor: 'pointer', fontWeight: 700,
+              }}
+            >↩ Retour admin</button>
+          </div>
+        )}
+
+        {/* Bandeau email non vérifié */}
+        {isLoggedIn && !emailVerified && !localStorage.getItem('adminToken') && (
+          <div style={{
+            background: '#fef3c7', borderBottom: '1px solid #fcd34d',
+            padding: '10px 20px', display: 'flex', alignItems: 'center',
+            gap: 12, fontSize: '0.88rem', flexWrap: 'wrap',
+          }}>
+            <span style={{ color: '#92400e' }}>
+              ✉️ <strong>Vérifiez votre email</strong> — un lien de confirmation a été envoyé à <strong>{userEmail}</strong>
+            </span>
+            {resendEmailMsg
+              ? <span style={{ color: '#16a34a', fontWeight: 600 }}>{resendEmailMsg}</span>
+              : <button
+                  onClick={handleResendVerifEmail}
+                  disabled={resendEmailLoading}
+                  style={{
+                    background: '#f59e0b', color: '#fff', border: 'none',
+                    borderRadius: 6, padding: '4px 14px', cursor: 'pointer',
+                    fontWeight: 600, fontSize: '0.85rem',
+                  }}
+                >{resendEmailLoading ? '…' : '↻ Renvoyer l\'email'}</button>
+            }
+            <button
+              onClick={() => {
+                localStorage.setItem('emailVerified', 'true')
+                setEmailVerified(true)
+              }}
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', fontSize: '1rem' }}
+              title="Fermer (si vous avez déjà vérifié)"
+            >✕</button>
+          </div>
+        )}
 
         <OnboardingBanner role={role} onNavigate={handleSetPage} />
 

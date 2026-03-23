@@ -66,9 +66,9 @@ function Login({ onLoginSuccess }) {
         localStorage.setItem('role', userRole)
         localStorage.setItem('userId', res.data.user.id)
         localStorage.setItem('userEmail', res.data.user.email)
+        localStorage.setItem('emailVerified', res.data.emailVerified === true ? 'true' : 'false')
         if (res.data.emailVerified === false) {
           setUnverifiedEmail(email)
-          setError('⚠️ Votre email n\'est pas encore vérifié. Consultez votre boîte mail.')
         }
         onLoginSuccess(userRole)
       } else {
