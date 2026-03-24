@@ -10,10 +10,14 @@ dns.setDefaultResultOrder('ipv4first');
 
 const connectionString = process.env.DATABASE_URL;
 
-// On extrait l'hôte IPv4 depuis l'URL
-const host = connectionString.split('@')[1].split(':')[0];
+if (!connectionString) {
+  console.error('❌ DATABASE_URL manquant dans les variables d\'environnement');
+  process.exit(1);
+}
 
-console.log("Connexion à :", connectionString);
+// On extrait l'hôte IPv4 depuis l'URL
+const host = connectionString.split('@')[1]?.split(':')[0];
+
 console.log("Host forcé IPv4 :", host);
 
 export const pool = new Pool({

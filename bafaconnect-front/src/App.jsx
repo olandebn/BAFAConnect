@@ -20,6 +20,11 @@ import CarteSejoursMap from './CarteSejoursMap'
 import OnboardingBanner from './OnboardingBanner'
 import AdminPanel from './AdminPanel'
 import GuideBafa from './GuideBafa'
+import LegalPage from './LegalPage'
+import AboutPage from './AboutPage'
+import ContactPage from './ContactPage'
+import NotFound from './NotFound'
+import CookieBanner from './CookieBanner'
 import './App.css'
 
 function App() {
@@ -234,6 +239,8 @@ function App() {
     setTimeout(() => setPostuleNotif(''), 4000)
   }
 
+  const [landingPage, setLandingPage] = useState(null) // null = landing principale, sinon 'about'|'contact'|'mentions'|'cgu'|'rgpd'|'cookies'
+
   const handleSetPage = (newPage) => {
     if (newPage !== 'messages') setMessageDest(null)
     if (newPage === 'messages') fetchUnread()
@@ -280,8 +287,49 @@ function App() {
 
   // ─── LANDING PAGE (non connecté) ───────────────────────────────────────
   if (!isLoggedIn) {
+    // Navbar commune à toutes les sous-pages
+    const LandingNav = () => (
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="logo" style={{ cursor: 'pointer' }} onClick={() => setLandingPage(null)}>
+            <img src="/logo-bafaconnect.png" alt="BafaConnect" className="nav-logo-img" onError={(e) => { e.target.style.display='none' }} />
+            <span><span className="logo-bafa">Bafa</span><span className="logo-connect">Connect</span></span>
+          </div>
+          <div className="nav-menu">
+            <button onClick={() => setLandingPage(null)} className="nav-item footer-link-btn">Accueil</button>
+            <button onClick={() => setLandingPage('about')} className="nav-item footer-link-btn">À propos</button>
+            <button onClick={() => setLandingPage('contact')} className="nav-item footer-link-btn">Contact</button>
+            <a href="#connexion" className="nav-item nav-cta-light" onClick={() => setLandingPage(null)}>Connexion</a>
+          </div>
+        </div>
+      </nav>
+    )
+
+    // Sous-pages légales, about, contact
+    if (landingPage === 'about') return (
+      <div className="site-wrapper landing-light">
+        <LandingNav />
+        <main className="main-content"><AboutPage onNavigate={(p) => { if (p === 'register') { setLandingPage(null); document.getElementById('connexion')?.scrollIntoView() } else setLandingPage(p) }} /></main>
+        <CookieBanner onNavigate={setLandingPage} />
+      </div>
+    )
+    if (landingPage === 'contact') return (
+      <div className="site-wrapper landing-light">
+        <LandingNav />
+        <main className="main-content"><ContactPage /></main>
+        <CookieBanner onNavigate={setLandingPage} />
+      </div>
+    )
+    if (['mentions', 'cgu', 'rgpd', 'cookies'].includes(landingPage)) return (
+      <div className="site-wrapper landing-light">
+        <LandingNav />
+        <main className="main-content"><LegalPage initialTab={landingPage} /></main>
+        <CookieBanner onNavigate={setLandingPage} />
+      </div>
+    )
+
     return (
-      <div className="site-wrapper">
+      <div className="site-wrapper landing-light">
         <nav className="navbar">
           <div className="nav-container">
             <div className="logo">
@@ -292,6 +340,7 @@ function App() {
               <a href="#hero" className="nav-item">Accueil</a>
               <a href="#offres" className="nav-item">Trouver une mission</a>
               <a href="#comment" className="nav-item">Comment ça marche</a>
+              <button onClick={() => setLandingPage('about')} className="nav-item footer-link-btn">À propos</button>
               <a href="#connexion" className="nav-item nav-cta-light">Connexion</a>
             </div>
           </div>
@@ -374,6 +423,7 @@ function App() {
               </div>
             </section>
 
+            {sejours.length > 0 && (
             <section id="offres" className="offers-section">
               <div className="section-header">
                 <span className="section-kicker">Offres récentes</span>
@@ -391,6 +441,7 @@ function App() {
                 ))}
               </div>
             </section>
+            )}
 
             <section className="final-cta">
               <div className="final-cta-card">
@@ -404,17 +455,42 @@ function App() {
             </section>
 
             <footer className="footer">
-              <div className="footer-brand">
-                <strong>BafaConnect</strong>
-                <p>La plateforme qui relie directeurs et animateurs BAFA.</p>
+              <div className="footer-top">
+                <div className="footer-brand">
+                  <strong className="footer-logo">🧡 BafaConnect</strong>
+                  <p className="footer-tagline">La plateforme qui relie directeurs et animateurs BAFA.<br />100 % gratuit · Données hébergées en Europe.</p>
+                  <div className="footer-social">
+                    <a href="mailto:support@bafaconnect.fr" title="Email" className="footer-social-btn">✉️</a>
+                  </div>
+                </div>
+                <div className="footer-cols">
+                  <div className="footer-col">
+                    <div className="footer-col-title">Navigation</div>
+                    <a href="#hero">Accueil</a>
+                    <a href="#offres">Offres de missions</a>
+                    <a href="#comment">Comment ça marche</a>
+                    <button onClick={() => setLandingPage('about')} className="footer-link-btn">À propos</button>
+                  </div>
+                  <div className="footer-col">
+                    <div className="footer-col-title">Support</div>
+                    <button onClick={() => setLandingPage('contact')} className="footer-link-btn">Nous contacter</button>
+                    <a href="mailto:support@bafaconnect.fr">support@bafaconnect.fr</a>
+                  </div>
+                  <div className="footer-col">
+                    <div className="footer-col-title">Légal</div>
+                    <button onClick={() => setLandingPage('mentions')} className="footer-link-btn">Mentions légales</button>
+                    <button onClick={() => setLandingPage('cgu')} className="footer-link-btn">CGU</button>
+                    <button onClick={() => setLandingPage('rgpd')} className="footer-link-btn">Confidentialité</button>
+                    <button onClick={() => setLandingPage('cookies')} className="footer-link-btn">Cookies</button>
+                  </div>
+                </div>
               </div>
-              <div className="footer-links">
-                <a href="#hero">Accueil</a>
-                <a href="#offres">Offres</a>
-                <a href="#comment">Comment ça marche</a>
-                <a href="#connexion">Connexion</a>
+              <div className="footer-bottom">
+                <span>© {new Date().getFullYear()} BafaConnect — Tous droits réservés</span>
+                <span>Fait avec 🧡 en France</span>
               </div>
             </footer>
+            <CookieBanner onNavigate={(tab) => setLandingPage(tab)} />
           </div>
         </main>
       </div>
@@ -872,17 +948,15 @@ function App() {
           </div>
         )}
 
+        {/* ── PAGES LÉGALES (accessibles depuis le footer connecté) ── */}
+        {page === 'legal' && <div className="page-content"><LegalPage /></div>}
+        {page === 'about' && <div className="page-content"><AboutPage onNavigate={handleSetPage} /></div>}
+        {page === 'contact' && <div className="page-content"><ContactPage /></div>}
+
         {/* ── PAGE 404 ── */}
-        {!['dashboard','annonces','candidatures','messages','profil','calendrier','parametres','recherche','favoris','creer-annonce','mes-annonces','recrutement','admin','guide-bafa'].includes(page) && (
+        {!['dashboard','annonces','candidatures','messages','profil','calendrier','parametres','recherche','favoris','creer-annonce','mes-annonces','recrutement','admin','guide-bafa','legal','about','contact'].includes(page) && (
           <div className="page-content">
-            <div className="not-found-wrapper">
-              <div className="not-found-code">404</div>
-              <h2 className="not-found-title">Page introuvable</h2>
-              <p className="not-found-desc">Cette page n'existe pas ou a été déplacée.</p>
-              <button className="btn-primary" onClick={() => handleSetPage('dashboard')}>
-                Retour au tableau de bord
-              </button>
-            </div>
+            <NotFound onNavigate={handleSetPage} />
           </div>
         )}
 

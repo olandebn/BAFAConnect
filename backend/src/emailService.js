@@ -86,7 +86,7 @@ export async function sendNouvellePostulation({ emailDirecteur, animateurNom, se
         <p style="color:#9a3412;margin:0;">📬 Consultez sa candidature et son profil pour lui répondre rapidement !</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <a href="${appUrl || 'http://localhost:5173'}"
+        <a href="${appUrl || process.env.APP_URL || 'http://localhost:5173'}"
            style="display:inline-block;background:#f97316;color:white;padding:12px 28px;
                   border-radius:8px;text-decoration:none;font-weight:600;">
           Voir les candidatures
