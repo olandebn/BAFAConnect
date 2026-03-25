@@ -82,7 +82,7 @@ function Profile({ onPhotoChange }) {
       } else {
         setFormData({
           nom: '', prenom: '', bafa_status: '',
-          ville: '', competencesText: '', experiencesText: '',
+          competencesText: '', experiencesText: '',
           dispo_debut: '', dispo_fin: '',
           nom_structure: res.data.nom_structure || '',
           type_structure: res.data.type_structure || '',
