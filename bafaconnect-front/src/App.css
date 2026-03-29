@@ -7707,6 +7707,16 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 .landing-light {
   background: #f5f0e8 !important; /* crème */
   color: #1c1917 !important;
+  /* ── Réécriture des variables CSS pour mode landing clair ── */
+  --bg: #f5f0e8 !important;
+  --surface: #fffdf8 !important;
+  --text: #1c1917 !important;
+  --muted: #6b7280 !important;
+  --border: #d1fae5 !important;
+  --primary: #16a34a !important;
+  --primary-dark: #15803d !important;
+  --primary-light: #f0fdf4 !important;
+  --navy: #14532d !important;
 }
 
 /* Navbar */
