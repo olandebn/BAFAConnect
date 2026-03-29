@@ -111,14 +111,24 @@ a {
   letter-spacing: -0.5px;
 }
 .logo-bafa {
-  color: #1c1917;
+  color: #14532d;
 }
 .logo-connect {
   color: #16a34a;
 }
 html.dark .logo-bafa {
-  color: #f1f5f9;
+  color: #86efac;
 }
+/* ── Autofill Chrome : supprime le fond bleu ───────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #f0fdf4 inset !important;
+  -webkit-text-fill-color: #14532d !important;
+  border-color: #16a34a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 
 .nav-menu {
   display: flex;
@@ -7702,7 +7712,7 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 /* Navbar */
 .landing-light .navbar {
   background: rgba(255, 253, 248, 0.95) !important;
-  border-bottom-color: #e7e0d5 !important;
+  border-bottom-color: #bbf7d0 !important;
   backdrop-filter: blur(16px);
 }
 .landing-light .nav-item {
