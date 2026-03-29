@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BafaConnect — Aperçu des palettes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1e1e2e; color: white; }
+
+  h1 { text-align: center; padding: 40px 20px 10px; font-size: 28px; color: #fff; }
+  .subtitle { text-align: center; color: #94a3b8; margin-bottom: 40px; }
+
+  .palettes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 24px 60px; max-width: 1400px; margin: 0 auto; }
+
+  .palette-label { text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.5px; }
+
+  /* ═══════════════════════════════════════════════
+     PALETTE 1 — Orange & Navy
+  ═══════════════════════════════════════════════ */
+  .p1 { --bg: #fafaf9; --surface: #ffffff; --text: #292524; --muted: #78716c; --border: #e7e5e4; --primary: #f97316; --primary-dark: #ea580c; --primary-light: #fff7ed; --navy: #1c1917; }
+  .p1 .palette-label { color: #f97316; }
+
+  /* ═══════════════════════════════════════════════
+     PALETTE 2 — Bleu & Or
+  ═══════════════════════════════════════════════ */
+  .p2 { --bg: #f8fafc; --surface: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --primary: #1d4ed8; --primary-dark: #1e40af; --primary-light: #eff6ff; --navy: #0f172a; }
+  .p2 .palette-label { color: #f59e0b; }
+
+  /* ═══════════════════════════════════════════════
+     PALETTE 3 — Vert & Crème
+  ═══════════════════════════════════════════════ */
+  .p3 { --bg: #f5f0e8; --surface: #fffdf8; --text: #1c1917; --muted: #78716c; --border: #e0d9cc; --primary: #16a34a; --primary-dark: #15803d; --primary-light: #f0fdf4; --navy: #14532d; }
+  .p3 .palette-label { color: #16a34a; }
+
+  /* ═══════════════ COMPOSANTS COMMUNS ═══════════════ */
+  .preview {
+    background: var(--bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  /* NAVBAR */
+  .nav {
+    background: var(--surface);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .logo-bafa { color: var(--navy); font-weight: 800; font-size: 18px; }
+  .logo-connect { color: var(--primary); font-weight: 800; font-size: 18px; }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
+  .nav-link { color: var(--muted); font-size: 13px; font-weight: 500; }
+  .nav-btn {
+    background: var(--primary);
+    color: white;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 40px 24px 32px;
+    text-align: center;
+    background: var(--bg);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .hero h2 { color: var(--navy); font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+  .hero h2 span { color: var(--primary); }
+  .hero p { color: var(--muted); font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .hero-btns { display: flex; gap: 10px; justify-content: center; }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--navy);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+
+  /* CARDS SECTION */
+  .section { padding: 24px; background: var(--bg); }
+  .section-title { color: var(--navy); font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card-tag {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .card h4 { color: var(--navy); font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .card p { color: var(--muted); font-size: 11px; }
+  .card .salary { color: var(--primary); font-weight: 700; font-size: 13px; margin-top: 8px; }
+
+  /* STATS */
+  .stats {
+    background: var(--navy);
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    text-align: center;
+  }
+  .stat-num { color: var(--primary); font-size: 22px; font-weight: 800; }
+  .p2 .stat-num { color: #f59e0b; }
+  .stat-label { color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 2px; }
+
+  /* CTA */
+  .cta {
+    background: var(--primary);
+    padding: 24px;
+    text-align: center;
+  }
+  .p2 .cta { background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+  .cta h3 { color: white; font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+  .cta p { color: rgba(255,255,255,0.85); font-size: 12px; margin-bottom: 14px; }
+  .cta-btn {
+    background: white;
+    color: var(--primary);
+    padding: 9px 20px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-block;
+  }
+  .p2 .cta-btn { color: #1d4ed8; }
+
+  /* FOOTER */
+  .footer {
+    background: var(--navy);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-logo { color: white; font-weight: 700; font-size: 14px; }
+  .footer-logo span { color: var(--primary); }
+  .p2 .footer-logo span { color: #f59e0b; }
+  .footer-text { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+  /* COLOR SWATCHES */
+  .swatches { display: flex; gap: 8px; padding: 12px 24px; background: var(--surface); border-top: 1px solid var(--border); justify-content: center; }
+  .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+
+  @media (max-width: 900px) {
+    .palettes { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🎨 Aperçu des palettes BafaConnect</h1>
+<p class="subtitle">Trois propositions — choisis celle qui te plaît le plus</p>
+
+<div class="palettes">
+
+  <!-- PALETTE 1: Orange & Navy -->
+  <div>
+    <div class="palette-label">① Orange & Navy</div>
+    <div class="preview p1">
+      <div class="nav">
+        <div><span class="logo-bafa">Bafa</span><span class="logo-connect">Connect</span></div>
+        <div class="nav-links">
+          <span class="nav-link">Séjours</span>
+          <span class="nav-link">Animateurs</span>
+          <span class="nav-btn">S'inscrire</span>
+        </div>
+      </div>
+      <div class="hero">
+        <div class="hero-badge">🎯 Plateforme BAFA</div>
+        <h2>Le recrutement <span>BAFA</span>,<br>enfin simple et rapide</h2>
+        <p>Connectez directeurs et animateurs en quelques clics.</p>
+        <div class="hero-btns">
+          <div class="btn-primary">Trouver un séjour</div>
+          <div class="btn-secondary">Je recrute</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div><div class="stat-num">2 400+</div><div class="stat-label">Animateurs</div></div>
+        <div><div class="stat-num">380</div><div class="stat-label">Séjours</div></div>
+        <div><div class="stat-num">94%</div><div class="stat-label">Satisfaction</div></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Offres récentes</div>
+        <div class="cards">
+          <div class="card">
+            <div class="card-tag">Colonie</div>
+            <h4>Animateur Été 2025</h4>
+            <p>Lyon • 3 semaines</p>
+            <div class="salary">520 €</div>
+          </div>
+          <div class="card">
+            <div class="card-tag">Centre aéré</div>
+            <h4>Directeur adjoint</h4>
+            <p>Paris • CDI</p>
+            <div class="salary">1 800 €/mois</div>
+          </div>
+        </div>
+      </div>
+      <div class="cta">
+        <h3>Prêt à rejoindre BafaConnect ?</h3>
+        <p>Gratuit pour les animateurs. Rejoignez 2 400+ membres.</p>
+        <div class="cta-btn">Créer mon profil</div>
+      </div>
+      <div class="footer">
+        <div class="footer-logo">Bafa<span>Connect</span></div>
+        <div class="footer-text">© 2025 BafaConnect</div>
+      </div>
+      <div class="swatches" style="background: #fafaf9; border-top: 1px solid #e7e5e4;">
+        <div class="swatch" style="background: #f97316;"></div>
+        <div class="swatch" style="background: #1c1917;"></div>
+        <div class="swatch" style="background: #fafaf9; border: 2px solid #e7e5e4;"></div>
+        <div class="swatch" style="background: #78716c;"></div>
+        <div class="swatch" style="background: #fff7ed; border: 2px solid #f97316;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALETTE 2: Bleu & Or -->
+  <div>
+    <div class="palette-label" style="color: #f59e0b;">② Bleu & Or</div>
+    <div class="preview p2">
+      <div class="nav">
+        <div><span class="logo-bafa" style="color: #0f172a;">Bafa</span><span class="logo-connect" style="color: #f59e0b;">Connect</span></div>
+        <div class="nav-links">
+          <span class="nav-link">Séjours</span>
+          <span class="nav-link">Animateurs</span>
+          <span class="nav-btn" style="background:#1d4ed8;">S'inscrire</span>
+        </div>
+      </div>
+      <div class="hero">
+        <div class="hero-badge" style="background:#eff6ff; color:#1d4ed8;">🎯 Plateforme BAFA</div>
+        <h2 style="color:#0f172a;">Le recrutement <span style="color:#1d4ed8;">BAFA</span>,<br>enfin simple et rapide</h2>
+        <p>Connectez directeurs et animateurs en quelques clics.</p>
+        <div class="hero-btns">
+          <div class="btn-primary" style="background:#1d4ed8;">Trouver un séjour</div>
+          <div class="btn-secondary">Je recrute</div>
+        </div>
+      </div>
+      <div class="stats" style="background:#0f172a;">
+        <div><div class="stat-num" style="color:#f59e0b;">2 400+</div><div class="stat-label">Animateurs</div></div>
+        <div><div class="stat-num" style="color:#f59e0b;">380</div><div class="stat-label">Séjours</div></div>
+        <div><div class="stat-num" style="color:#f59e0b;">94%</div><div class="stat-label">Satisfaction</div></div>
+      </div>
+      <div class="section">
+        <div class="section-title" style="color:#0f172a;">Offres récentes</div>
+        <div class="cards">
+          <div class="card">
+            <div class="card-tag" style="background:#eff6ff; color:#1d4ed8;">Colonie</div>
+            <h4 style="color:#0f172a;">Animateur Été 2025</h4>
+            <p>Lyon • 3 semaines</p>
+            <div class="salary" style="color:#1d4ed8;">520 €</div>
+          </div>
+          <div class="card">
+            <div class="card-tag" style="background:#eff6ff; color:#1d4ed8;">Centre aéré</div>
+            <h4 style="color:#0f172a;">Directeur adjoint</h4>
+            <p>Paris • CDI</p>
+            <div class="salary" style="color:#1d4ed8;">1 800 €/mois</div>
+          </div>
+        </div>
+      </div>
+      <div class="cta" style="background: linear-gradient(135deg, #1d4ed8, #1e40af);">
+        <h3>Prêt à rejoindre BafaConnect ?</h3>
+        <p>Gratuit pour les animateurs. Rejoignez 2 400+ membres.</p>
+        <div class="cta-btn" style="color:#1d4ed8;">Créer mon profil</div>
+      </div>
+      <div class="footer" style="background:#0f172a;">
+        <div class="footer-logo">Bafa<span style="color:#f59e0b;">Connect</span></div>
+        <div class="footer-text">© 2025 BafaConnect</div>
+      </div>
+      <div class="swatches" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <div class="swatch" style="background: #1d4ed8;"></div>
+        <div class="swatch" style="background: #f59e0b;"></div>
+        <div class="swatch" style="background: #0f172a;"></div>
+        <div class="swatch" style="background: #f8fafc; border: 2px solid #e2e8f0;"></div>
+        <div class="swatch" style="background: #64748b;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALETTE 3: Vert & Crème -->
+  <div>
+    <div class="palette-label" style="color: #16a34a;">③ Vert & Crème</div>
+    <div class="preview p3">
+      <div class="nav">
+        <div><span class="logo-bafa" style="color: #14532d;">Bafa</span><span class="logo-connect" style="color: #16a34a;">Connect</span></div>
+        <div class="nav-links">
+          <span class="nav-link">Séjours</span>
+          <span class="nav-link">Animateurs</span>
+          <span class="nav-btn" style="background:#16a34a;">S'inscrire</span>
+        </div>
+      </div>
+      <div class="hero">
+        <div class="hero-badge" style="background:#f0fdf4; color:#16a34a;">🌿 Plateforme BAFA</div>
+        <h2 style="color:#14532d;">Le recrutement <span style="color:#16a34a;">BAFA</span>,<br>enfin simple et rapide</h2>
+        <p>Connectez directeurs et animateurs en quelques clics.</p>
+        <div class="hero-btns">
+          <div class="btn-primary" style="background:#16a34a;">Trouver un séjour</div>
+          <div class="btn-secondary">Je recrute</div>
+        </div>
+      </div>
+      <div class="stats" style="background:#14532d;">
+        <div><div class="stat-num" style="color:#4ade80;">2 400+</div><div class="stat-label">Animateurs</div></div>
+        <div><div class="stat-num" style="color:#4ade80;">380</div><div class="stat-label">Séjours</div></div>
+        <div><div class="stat-num" style="color:#4ade80;">94%</div><div class="stat-label">Satisfaction</div></div>
+      </div>
+      <div class="section">
+        <div class="section-title" style="color:#14532d;">Offres récentes</div>
+        <div class="cards">
+          <div class="card">
+            <div class="card-tag" style="background:#f0fdf4; color:#16a34a;">Colonie</div>
+            <h4 style="color:#14532d;">Animateur Été 2025</h4>
+            <p>Lyon • 3 semaines</p>
+            <div class="salary" style="color:#16a34a;">520 €</div>
+          </div>
+          <div class="card">
+            <div class="card-tag" style="background:#f0fdf4; color:#16a34a;">Centre aéré</div>
+            <h4 style="color:#14532d;">Directeur adjoint</h4>
+            <p>Paris • CDI</p>
+            <div class="salary" style="color:#16a34a;">1 800 €/mois</div>
+          </div>
+        </div>
+      </div>
+      <div class="cta" style="background: linear-gradient(135deg, #16a34a, #15803d);">
+        <h3>Prêt à rejoindre BafaConnect ?</h3>
+        <p>Gratuit pour les animateurs. Rejoignez 2 400+ membres.</p>
+        <div class="cta-btn" style="color:#15803d;">Créer mon profil</div>
+      </div>
+      <div class="footer" style="background:#14532d;">
+        <div class="footer-logo">Bafa<span style="color:#4ade80;">Connect</span></div>
+        <div class="footer-text">© 2025 BafaConnect</div>
+      </div>
+      <div class="swatches" style="background: #fffdf8; border-top: 1px solid #e0d9cc;">
+        <div class="swatch" style="background: #16a34a;"></div>
+        <div class="swatch" style="background: #14532d;"></div>
+        <div class="swatch" style="background: #f5f0e8; border: 2px solid #e0d9cc;"></div>
+        <div class="swatch" style="background: #4ade80;"></div>
+        <div class="swatch" style="background: #78716c;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
