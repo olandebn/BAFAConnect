@@ -7855,6 +7855,31 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
   border-color: #e7e0d5 !important;
   color: #1c1917 !important;
 }
+/* ── Contact page — textes visibles en landing-light ──────────────── */
+.landing-light .contact-title { color: #14532d !important; }
+.landing-light .contact-subtitle { color: #57534e !important; }
+.landing-light .contact-info-label { color: #6b7280 !important; }
+.landing-light .contact-info-value { color: #1c1917 !important; }
+.landing-light .contact-info-value a { color: #16a34a !important; }
+.landing-light .contact-faq-title { color: #16a34a !important; }
+.landing-light .contact-faq-q { color: #1c1917 !important; }
+.landing-light .contact-faq-r { color: #57534e !important; }
+.landing-light .contact-faq-item { border-bottom-color: #e0d9cc !important; }
+.landing-light .contact-form-title { color: #14532d !important; }
+.landing-light .contact-form-wrapper .form-label,
+.landing-light .contact-form-wrapper label { color: #1c1917 !important; font-weight: 600; }
+.landing-light .contact-form-wrapper input,
+.landing-light .contact-form-wrapper select,
+.landing-light .contact-form-wrapper textarea {
+  background: #fff !important;
+  color: #1c1917 !important;
+  border-color: #d1fae5 !important;
+}
+.landing-light .contact-form-wrapper input::placeholder,
+.landing-light .contact-form-wrapper textarea::placeholder { color: #9ca3af !important; }
+.landing-light .contact-success h3 { color: #14532d !important; }
+.landing-light .contact-success p { color: #57534e !important; }
+
 /* Titres et textes de la page légale */
 .landing-light .legal-title { color: #1c1917 !important; }
 .landing-light .legal-subtitle { color: #57534e !important; }
@@ -7948,3 +7973,14 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 /* About : features list */
 .landing-light .about-feature-titre { color: #1c1917 !important; }
 .landing-light .about-feature-desc { color: #57534e !important; }
+
+/* ── About page — textes manquants ──────────────────────────────────── */
+.landing-light .about-section { background: #faf8f5 !important; }
+.landing-light .about-section h2,
+.landing-light .about-section-title { color: #14532d !important; }
+.landing-light .about-section p,
+.landing-light .about-section li { color: #3d3530 !important; }
+.landing-light .about-feature-desc { color: #57534e !important; }
+.landing-light .about-stat-num { color: #16a34a !important; }
+.landing-light .about-cta h2 { color: #f5f0e8 !important; }
+.landing-light .about-cta p { color: #c4b8a8 !important; }
