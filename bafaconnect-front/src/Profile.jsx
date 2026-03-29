@@ -160,10 +160,7 @@ function Profile({ onPhotoChange }) {
   }
 
   const openDocument = (dataUrl) => {
-    const win = window.open()
-    if (win) {
-      win.document.write(`<iframe src="${dataUrl}" style="width:100%;height:100%;border:none;" />`)
-    }
+    window.open(dataUrl, '_blank')
   }
 
   const getCompletude = () => {

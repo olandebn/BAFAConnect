@@ -791,8 +791,7 @@ function App() {
                           className="btn-document"
                           style={{ fontSize: '0.8rem', padding: '7px 13px' }}
                           onClick={() => {
-                            const win = window.open()
-                            if (win) win.document.write(`<iframe src="${s.flyer_url}" style="width:100%;height:100%;border:none;" />`)
+                            window.open(s.flyer_url, '_blank')
                           }}
                         >
                           📋 Voir le flyer

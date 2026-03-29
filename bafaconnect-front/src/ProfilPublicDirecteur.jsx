@@ -81,8 +81,7 @@ function ProfilPublicDirecteur({ userId, onContacter, onPostuler, onRetour }) {
               <button
                 className="btn-document"
                 onClick={() => {
-                  const win = window.open()
-                  if (win) win.document.write(`<iframe src="${profil.flyer_url}" style="width:100%;height:100%;border:none;" />`)
+                  window.open(profil.flyer_url, '_blank')
                 }}
               >
                 📋 Voir le flyer

@@ -103,8 +103,7 @@ function Favoris({ onContacter }) {
                     className="badge-cv badge-cv-btn"
                     title="Voir le CV"
                     onClick={() => {
-                      const win = window.open()
-                      if (win) win.document.write(`<iframe src="${f.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                      window.open(f.cv_url, '_blank')
                     }}
                   >
                     📄 Voir le CV

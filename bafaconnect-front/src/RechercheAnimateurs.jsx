@@ -249,8 +249,7 @@ function RechercheAnimateurs({ onContacter, onVoirProfil }) {
                               className="badge-cv badge-cv-btn"
                               title="Voir le CV"
                               onClick={() => {
-                                const win = window.open()
-                                if (win) win.document.write(`<iframe src="${a.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                                window.open(a.cv_url, '_blank')
                               }}
                             >
                               📄 Voir le CV

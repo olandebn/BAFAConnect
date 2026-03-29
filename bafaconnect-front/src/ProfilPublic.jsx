@@ -244,8 +244,7 @@ function ProfilPublic({ userId, onContacter, onRetour }) {
               <button
                 className="btn-document"
                 onClick={() => {
-                  const win = window.open()
-                  if (win) win.document.write(`<iframe src="${profil.cv_url}" style="width:100%;height:100%;border:none;" />`)
+                  window.open(profil.cv_url, '_blank')
                 }}
               >
                 📄 Voir le CV de {profil.nom?.split(' ')[0] || 'cet animateur'}
