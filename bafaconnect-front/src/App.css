@@ -7843,7 +7843,7 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
   color: #16a34a !important;
 }
 .landing-light .footer-social-btn {
-  background: #3d2e1e !important;
+  background: rgba(255,255,255,0.18) !important;
 }
 .landing-light .footer-social-btn:hover {
   background: #16a34a !important;

@@ -458,7 +458,7 @@ function App() {
             <footer className="footer">
               <div className="footer-top">
                 <div className="footer-brand">
-                  <strong className="footer-logo">🧡 BafaConnect</strong>
+                  <strong className="footer-logo">💚 BafaConnect</strong>
                   <p className="footer-tagline">La plateforme qui relie directeurs et animateurs BAFA.<br />100 % gratuit · Données hébergées en Europe.</p>
                   <div className="footer-social">
                     <a href="mailto:support@bafaconnect.fr" title="Email" className="footer-social-btn">✉️</a>
@@ -488,7 +488,7 @@ function App() {
               </div>
               <div className="footer-bottom">
                 <span>© {new Date().getFullYear()} BafaConnect — Tous droits réservés</span>
-                <span>Fait avec 🧡 en France</span>
+                <span>Fait avec 💚 en France</span>
               </div>
             </footer>
             <CookieBanner onNavigate={(tab) => setLandingPage(tab)} />

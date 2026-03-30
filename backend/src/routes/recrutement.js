@@ -14,9 +14,11 @@ router.get('/candidats-recus', authenticateToken, async (req, res) => {
 
         const query = `
             SELECT c.id as candidature_id, c.statut, c.animateur_id, c.date_candidature,
-                   c.vue_le, p.nom as candidat_nom, s.titre as sejour_titre
+                   c.vue_le, COALESCE(NULLIF(TRIM(p.nom), ''), u.email, 'Anonyme') as candidat_nom,
+                   s.titre as sejour_titre
             FROM candidatures c
             JOIN animateurs_profiles p ON c.animateur_id = p.user_id
+            JOIN users u ON u.id = c.animateur_id
             JOIN sejours s ON c.sejour_id = s.id
             WHERE s.directeur_id = $1
             ORDER BY c.date_candidature DESC

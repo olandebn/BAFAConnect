@@ -37,7 +37,9 @@ router.post('/me', authenticateToken, async (req, res) => {
 if (role === 'animateur') {
             const { nom, prenom, bafa_status, approfondissement, ville, competences, experiences, disponibilites: dispoRaw, dispo_debut, dispo_fin, photo_url, cv_url } = req.body;
 
-            const nomComplet = `${prenom || ''} ${nom || ''}`.trim() || null;
+            const cleanPrenom = (prenom && prenom !== 'undefined') ? prenom.trim() : '';
+            const cleanNom = (nom && nom !== 'undefined') ? nom.trim() : '';
+            const nomComplet = `${cleanPrenom} ${cleanNom}`.trim() || null;
             const competencesArr = Array.isArray(competences) ? competences : (competences ? [competences] : []);
             const experiencesArr = Array.isArray(experiences) ? experiences : (experiences ? [experiences] : []);
             const diplomesArr = [bafa_status].concat(approfondissement ? [approfondissement] : []).filter(Boolean);
