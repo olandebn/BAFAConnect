@@ -239,7 +239,8 @@ function App() {
     setTimeout(() => setPostuleNotif(''), 4000)
   }
 
-  const [landingPage, setLandingPage] = useState(null) // null = landing principale, sinon 'about'|'contact'|'mentions'|'cgu'|'rgpd'|'cookies'
+  const [landingPage, setLandingPage] = useState(null)
+  const [loginInitialMode, setLoginInitialMode] = useState('login') // null = landing principale, sinon 'about'|'contact'|'mentions'|'cgu'|'rgpd'|'cookies'
 
   const handleSetPage = (newPage) => {
     if (newPage !== 'messages') setMessageDest(null)
@@ -309,7 +310,7 @@ function App() {
     if (landingPage === 'about') return (
       <div className="site-wrapper landing-light">
         <LandingNav />
-        <main className="main-content"><AboutPage onNavigate={(p) => { if (p === 'register') { setLandingPage(null); setTimeout(() => document.getElementById('connexion')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150) } else setLandingPage(p) }} /></main>
+        <main className="main-content"><AboutPage onNavigate={(p) => { if (p === 'register') { setLoginInitialMode('register'); setLandingPage(null); setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, 100) } else setLandingPage(p) }} /></main>
         <CookieBanner onNavigate={setLandingPage} />
       </div>
     )
@@ -370,7 +371,7 @@ function App() {
                 <span className="section-kicker">Connexion</span>
                 <h3>Votre espace BafaConnect</h3>
                 <p>Directeurs et animateurs accèdent ici à leur espace personnel.</p>
-                <Login onLoginSuccess={handleLoginSuccess} />
+                <Login onLoginSuccess={handleLoginSuccess} initialMode={loginInitialMode} />
               </div>
             </section>
 

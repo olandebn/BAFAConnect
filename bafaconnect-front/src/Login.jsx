@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import api from './api/axios'
 
-function Login({ onLoginSuccess }) {
-  const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot' | 'reset' | 'check-email' | 'verify-success'
+function Login({ onLoginSuccess, initialMode = 'login' }) {
+  const [mode, setMode] = useState(initialMode) // 'login' | 'register' | 'forgot' | 'reset' | 'check-email' | 'verify-success'
 
   // Connexion
   const [email, setEmail] = useState('')
