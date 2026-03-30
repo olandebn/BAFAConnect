@@ -309,7 +309,7 @@ function App() {
     if (landingPage === 'about') return (
       <div className="site-wrapper landing-light">
         <LandingNav />
-        <main className="main-content"><AboutPage onNavigate={(p) => { if (p === 'register') { setLandingPage(null); document.getElementById('connexion')?.scrollIntoView() } else setLandingPage(p) }} /></main>
+        <main className="main-content"><AboutPage onNavigate={(p) => { if (p === 'register') { setLandingPage(null); setTimeout(() => document.getElementById('connexion')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150) } else setLandingPage(p) }} /></main>
         <CookieBanner onNavigate={setLandingPage} />
       </div>
     )
