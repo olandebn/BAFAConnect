@@ -93,6 +93,9 @@ app.use(globalRateLimit);
 // Middlewares
 app.use(express.json({ limit: '1mb' })); // Réduit de 10mb à 1mb (JSON pur, pas de fichiers)
 
+// Health check (pour UptimeRobot / keep-alive)
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/sejours', sejourRoutes);
