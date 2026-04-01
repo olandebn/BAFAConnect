@@ -3780,27 +3780,27 @@ html.dark .dash-stat-card,
 html.dark .dashboard-card,
 html.dark .profil-public-card,
 html.dark .profil-public-avis,
-html.dark .notif-dropdown { background: #134e26; border-color: #166534; }
-html.dark .hero-section { background: linear-gradient(135deg, #0f172a 0%, #134e26 100%); }
-html.dark .footer { background: #0f172a; border-top-color: #166534; }
-html.dark .profile-chip { background: #166534; color: #e2e8f0; }
-html.dark .chip { background: #166534; color: #e2e8f0; }
+html.dark .notif-dropdown { background: #1e293b; border-color: #2e4057; }
+html.dark .hero-section { background: linear-gradient(135deg, #0f172a 0%, #1a2a1a 100%); }
+html.dark .footer { background: #0f172a; border-top-color: #1e293b; }
+html.dark .profile-chip { background: #1e3a2f; color: #a7f3d0; border: 1px solid #166534; }
+html.dark .chip { background: #1e3a2f; color: #a7f3d0; }
 html.dark .animateur-card-statut { background: rgba(16,185,129,0.15); color: #34d399; }
-html.dark .page-header { border-bottom-color: #166534; }
-html.dark .avis-item { border-bottom-color: #166534; }
-html.dark .calendrier-grid { border-color: #166534; }
+html.dark .page-header { border-bottom-color: #1e293b; }
+html.dark .avis-item { border-bottom-color: #1e293b; }
+html.dark .calendrier-grid { border-color: #2e4057; }
 html.dark .cal-day-name, html.dark .cal-day-num { color: #94a3b8; }
 html.dark .cal-bar-label { color: #cbd5e1; }
-html.dark .cal-detail { background: #134e26; border-color: #166534; }
-html.dark .dash-taux-bg { background: #166534; }
-html.dark .dashboard-table th { background: #166534; color: #e2e8f0; }
-html.dark .dashboard-table td { border-bottom-color: #134e26; }
-html.dark .dashboard-table tr:nth-child(even) td { background: #1a2540; }
-html.dark .profile-completude-bg { background: #166534; }
-html.dark code { background: #166534; color: #94a3b8; }
-html.dark .notif-dropdown-header { border-bottom-color: #166534; color: #94a3b8; }
-html.dark .notif-item:hover { background: #166534; }
-html.dark .filtres-bar { background: #134e26; border-color: #166534; }
+html.dark .cal-detail { background: #1e293b; border-color: #2e4057; }
+html.dark .dash-taux-bg { background: #2e4057; }
+html.dark .dashboard-table th { background: #1e293b; color: #e2e8f0; border-bottom: 1px solid #2e4057; }
+html.dark .dashboard-table td { border-bottom-color: #1e293b; }
+html.dark .dashboard-table tr:nth-child(even) td { background: #172033; }
+html.dark .profile-completude-bg { background: #2e4057; }
+html.dark code { background: #1e293b; color: #94a3b8; border: 1px solid #2e4057; }
+html.dark .notif-dropdown-header { border-bottom-color: #2e4057; color: #94a3b8; }
+html.dark .notif-item:hover { background: #1e3a2f; }
+html.dark .filtres-bar { background: #172033; border-color: #2e4057; }
 
 /* ── Toggle bouton dark mode ── */
 .theme-toggle-row {
