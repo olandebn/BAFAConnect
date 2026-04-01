@@ -3954,6 +3954,91 @@ html.dark .candidature-vue-badge { background: #052e16; color: #4ade80; }
 html.dark .candidature-non-vue-badge { background: #1c1500; color: #fde047; }
 
 /* ═══════════════════════════════════════════════════════════
+   📊 TIMELINE CANDIDATURE : Envoyée → Vue → Décision
+   ═══════════════════════════════════════════════════════════ */
+.candidature-timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 12px 0 8px 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.timeline-step-wrapper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 80px;
+  max-width: 100px;
+}
+
+.timeline-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border: 2px solid transparent;
+  background: var(--bg-alt, #f1f5f9);
+  transition: background 0.2s;
+}
+
+.timeline-step--green .timeline-icon  { background: #dcfce7; border-color: #22c55e; }
+.timeline-step--blue .timeline-icon   { background: #dbeafe; border-color: #3b82f6; }
+.timeline-step--red .timeline-icon    { background: #fee2e2; border-color: #ef4444; }
+.timeline-step--gray .timeline-icon   { background: var(--bg-alt, #f1f5f9); border-color: var(--border, #e2e8f0); opacity: 0.6; }
+
+.timeline-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+.timeline-step--green .timeline-label { color: #15803d; }
+.timeline-step--blue .timeline-label  { color: #1d4ed8; }
+.timeline-step--red .timeline-label   { color: #b91c1c; }
+.timeline-step--gray .timeline-label  { color: var(--muted); }
+
+.timeline-date {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.timeline-connector {
+  width: 32px;
+  height: 2px;
+  background: var(--border, #e2e8f0);
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+.timeline-connector--done {
+  background: #22c55e;
+}
+
+/* Dark mode timeline */
+html.dark .timeline-step--green .timeline-icon  { background: #052e16; border-color: #4ade80; }
+html.dark .timeline-step--blue .timeline-icon   { background: #1e3a5f; border-color: #60a5fa; }
+html.dark .timeline-step--red .timeline-icon    { background: #1a0000; border-color: #f87171; }
+html.dark .timeline-step--gray .timeline-icon   { background: #1e293b; border-color: #334155; }
+html.dark .timeline-step--green .timeline-label { color: #4ade80; }
+html.dark .timeline-step--blue .timeline-label  { color: #60a5fa; }
+html.dark .timeline-step--red .timeline-label   { color: #f87171; }
+html.dark .timeline-connector--done             { background: #4ade80; }
+
+/* ═══════════════════════════════════════════════════════════
    🔗 INVITATION DIRECTE
    ═══════════════════════════════════════════════════════════ */
 .btn-inviter {

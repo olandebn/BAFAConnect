@@ -2,18 +2,66 @@ import { useEffect, useState } from 'react';
 import api from './api/axios';
 import ContratModal from './ContratModal';
 
-const statutColor = (statut) => {
-  if (statut === 'acceptée' || statut === 'acceptee') return 'var(--color-success, #22c55e)';
-  if (statut === 'refusée' || statut === 'refusee') return 'var(--color-danger, #ef4444)';
-  return 'var(--color-warning, #f59e0b)';
-};
-
 const isEnAttenteLong = (c) => {
   if (c.statut !== 'en attente') return false;
   const date = new Date(c.date_candidature);
   const diffDays = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
   return diffDays >= 7;
 };
+
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : null;
+
+// ─── Timeline visuelle : Envoyée → Vue → Décision ───────────────────
+function CandidatureTimeline({ candidature: c }) {
+  const isAcceptee = c.statut === 'acceptée' || c.statut === 'acceptee';
+  const isRefusee  = c.statut === 'refusée'  || c.statut === 'refusee';
+  const hasDecision = isAcceptee || isRefusee;
+  const isVue = !!c.vue_le;
+
+  const steps = [
+    {
+      key: 'envoyee',
+      icon: '📩',
+      label: 'Envoyée',
+      date: fmtDate(c.date_candidature),
+      done: true,
+      color: 'green',
+    },
+    {
+      key: 'vue',
+      icon: isVue ? '👁️' : '⏳',
+      label: isVue ? 'Consultée' : 'En attente',
+      date: isVue ? fmtDate(c.vue_le) : null,
+      done: isVue,
+      color: isVue ? 'blue' : 'gray',
+    },
+    {
+      key: 'decision',
+      icon: isAcceptee ? '✅' : isRefusee ? '❌' : '⏳',
+      label: isAcceptee ? 'Acceptée' : isRefusee ? 'Refusée' : 'En attente',
+      date: null,
+      done: hasDecision,
+      color: isAcceptee ? 'green' : isRefusee ? 'red' : 'gray',
+    },
+  ];
+
+  return (
+    <div className="candidature-timeline">
+      {steps.map((step, i) => (
+        <div key={step.key} className="timeline-step-wrapper">
+          <div className={`timeline-step timeline-step--${step.color}`}>
+            <div className="timeline-icon">{step.icon}</div>
+            <div className="timeline-label">{step.label}</div>
+            {step.date && <div className="timeline-date">{step.date}</div>}
+          </div>
+          {i < steps.length - 1 && (
+            <div className={`timeline-connector ${steps[i + 1].done ? 'timeline-connector--done' : ''}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function MesCandidatures({ onContacter }) {
   const [candidatures, setCandidatures] = useState([]);
@@ -79,28 +127,23 @@ function MesCandidatures({ onContacter }) {
           {candidatures.map(c => {
             const peutRelancer = isEnAttenteLong(c);
             const msg = relanceMsg[c.id];
+            const isAcceptee = c.statut === 'acceptée' || c.statut === 'acceptee';
             return (
               <div key={c.id} className="candidature-item">
                 <div className="candidature-info">
                   <h4 className="candidature-titre">{c.sejour_titre || c.titre || '—'}</h4>
-                  {c.lieu && (
-                    <span className="candidature-lieu">📍 {c.lieu}</span>
-                  )}
-                  {c.date_candidature && (
-                    <span className="candidature-date-hint">
-                      Postulé le {new Date(c.date_candidature).toLocaleDateString('fr-FR')}
-                      {peutRelancer && <span style={{ color: 'var(--warning, #d97706)', marginLeft: 6 }}>· En attente depuis +7 jours</span>}
+                  {c.lieu && <span className="candidature-lieu">📍 {c.lieu}</span>}
+                  {peutRelancer && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--warning, #d97706)', marginTop: 2 }}>
+                      ⚠️ En attente depuis +7 jours
                     </span>
                   )}
-                  {c.vue_le
-                    ? <span className="candidature-vue-badge">👁️ Vu le {new Date(c.vue_le).toLocaleDateString('fr-FR')}</span>
-                    : c.statut === 'en attente' && <span className="candidature-non-vue-badge">⏳ Pas encore consulté</span>
-                  }
                 </div>
+
+                {/* ─── TIMELINE ─── */}
+                <CandidatureTimeline candidature={c} />
+
                 <div className="candidature-actions">
-                  <div className="candidature-statut-badge" style={{ color: statutColor(c.statut) }}>
-                    {(c.statut || '').toUpperCase()}
-                  </div>
                   {peutRelancer && (
                     <button
                       className="btn-relancer"
@@ -119,7 +162,7 @@ function MesCandidatures({ onContacter }) {
                       💬 Contacter
                     </button>
                   )}
-                  {(c.statut === 'acceptée' || c.statut === 'acceptee') && (
+                  {isAcceptee && (
                     <button
                       className="btn-contrat"
                       onClick={() => setContratId(c.id)}
@@ -128,6 +171,7 @@ function MesCandidatures({ onContacter }) {
                     </button>
                   )}
                 </div>
+
                 {msg && (
                   <div className={`relance-toast ${msg.type}`}>{msg.text}</div>
                 )}
