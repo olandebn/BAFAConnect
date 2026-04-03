@@ -202,6 +202,12 @@ function App() {
     setEmailVerified(true) // reset pour pas afficher le bandeau sur la page login
   }
 
+  // Déconnexion automatique si le token expire (401 intercepté dans axios.js)
+  useEffect(() => {
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  }, [])
+
   const handleLoginSuccess = (userRole) => {
     setRole(userRole)
     setIsLoggedIn(true)

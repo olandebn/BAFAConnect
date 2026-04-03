@@ -536,7 +536,7 @@ router.post('/users/:id/impersonate', authenticateToken, requireAdmin, async (re
         const token = jwt.sign(
             { id: userRes.rows[0].id, email: userRes.rows[0].email, role: userRes.rows[0].role },
             process.env.JWT_SECRET,
-            { expiresIn: '2h' }
+            { expiresIn: '24h' }
         );
 
         res.json({ token, user: userRes.rows[0] });
