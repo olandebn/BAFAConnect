@@ -156,11 +156,12 @@ router.get('/public-directeur/:userId', async (req, res) => {
     try {
         const [profilRes, sejoursRes] = await Promise.all([
             pool.query(`
-                SELECT sd.user_id, sd.nom_structure, sd.type_structure, sd.ville,
-                       sd.description, sd.photo_url, sd.flyer_url
-                FROM structures_directeurs sd
-                JOIN users u ON u.id = sd.user_id
-                WHERE sd.user_id = $1 AND u.role = 'directeur'
+                SELECT u.id AS user_id,
+                       COALESCE(sd.nom_structure, u.email) AS nom_structure,
+                       sd.type_structure, sd.ville, sd.description, sd.photo_url, sd.flyer_url
+                FROM users u
+                LEFT JOIN structures_directeurs sd ON sd.user_id = u.id
+                WHERE u.id = $1 AND u.role = 'directeur'
             `, [userId]),
             pool.query(`
                 SELECT id, titre, type, lieu, date_debut, date_fin, nombre_postes, description
@@ -189,11 +190,13 @@ router.get('/public/:userId', async (req, res) => {
 
     try {
         const profileRes = await pool.query(`
-            SELECT ap.user_id, ap.nom, ap.ville, ap.diplomes, ap.competences,
+            SELECT u.id AS user_id,
+                   COALESCE(ap.nom, u.email) AS nom,
+                   ap.ville, ap.diplomes, ap.competences,
                    ap.experiences, ap.disponibilites, ap.photo_url, ap.cv_url
-            FROM animateurs_profiles ap
-            JOIN users u ON u.id = ap.user_id
-            WHERE ap.user_id = $1 AND u.role = 'animateur'
+            FROM users u
+            LEFT JOIN animateurs_profiles ap ON ap.user_id = u.id
+            WHERE u.id = $1 AND u.role = 'animateur'
         `, [userId]);
 
         if (profileRes.rows.length === 0) {
