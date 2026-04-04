@@ -731,10 +731,10 @@ function App() {
                   { label: '🏕️ Colonies', action: () => setFiltres(f => ({ ...f, type: 'Colonie' })) },
                   { label: '🏖️ Séjours vacances', action: () => setFiltres(f => ({ ...f, type: 'Séjour de vacances' })) },
                 ].map(chip => (
-                  <button key={chip.label} type="button" className="competence-chip" onClick={chip.action}>{chip.label}</button>
+                  <button key={chip.label} type="button" className="filtre-rapide-chip" onClick={chip.action}>{chip.label}</button>
                 ))}
                 {nbFiltresActifs > 0 && (
-                  <button type="button" className="competence-chip" style={{ borderColor: '#ef4444', color: '#ef4444' }}
+                  <button type="button" className="filtre-rapide-chip filtre-rapide-chip--reset"
                     onClick={() => { setFiltres({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' }); setFiltreCompatible(false); setFiltrePlacesDispo(false) }}>
                     ✕ Tout effacer
                   </button>
