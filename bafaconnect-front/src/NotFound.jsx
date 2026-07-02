@@ -1,18 +1,22 @@
+import CampDoodles from './CampDoodles'
+
 export default function NotFound({ onNavigate }) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      minHeight: '60vh', textAlign: 'center', padding: '40px 20px',
-    }}>
-      <div style={{ fontSize: '5rem', marginBottom: 16 }}>🏕️</div>
-      <h1 style={{ fontSize: '4rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>404</h1>
-      <h2 style={{ fontSize: '1.4rem', color: 'var(--text)', margin: '12px 0 8px' }}>Page introuvable</h2>
-      <p style={{ color: 'var(--muted)', maxWidth: 400, lineHeight: 1.6, marginBottom: 28 }}>
-        On dirait que cette page est partie en séjour... Elle n'existe pas ou a été déplacée.
+    <div className="notfound-page">
+      <CampDoodles />
+      <span className="notfound-hand">oups… ✦</span>
+      <div className="notfound-num">
+        <svg className="cd-doodle cd-float notfound-sun" aria-hidden="true" width="96" height="96" viewBox="0 0 80 80"><use href="#cd-sun" /></svg>
+        <h1 className="notfound-404">404</h1>
+        <svg className="cd-doodle cd-twinkle notfound-star" aria-hidden="true" width="34" height="34" viewBox="0 0 32 32"><use href="#cd-star" /></svg>
+      </div>
+      <h2 className="notfound-title">Cette page est partie en colo</h2>
+      <p className="notfound-text">
+        Elle n'existe pas ou a plié bagage. On te ramène au campement ?
       </p>
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="notfound-actions">
         <button className="btn-primary" onClick={() => onNavigate && onNavigate('dashboard')}>
-          🏠 Retour à l'accueil
+          Retour à l'accueil
         </button>
         <button className="btn-secondary" onClick={() => window.history.back()}>
           ← Page précédente

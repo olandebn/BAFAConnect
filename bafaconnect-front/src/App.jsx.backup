@@ -25,9 +25,6 @@ import AboutPage from './AboutPage'
 import ContactPage from './ContactPage'
 import NotFound from './NotFound'
 import CookieBanner from './CookieBanner'
-import CampDoodles from './CampDoodles'
-import StatCounter from './StatCounter'
-import { burstConfetti } from './confetti'
 import './App.css'
 
 function App() {
@@ -250,8 +247,6 @@ function App() {
 
   const [landingPage, setLandingPage] = useState(null)
   const [loginInitialMode, setLoginInitialMode] = useState('login') // null = landing principale, sinon 'about'|'contact'|'mentions'|'cgu'|'rgpd'|'cookies'
-  const [sunWave, setSunWave] = useState(false) // easter egg mascotte soleil
-  const [landingNight, setLandingNight] = useState(false) // mode nuit "feu de camp" de la landing
 
   const handleSetPage = (newPage) => {
     if (newPage !== 'messages') setMessageDest(null)
@@ -341,84 +336,44 @@ function App() {
     )
 
     return (
-      <div className={"site-wrapper landing-light" + (landingNight ? ' landing-night' : '')}>
+      <div className="site-wrapper landing-light">
         <nav className="navbar">
           <div className="nav-container">
             <div className="logo">
-              <span className="logo-badge"><svg width="26" height="26" viewBox="0 0 80 80" aria-hidden="true"><use href="#cd-sun" /></svg></span>
-              <span className="logo-text"><span className="logo-bafa">Bafa</span><span className="logo-connect">Connect</span></span>
-              <svg className="logo-twinkle cd-twinkle" aria-hidden="true" width="16" height="16" viewBox="0 0 32 32"><use href="#cd-star" /></svg>
+              <img src="/logo-bafaconnect.png" alt="BafaConnect" className="nav-logo-img" onError={(e) => { e.target.style.display='none' }} />
+              <span>BafaConnect</span>
             </div>
             <div className="nav-menu">
               <a href="#hero" className="nav-item">Accueil</a>
               <a href="#offres" className="nav-item">Trouver une mission</a>
               <a href="#comment" className="nav-item">Comment ça marche</a>
               <button onClick={() => setLandingPage('about')} className="nav-item footer-link-btn">À propos</button>
-              <button
-                className="nav-daynight"
-                aria-label={landingNight ? 'Passer en mode jour' : 'Passer en mode nuit'}
-                title={landingNight ? 'Mode jour' : 'Mode nuit'}
-                onClick={() => setLandingNight(v => !v)}
-              >
-                <svg width="22" height="22" viewBox="0 0 80 80" aria-hidden="true"><use href={landingNight ? '#cd-sun' : '#cd-moon'} /></svg>
-              </button>
-              <a href="#connexion" className="nav-item nav-cta-light" onClick={() => setLoginInitialMode('login')}>Connexion</a>
-              <button
-                className="nav-item nav-cta-primary"
-                onClick={(e) => { burstConfetti(e.clientX, e.clientY); setLoginInitialMode('register'); document.getElementById('connexion')?.scrollIntoView({ behavior: 'smooth' }) }}
-              >Inscription</button>
+              <a href="#connexion" className="nav-item nav-cta-light">Connexion</a>
             </div>
-          </div>
-          <div className="nav-bunting" aria-hidden="true">
-            {Array.from({ length: 28 }, (_, i) => <span key={i} className="nav-flag" />)}
           </div>
         </nav>
 
         <main className="main-content">
           <div className="landing-page">
-            <CampDoodles />
             <section id="hero" className="hero-section">
               <div className="hero-content">
-                <span className="hero-badge">la plateforme des colos ✦</span>
+                <span className="hero-badge">Plateforme de recrutement BAFA</span>
                 <h1 className="hero-title hero-title-compact">
                   Le recrutement <span className="text-orange">BAFA</span>,<br />
-                  fait pour de <em className="hero-em">vraies</em> rencontres.
+                  enfin simple et rapide
                 </h1>
                 <p className="hero-subtitle">
-                  On relie directeurs et animateurs sans usine à gaz.{' '}
-                  <span className="mark">100 % gratuit</span>, données hébergées en Europe.
+                  Directeurs, publiez vos annonces. Animateurs, trouvez des missions adaptées
+                  et candidatez en quelques clics.
                 </p>
                 <div className="hero-actions">
-                  <a href="#connexion" className="btn-primary">Trouver une mission</a>
-                  <a href="#offres" className="btn-secondary">Je recrute</a>
-                  <span className="hero-hand">↖ promis, 2 min</span>
+                  <a href="#connexion" className="btn-primary">Publier une annonce</a>
+                  <a href="#offres" className="btn-secondary">Trouver une mission</a>
                 </div>
                 <p className="hero-note">Pensé pour les centres de loisirs, colonies et séjours jeunesse.</p>
               </div>
 
-              <div className="hero-scene">
-                {/* mascotte soleil — cliquable (easter egg) */}
-                <span className="cd-doodle cd-float cd-mascot" style={{ top: '4px', right: '36px' }}>
-                  <svg className={'cd-sun-svg' + (sunWave ? ' cd-pop' : '')} onClick={(e) => { burstConfetti(e.clientX, e.clientY); setSunWave(true); window.clearTimeout(window.__sunT); window.__sunT = window.setTimeout(() => setSunWave(false), 2400) }} width="124" height="124" viewBox="0 0 80 80" role="button" aria-label="Coucou !"><use href="#cd-sun" /></svg>
-                  {sunWave && <span className="sun-hello">coucou&nbsp;! ✦</span>}
-                </span>
-                <svg className="cd-doodle cd-float2 cd-wig" aria-hidden="true" style={{ bottom: '34px', left: '6px', '--r': '-4deg' }} width="158" height="158" viewBox="0 0 80 80"><use href="#cd-tent" /></svg>
-                <svg className="cd-doodle cd-wig" aria-hidden="true" style={{ bottom: '40px', right: '78px' }} width="62" height="62" viewBox="0 0 44 62"><use href="#cd-tree" /></svg>
-                <svg className="cd-doodle cd-wig" aria-hidden="true" style={{ bottom: '32px', right: '28px' }} width="86" height="86" viewBox="0 0 44 62"><use href="#cd-tree" /></svg>
-                <svg className="cd-doodle cd-float3 cd-wig" aria-hidden="true" style={{ top: '120px', right: '0', '--r': '8deg' }} width="74" height="74" viewBox="0 0 64 76"><use href="#cd-backpack" /></svg>
-                {/* nuage */}
-                <svg className="cd-doodle cd-drift" aria-hidden="true" style={{ top: '60px', left: '0' }} width="78" height="48" viewBox="0 0 72 48"><use href="#cd-cloud" /></svg>
-                {/* oiseaux */}
-                <svg className="cd-doodle cd-float2" aria-hidden="true" style={{ top: '110px', left: '70px' }} width="38" height="20" viewBox="0 0 38 16"><use href="#cd-bird" /></svg>
-                {/* étoiles */}
-                <svg className="cd-doodle cd-twinkle" aria-hidden="true" style={{ top: '26px', left: '38px' }} width="30" height="30" viewBox="0 0 32 32"><use href="#cd-star" /></svg>
-                <svg className="cd-doodle cd-twinkle" aria-hidden="true" style={{ top: '200px', left: '10px', animationDelay: '.8s' }} width="22" height="22" viewBox="0 0 32 32"><use href="#cd-star" /></svg>
-                <span className="note-pin">déjà 2 400+ anims !</span>
-              </div>
-            </section>
-
-            <section id="connexion" className="login-section">
-              <div className="login-card">
+              <div id="connexion" className="login-card">
                 <span className="section-kicker">Connexion</span>
                 <h3>Votre espace BafaConnect</h3>
                 <p>Directeurs et animateurs accèdent ici à leur espace personnel.</p>
@@ -428,68 +383,49 @@ function App() {
 
             <section className="audience-section">
               <div className="audience-card">
-                <div className="audience-icon"><svg width="52" height="52" viewBox="0 0 80 80"><use href="#cd-tent" /></svg></div>
+                <div className="audience-icon">🏕️</div>
                 <h3>Vous êtes directeur ?</h3>
                 <p>Publiez vos besoins en recrutement, recevez des candidatures et trouvez rapidement les bons profils.</p>
                 <a href="#connexion" className="btn-primary">Déposer une annonce</a>
               </div>
               <div className="audience-card">
-                <div className="audience-icon"><svg width="52" height="52" viewBox="0 0 64 76"><use href="#cd-backpack" /></svg></div>
+                <div className="audience-icon">🎒</div>
                 <h3>Vous êtes animateur ?</h3>
                 <p>Consultez les offres, mettez en avant votre profil et candidatez aux missions qui vous correspondent.</p>
                 <a href="#offres" className="btn-secondary">Voir les offres</a>
               </div>
             </section>
 
-            <section className="stats-band" aria-label="Chiffres clés">
-              <div className="stat-item"><span className="stat-num"><StatCounter to={2400} suffix="+" /></span><span className="stat-label">animateurs inscrits</span></div>
-              <div className="stat-item"><span className="stat-num"><StatCounter to={680} suffix="+" /></span><span className="stat-label">séjours publiés</span></div>
-              <div className="stat-item"><span className="stat-num"><StatCounter to={320} suffix="+" /></span><span className="stat-label">structures partenaires</span></div>
-              <div className="stat-item"><span className="stat-num">100&nbsp;%</span><span className="stat-label">gratuit, sans pub</span></div>
-            </section>
-
             <section className="features-section">
               <div className="section-header">
-                <span className="section-kicker"><span className="sec-num">n° 1</span>Pourquoi BafaConnect ?</span>
+                <span className="section-kicker">Pourquoi BafaConnect ?</span>
                 <h2>Une plateforme pensée pour le recrutement dans l'animation</h2>
               </div>
               <div className="features-grid">
-                <div className="feature-card"><span className="feature-icon"><svg width="56" height="56" viewBox="0 0 80 80"><use href="#cd-tent" /></svg></span><div className="feature-text"><h3>Publiez en quelques minutes</h3><p>Créez une annonce claire, complète et visible rapidement.</p></div></div>
-                <div className="feature-card"><span className="feature-icon"><svg width="56" height="56" viewBox="0 0 64 76"><use href="#cd-backpack" /></svg></span><div className="feature-text"><h3>Centralisez les candidatures</h3><p>Recevez les profils au même endroit et gagnez du temps.</p></div></div>
-                <div className="feature-card"><span className="feature-icon"><svg width="56" height="56" viewBox="0 0 68 68"><use href="#cd-compass" /></svg></span><div className="feature-text"><h3>Candidatez simplement</h3><p>Les animateurs trouvent les offres adaptées et postulent vite.</p></div></div>
-                <div className="feature-card"><span className="feature-icon"><svg width="56" height="56" viewBox="0 0 44 62"><use href="#cd-tree" /></svg></span><div className="feature-text"><h3>Pensé pour l'animation</h3><p>Une plateforme conçue pour les centres, colos et séjours jeunesse.</p></div></div>
+                <div className="feature-card"><div className="feature-icon">⚡</div><h3>Publiez en quelques minutes</h3><p>Créez une annonce claire, complète et visible rapidement.</p></div>
+                <div className="feature-card"><div className="feature-icon">📂</div><h3>Centralisez les candidatures</h3><p>Recevez les profils au même endroit et gagnez du temps.</p></div>
+                <div className="feature-card"><div className="feature-icon">✅</div><h3>Candidatez simplement</h3><p>Les animateurs trouvent les offres adaptées et postulent vite.</p></div>
+                <div className="feature-card"><div className="feature-icon">🌍</div><h3>Pensé pour l'animation</h3><p>Une plateforme conçue pour les centres, colos et séjours jeunesse.</p></div>
               </div>
             </section>
 
             <section id="comment" className="steps-section">
               <div className="section-header">
-                <span className="section-kicker"><span className="sec-num">n° 2</span>Le parcours, étape par étape</span>
-                <h2>Un chemin simple, que vous recrutiez ou cherchiez une mission</h2>
-                <p className="sec-sub">Comme une rando bien préparée : trois arrêts et c'est plié, que vous recrutiez ou que vous cherchiez une mission.</p>
+                <span className="section-kicker">Comment ça marche ?</span>
+                <h2>Un parcours simple pour les directeurs et les animateurs</h2>
               </div>
-              <div className="trail">
-                <svg className="trail-svg" viewBox="0 0 1100 340" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M70 60 C 280 200, 360 40, 560 150 S 880 280, 1030 110" fill="none" stroke="#16a34a" strokeWidth="3.5" strokeLinecap="round" strokeDasharray="2 14" />
-                </svg>
-                <div className="trail-stops">
-                  <div className="trail-stop reveal">
-                    <span className="trail-pin">1</span>
-                    <div className="trail-ic"><svg width="50" height="50" viewBox="0 0 80 80"><use href="#cd-tent" /></svg></div>
-                    <h3>Créez votre espace</h3>
-                    <p>Inscription en 2 minutes : votre tableau de bord est prêt à accueillir annonces ou candidatures.</p>
-                  </div>
-                  <div className="trail-stop reveal">
-                    <span className="trail-pin">2</span>
-                    <div className="trail-ic"><svg width="50" height="50" viewBox="0 0 64 76"><use href="#cd-backpack" /></svg></div>
-                    <h3>Publiez ou candidatez</h3>
-                    <p>Les directeurs déposent leurs missions, les animateurs postulent en quelques clics, sans paperasse.</p>
-                  </div>
-                  <div className="trail-stop reveal">
-                    <span className="trail-pin">3</span>
-                    <div className="trail-ic"><svg width="50" height="50" viewBox="0 0 80 80"><use href="#cd-sun" /></svg></div>
-                    <h3>Faites équipe</h3>
-                    <p>Messagerie, entretiens, contrats : tout se passe au même endroit jusqu'au grand départ.</p>
-                  </div>
+              <div className="steps-grid">
+                <div className="step-column">
+                  <h3>Pour les directeurs</h3>
+                  <div className="step-item"><div className="step-number">1</div><div><h4>Créez votre espace</h4><p>Inscrivez-vous et accédez à votre tableau de bord.</p></div></div>
+                  <div className="step-item"><div className="step-number">2</div><div><h4>Publiez votre annonce</h4><p>Ajoutez le lieu, les dates et le profil recherché.</p></div></div>
+                  <div className="step-item"><div className="step-number">3</div><div><h4>Recevez des candidatures</h4><p>Consultez les profils et recrutez plus rapidement.</p></div></div>
+                </div>
+                <div className="step-column">
+                  <h3>Pour les animateurs</h3>
+                  <div className="step-item"><div className="step-number">1</div><div><h4>Créez votre profil</h4><p>Ajoutez vos expériences, disponibilités et qualifications.</p></div></div>
+                  <div className="step-item"><div className="step-number">2</div><div><h4>Consultez les offres</h4><p>Parcourez les missions selon le lieu et la période.</p></div></div>
+                  <div className="step-item"><div className="step-number">3</div><div><h4>Candidatez rapidement</h4><p>Postulez facilement aux offres qui vous intéressent.</p></div></div>
                 </div>
               </div>
             </section>
@@ -497,7 +433,7 @@ function App() {
             {sejours.length > 0 && (
             <section id="offres" className="offers-section">
               <div className="section-header">
-                <span className="section-kicker"><span className="sec-num">n° 3</span>Offres récentes</span>
+                <span className="section-kicker">Offres récentes</span>
                 <h2>Des opportunités concrètes</h2>
               </div>
               <div className="offers-grid">
@@ -514,46 +450,14 @@ function App() {
             </section>
             )}
 
-            <section className="avis-band">
-              <div className="section-header">
-                <span className="section-kicker"><span className="sec-num">★</span>Ils en parlent</span>
-                <h2>Ce que disent les équipes qui l'utilisent</h2>
-              </div>
-              <div className="avis-grid">
-                <figure className="avis-card">
-                  <span className="avis-tape"></span>
-                  <div className="avis-stars" aria-label="5 sur 5">{[0,1,2,3,4].map(i => <svg key={i} width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><use href="#cd-star" /></svg>)}</div>
-                  <blockquote>« J'ai bouclé le recrutement de ma colo en une semaine. Les profils étaient clairs, j'ai pu choisir vite. »</blockquote>
-                  <figcaption><span className="avis-ava">CM</span><span className="avis-who">Claire M.<small>Directrice · Annecy</small></span></figcaption>
-                </figure>
-                <figure className="avis-card">
-                  <span className="avis-tape"></span>
-                  <div className="avis-stars" aria-label="5 sur 5">{[0,1,2,3,4].map(i => <svg key={i} width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><use href="#cd-star" /></svg>)}</div>
-                  <blockquote>« Première mission trouvée en deux jours. L'appli est simple et l'équipe super accueillante. »</blockquote>
-                  <figcaption><span className="avis-ava">YB</span><span className="avis-who">Yanis B.<small>Animateur · Toulouse</small></span></figcaption>
-                </figure>
-                <figure className="avis-card">
-                  <span className="avis-tape"></span>
-                  <div className="avis-stars" aria-label="5 sur 5">{[0,1,2,3,4].map(i => <svg key={i} width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><use href="#cd-star" /></svg>)}</div>
-                  <blockquote>« Enfin un outil pensé pour l'animation. On centralise tout, fini les tableurs et les mails perdus. »</blockquote>
-                  <figcaption><span className="avis-ava">SN</span><span className="avis-who">Sarah N.<small>Directrice · Lyon</small></span></figcaption>
-                </figure>
-              </div>
-            </section>
-
             <section className="final-cta">
               <div className="final-cta-card">
-                <svg className="cta-deco" aria-hidden="true" style={{ top: '-12px', left: '24px' }} width="118" height="118" viewBox="0 0 80 80"><use href="#cd-tent" /></svg>
-                <svg className="cta-deco" aria-hidden="true" style={{ bottom: '-22px', right: '34px' }} width="120" height="120" viewBox="0 0 44 62"><use href="#cd-tree" /></svg>
-                <h2>Prêt à monter l'équipe de l'été ? ✦</h2>
+                <span className="section-kicker">Rejoindre BafaConnect</span>
+                <h2>Prêt à passer à l'action ?</h2>
                 <div className="hero-actions center-actions">
                   <a href="#connexion" className="btn-primary">Publier une annonce</a>
                   <a href="#offres" className="btn-secondary">Créer mon profil</a>
                 </div>
-                <span className="cta-hand">
-                  <svg className="cta-arrow" aria-hidden="true" width="54" height="36" viewBox="0 0 58 38"><use href="#cd-arrow" /></svg>
-                  rejoins-nous, c'est gratuit&nbsp;!
-                </span>
               </div>
             </section>
 

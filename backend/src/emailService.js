@@ -37,10 +37,8 @@ export async function sendMail({ to, subject, html }) {
 
 // ── Email de vérification après inscription ───────────────────────────────
 export async function sendVerificationEmail({ email, verifyUrl }) {
-  // En dev sans clé, affiche le lien dans le terminal
-  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'VOTRE_CLE_RESEND') {
-    console.log(`\n📧 [DEV] Lien de vérification pour ${email} :\n${verifyUrl}\n`);
-  }
+  // Toujours afficher le lien dans le terminal (pratique en local + si l'email n'arrive pas)
+  console.log(`\n🔗 [Vérification] Lien pour ${email} :\n${verifyUrl}\n`);
 
   const subject = 'BafaConnect — Vérifiez votre adresse email';
   const html = `
@@ -138,10 +136,8 @@ export async function sendCandidatureNotification({ email, animateurNom, sejourT
 
 // ── Email de réinitialisation de mot de passe ─────────────────────────────
 export async function sendPasswordResetEmail({ email, resetUrl }) {
-  // En dev sans clé, affiche le lien dans le terminal
-  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'VOTRE_CLE_RESEND') {
-    console.log(`\n🔑 [DEV] Lien de réinitialisation pour ${email} :\n${resetUrl}\n`);
-  }
+  // Toujours afficher le lien dans le terminal (pratique en local + si l'email n'arrive pas)
+  console.log(`\n🔑 [Réinitialisation] Lien pour ${email} :\n${resetUrl}\n`);
 
   const subject = 'BafaConnect — Réinitialisation de votre mot de passe';
   const html = `
