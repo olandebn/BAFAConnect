@@ -4,8 +4,8 @@
   "description": "La plateforme de recrutement BAFA",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f1f5f9",
-  "theme_color": "#6366f1",
+  "background_color": "#f5f0e8",
+  "theme_color": "#14532d",
   "lang": "fr",
   "icons": [
     {

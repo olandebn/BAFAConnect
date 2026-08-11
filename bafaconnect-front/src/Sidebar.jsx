@@ -70,7 +70,7 @@ function Sidebar({ role, page, setPage, unreadCount, onLogout, userEmail, userPh
         <div className="sidebar-logo-row">
           <div className="sidebar-logo">
             <div className="sidebar-logo-img-wrapper">
-              <img src="/logo-bafaconnect.png" alt="BafaConnect" className="sidebar-logo-img" />
+              <svg width="30" height="30" viewBox="0 0 80 80" aria-hidden="true"><use href="#cd-sun" /></svg>
             </div>
             <span className="sidebar-logo-text">BafaConnect</span>
           </div>

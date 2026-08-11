@@ -1,6 +1,6 @@
 // Petite explosion d'étoiles/✦ aux couleurs de la marque (esprit carnet).
 const GLYPHS = ['✦', '★', '✸', '✶']
-const COLORS = ['#16a34a', '#15803d', '#fde68a', '#e8826b', '#bbf7d0']
+const COLORS = ['#4f7d3f', '#3f6a30', '#fde68a', '#e8826b', '#bbf7d0']
 
 export function burstConfetti(x, y) {
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches

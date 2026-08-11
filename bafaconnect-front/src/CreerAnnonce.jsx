@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from './api/axios';
+import { burstConfetti } from './confetti';
 
 const EMPTY_FORM = { titre: '', type: '', lieu: '', date_debut: '', date_fin: '', description: '', nombre_postes: '' };
 
@@ -57,6 +58,7 @@ function CreerAnnonce({ onAnnonceCreated }) {
       setFieldErrors({});
       setTouched({});
       setShowForm(false);
+      burstConfetti(window.innerWidth / 2, window.innerHeight / 3);
       if (onAnnonceCreated) onAnnonceCreated();
     } catch (err) {
       setError(err.response?.data?.error || "Erreur lors de la publication de l'annonce.");

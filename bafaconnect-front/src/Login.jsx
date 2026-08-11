@@ -86,7 +86,7 @@ function Login({ onLoginSuccess, initialMode = 'login' }) {
     setError('')
     setSuccess('')
     if (regPassword !== regPassword2) { setError('Les mots de passe ne correspondent pas.'); return }
-    if (regPassword.length < 6) { setError('Le mot de passe doit faire au moins 6 caractères.'); return }
+    if (regPassword.length < 8) { setError('Le mot de passe doit faire au moins 8 caractères.'); return }
     setIsLoading(true)
     try {
       await api.post('/auth/register', { email: regEmail, password: regPassword, role: regRole })
@@ -131,7 +131,7 @@ function Login({ onLoginSuccess, initialMode = 'login' }) {
     setError('')
     setSuccess('')
     if (newPassword !== newPassword2) { setError('Les mots de passe ne correspondent pas.'); return }
-    if (newPassword.length < 6) { setError('Le mot de passe doit faire au moins 6 caractères.'); return }
+    if (newPassword.length < 8) { setError('Le mot de passe doit faire au moins 8 caractères.'); return }
     setIsLoading(true)
     try {
       const res = await api.post('/auth/reset-password', { token: resetToken, newPassword })

@@ -60,6 +60,7 @@ function App() {
   const [publicProfileRole, setPublicProfileRole] = useState('animateur')
   const [messageDest, setMessageDest] = useState(null)
   const [postuleNotif, setPostuleNotif] = useState('')
+  const [sejoursLoading, setSejoursLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifItems, setNotifItems] = useState([])
   const [filtres, setFiltres] = useState({ lieu: '', type: '', date_debut: '', date_fin: '', postes_min: '' })
@@ -76,9 +77,11 @@ function App() {
   }
 
   const fetchSejours = useCallback(() => {
+    setSejoursLoading(true)
     api.get('/sejours')
       .then(res => setSejours(res.data))
       .catch(err => console.error('Erreur récup séjours :', err))
+      .finally(() => setSejoursLoading(false))
   }, [])
 
   const fetchUserPhoto = useCallback(() => {
@@ -242,10 +245,22 @@ function App() {
     try {
       await api.post('/candidatures', { sejour_id: sejourId })
       setPostuleNotif('✅ Candidature envoyée avec succès !')
+      burstConfetti(window.innerWidth / 2, window.innerHeight / 3)
     } catch (err) {
       setPostuleNotif(err.response?.data?.error || 'Erreur lors de la candidature.')
     }
     setTimeout(() => setPostuleNotif(''), 4000)
+  }
+
+  // Couleur d'accent selon le type de séjour (barre à gauche des cartes)
+  const typeColor = (t = '') => {
+    const s = (t || '').toLowerCase()
+    if (s.includes('colon')) return '#4f7d3f'
+    if (s.includes('vacance')) return '#f59e0b'
+    if (s.includes('loisir')) return '#0ea5a4'
+    if (s.includes('sport')) return '#e8826b'
+    if (s.includes('ado') || s.includes('camp')) return '#8b5cf6'
+    return '#94a3b8'
   }
 
   const [landingPage, setLandingPage] = useState(null)
@@ -469,7 +484,7 @@ function App() {
               </div>
               <div className="trail">
                 <svg className="trail-svg" viewBox="0 0 1100 340" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M70 60 C 280 200, 360 40, 560 150 S 880 280, 1030 110" fill="none" stroke="#16a34a" strokeWidth="3.5" strokeLinecap="round" strokeDasharray="2 14" />
+                  <path d="M70 60 C 280 200, 360 40, 560 150 S 880 280, 1030 110" fill="none" stroke="#4f7d3f" strokeWidth="3.5" strokeLinecap="round" strokeDasharray="2 14" />
                 </svg>
                 <div className="trail-stops">
                   <div className="trail-stop reveal">
@@ -653,6 +668,7 @@ function App() {
       />
 
       <main className="app-main">
+        <CampDoodles />
 
         {/* Bandeau impersonation admin */}
         {localStorage.getItem('adminToken') && (
@@ -694,7 +710,7 @@ function App() {
               ✉️ <strong>Vérifiez votre email</strong> — un lien de confirmation a été envoyé à <strong>{userEmail}</strong>
             </span>
             {resendEmailMsg
-              ? <span style={{ color: '#16a34a', fontWeight: 600 }}>{resendEmailMsg}</span>
+              ? <span style={{ color: '#4f7d3f', fontWeight: 600 }}>{resendEmailMsg}</span>
               : <button
                   onClick={handleResendVerifEmail}
                   disabled={resendEmailLoading}
@@ -851,11 +867,20 @@ function App() {
               </div>
             ) : (
               <div className="annonces-grid">
+                {sejoursLoading && Array.from({ length: 4 }, (_, i) => (
+                  <div key={'sk' + i} className="skeleton-card" aria-hidden="true">
+                    <div className="skeleton-line sk-w40" />
+                    <div className="skeleton-line sk-title" />
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line sk-w60" />
+                    <div className="skeleton-btn" />
+                  </div>
+                ))}
                 {sejoursFiltres.map(s => {
                   const complet = isComplet(s)
                   const passe = s.date_fin ? new Date(s.date_fin) < now : (s.date_debut ? new Date(s.date_debut) < now : false)
                   return (
-                  <div key={s.id} className={`annonce-card ${isCompatible(s) ? 'annonce-card-compatible' : ''} ${complet ? 'annonce-card-complet' : ''} ${passe ? 'annonce-card-passe' : ''}`}>
+                  <div key={s.id} style={{ '--type-color': typeColor(s.type) }} className={`annonce-card ${isCompatible(s) ? 'annonce-card-compatible' : ''} ${complet ? 'annonce-card-complet' : ''} ${passe ? 'annonce-card-passe' : ''}`}>
                     {isCompatible(s) && !complet && (
                       <div className="annonce-match-badge">✨ Compatible avec vos disponibilités</div>
                     )}

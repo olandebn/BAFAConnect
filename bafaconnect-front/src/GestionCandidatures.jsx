@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from './api/axios';
 import AvisSection from './AvisSection';
 import ContratModal from './ContratModal';
+import { burstConfetti } from './confetti';
 
 function GestionCandidatures({ onContacter }) {
   const [candidats, setCandidats] = useState([]);
@@ -36,6 +37,9 @@ function GestionCandidatures({ onContacter }) {
     setError('');
     try {
       await api.patch(`/recrutement/candidatures/${id}`, { statut: nouveauStatut });
+      if (nouveauStatut === 'acceptée' || nouveauStatut === 'acceptee') {
+        burstConfetti(window.innerWidth / 2, window.innerHeight / 3);
+      }
       fetchCandidats();
     } catch (err) {
       setError("Erreur lors de la mise à jour du statut.");

@@ -8,13 +8,13 @@
   --muted: #6b7280;        /* Gris neutre */
   --border: #d1fae5;       /* Vert 100 — bordure légère */
 
-  --primary: #16a34a;      /* Vert forêt — nature & dynamisme */
-  --primary-dark: #15803d; /* Vert forêt foncé */
-  --primary-light: #f0fdf4;/* Vert 50 — fond très doux */
+  --primary: #4f7d3f;      /* Vert sauge/olive — naturel & posé */
+  --primary-dark: #3f6a30; /* Sauge foncé */
+  --primary-light: #eef4e8;/* Sauge très clair — fond doux */
 
-  --green: #16a34a;        /* Vert de marque (unifié avec --primary) */
-  --green-dark: #15803d;   /* Vert forêt foncé (unifié) */
-  --green-light: #dcfce7;  /* Vert 100 */
+  --green: #4f7d3f;        /* Vert de marque (sauge, unifié avec --primary) */
+  --green-dark: #3f6a30;   /* Sauge foncé (unifié) */
+  --green-light: #dceccf;  /* Sauge clair */
 
   --navy: #14532d;         /* Vert sapin — sidebar sombre */
 
@@ -124,7 +124,7 @@ a {
   color: #14532d;
 }
 .logo-connect {
-  color: #16a34a;
+  color: #4f7d3f;
 }
 html.dark .logo-bafa {
   color: #86efac;
@@ -135,7 +135,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px #f0fdf4 inset !important;
   -webkit-text-fill-color: #14532d !important;
-  border-color: #16a34a !important;
+  border-color: #4f7d3f !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -1861,7 +1861,7 @@ input:-webkit-autofill:focus {
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   box-shadow: 0 2px 8px rgba(22,163,74,0.3);
 }
-.msg-send-btn:hover:not(:disabled) { background: #15803d; transform: scale(1.05); box-shadow: 0 4px 12px rgba(22,163,74,0.4); }
+.msg-send-btn:hover:not(:disabled) { background: #3f6a30; transform: scale(1.05); box-shadow: 0 4px 12px rgba(22,163,74,0.4); }
 .msg-send-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
 
 .msg-file-preview {
@@ -3241,7 +3241,7 @@ html.dark .msg-suppr-non { background: #1e293b; color: #94a3b8; }
 .parametres-alert.alert-success {
   background: #f0fdf4;
   border: 1px solid #86efac;
-  color: #15803d;
+  color: #3f6a30;
 }
 .parametres-alert.alert-error {
   background: #fef2f2;
@@ -3457,7 +3457,7 @@ html.dark .msg-suppr-non { background: #1e293b; color: #94a3b8; }
 .completude-badge {
   font-size: 0.78rem;
   background: #dcfce7;
-  color: #15803d;
+  color: #3f6a30;
   border: 1px solid #86efac;
   border-radius: 999px;
   padding: 2px 10px;
@@ -4005,7 +4005,7 @@ html.dark .filtres-bar { background: #111827; border-color: #1e293b; }
 html.dark .badge-bafa { background: #052e16; color: #4ade80; border-color: rgba(22,163,74,0.4); }
 .badge-exp {
   background: #f0fdf4;
-  color: #15803d;
+  color: #3f6a30;
   border: 1px solid rgba(22,163,74,0.3);
 }
 html.dark .badge-exp { background: #052e16; color: #4ade80; border-color: rgba(22,163,74,0.4); }
@@ -4046,7 +4046,7 @@ html.dark .btn-relancer:hover:not(:disabled) { background: #2d1500; }
   border-radius: 8px;
   font-weight: 500;
 }
-.relance-toast.success { background: #f0fdf4; color: #15803d; }
+.relance-toast.success { background: #f0fdf4; color: #3f6a30; }
 .relance-toast.error { background: #fef2f2; color: #dc2626; }
 html.dark .relance-toast.success { background: #052e16; color: #4ade80; }
 html.dark .relance-toast.error { background: #1a0000; color: #f87171; }
@@ -4074,7 +4074,7 @@ html.dark .relance-toast.error { background: #1a0000; color: #f87171; }
 }
 .candidature-vue-badge {
   background: #f0fdf4;
-  color: #15803d;
+  color: #3f6a30;
   border: 1px solid rgba(22,163,74,0.2);
 }
 .candidature-non-vue-badge {
@@ -4137,7 +4137,7 @@ html.dark .candidature-non-vue-badge { background: #1c1500; color: #fde047; }
   text-align: center;
   line-height: 1.2;
 }
-.timeline-step--green .timeline-label { color: #15803d; }
+.timeline-step--green .timeline-label { color: #3f6a30; }
 .timeline-step--blue .timeline-label  { color: #1d4ed8; }
 .timeline-step--red .timeline-label   { color: #b91c1c; }
 .timeline-step--gray .timeline-label  { color: var(--muted); }
@@ -4181,7 +4181,7 @@ html.dark .timeline-connector--done             { background: #4ade80; }
   font-size: 0.78rem;
   font-weight: 600;
   background: #f0fdf4;
-  color: #15803d;
+  color: #3f6a30;
   border: 1.5px solid rgba(22,163,74,0.35);
   border-radius: 8px;
   cursor: pointer;
@@ -4263,8 +4263,8 @@ html.dark .btn-inviter:hover { background: #064e20; }
   height: 10px;
   border-radius: 50%;
 }
-.carte-dot-orange { background: #16a34a; }
-.carte-dot-green  { background: #16a34a; }
+.carte-dot-orange { background: #4f7d3f; }
+.carte-dot-green  { background: #4f7d3f; }
 
 /* ═══════════════════════════════════════════════════════════
    📄 CV & FLYER — DOCUMENTS
@@ -4538,7 +4538,7 @@ html.dark .notif-item-new {
    ✨ MATCHING AUTOMATIQUE
    ═══════════════════════════════════════════════════════════ */
 .annonce-card-compatible {
-  border-color: #16a34a !important;
+  border-color: #4f7d3f !important;
   box-shadow: 0 0 0 2px rgba(22,163,74,0.15), var(--shadow-sm);
 }
 .annonce-match-badge {
@@ -4546,7 +4546,7 @@ html.dark .notif-item-new {
   align-items: center;
   gap: 4px;
   background: #dcfce7;
-  color: #15803d;
+  color: #3f6a30;
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -4675,7 +4675,7 @@ html.dark .annonce-match-badge {
 .calendrier-dispo-label {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #15803d;
+  color: #3f6a30;
   white-space: nowrap;
   width: 100px;
   flex-shrink: 0;
@@ -4766,13 +4766,13 @@ html.dark .calendrier-dispo-barre {
 .dispo-section-icon-wrap {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, #22c55e15, #16a34a15);
+  background: linear-gradient(135deg, #22c55e15, #4f7d3f15);
   border: 1px solid #22c55e30;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #16a34a;
+  color: #4f7d3f;
   flex-shrink: 0;
 }
 html.dark .dispo-section-icon-wrap {
@@ -4803,7 +4803,7 @@ html.dark .dispo-section-icon-wrap {
   border-radius: 8px;
   border: 1.5px dashed #22c55e;
   background: transparent;
-  color: #16a34a;
+  color: #4f7d3f;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -4923,7 +4923,7 @@ html.dark .dispo-card-dot {
   padding: 2px 8px;
   border-radius: 20px;
   background: #dcfce7;
-  color: #15803d;
+  color: #3f6a30;
   font-size: 0.73rem;
   font-weight: 600;
   border: 1px solid #bbf7d0;
@@ -5030,7 +5030,7 @@ html.dark .dispo-card-delete:hover {
 .dispo-add-preview {
   margin: 10px 0 0;
   font-size: 0.8rem;
-  color: #16a34a;
+  color: #4f7d3f;
   font-weight: 500;
 }
 html.dark .dispo-add-preview { color: #4ade80; }
@@ -5187,7 +5187,7 @@ html.dark .annonce-card-complet { border-color: rgba(239,68,68,0.3) !important; 
 .filtre-toggle-label input[type="checkbox"] {
   width: 15px;
   height: 15px;
-  accent-color: var(--primary, #16a34a);
+  accent-color: var(--primary, #4f7d3f);
   cursor: pointer;
 }
 
@@ -5294,14 +5294,14 @@ html.dark .filtre-rapide-chip--reset:hover {
   transition: all 0.15s;
 }
 .competence-chip:hover {
-  border-color: var(--primary, #16a34a);
-  color: var(--primary, #16a34a);
+  border-color: var(--primary, #4f7d3f);
+  color: var(--primary, #4f7d3f);
   background: rgba(99, 102, 241, 0.06);
 }
 .competence-chip-active {
-  border-color: var(--primary, #16a34a) !important;
+  border-color: var(--primary, #4f7d3f) !important;
   background: rgba(99, 102, 241, 0.10) !important;
-  color: var(--primary, #16a34a) !important;
+  color: var(--primary, #4f7d3f) !important;
   font-weight: 700;
 }
 
@@ -5386,7 +5386,7 @@ html.dark .filtre-rapide-chip--reset:hover {
 
 .profil-avis-ok {
   font-size: 0.84rem;
-  color: #16a34a;
+  color: #4f7d3f;
   font-weight: 500;
 }
 .profil-avis-err {
@@ -5480,8 +5480,8 @@ html.dark .share-card-url {
   background: rgba(3,105,161,0.08);
 }
 .share-card-btn-ok {
-  border-color: #16a34a;
-  color: #16a34a;
+  border-color: #4f7d3f;
+  color: #4f7d3f;
   background: rgba(22,163,74,0.06);
 }
 html.dark .share-card-btn {
@@ -5506,7 +5506,7 @@ html.dark .share-card-btn {
   gap: 5px;
   padding: 3px 10px;
   background: #dcfce7;
-  color: #15803d;
+  color: #3f6a30;
   border: 1px solid #bbf7d0;
   border-radius: 20px;
   font-size: 0.76rem;
@@ -5547,7 +5547,7 @@ html.dark .pdir-badge-actif {
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  background: var(--primary, #16a34a);
+  background: var(--primary, #4f7d3f);
   color: #fff;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -5568,7 +5568,7 @@ html.dark .pdir-badge-actif {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .pdir-sejour-card:hover {
-  border-color: var(--primary, #16a34a);
+  border-color: var(--primary, #4f7d3f);
   box-shadow: 0 2px 8px rgba(22,163,74,0.1);
 }
 
@@ -5772,7 +5772,7 @@ html.dark .appro-autodeclare {
 
 .btn-accepter {
   background: #dcfce7;
-  color: #15803d;
+  color: #3f6a30;
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   padding: 6px 12px;
@@ -6248,12 +6248,12 @@ html.dark .onboarding-step-chip {
 
 .admin-role-badge.animateur {
   background: #f0fdf4;
-  color: #16a34a;
+  color: #4f7d3f;
 }
 
 .admin-role-badge.directeur {
   background: #f0fdf4;
-  color: #16a34a;
+  color: #4f7d3f;
 }
 
 .btn-danger {
@@ -6537,7 +6537,7 @@ html.dark .onboarding-step-chip {
   display: inline-flex;
   align-items: center;
   background: #dcfce7;
-  color: #16a34a;
+  color: #4f7d3f;
   border-radius: 20px;
   padding: 3px 12px;
   font-size: 0.8rem;
@@ -6554,7 +6554,7 @@ html.dark .onboarding-step-chip {
 
 .diplome-verifie-tag {
   background: #dcfce7;
-  color: #16a34a;
+  color: #4f7d3f;
   border-radius: 20px;
   padding: 3px 10px;
   font-size: 0.78rem;
@@ -6690,7 +6690,7 @@ html.dark .onboarding-step-chip {
   font-size: 0.9rem;
   color: #475569;
   background: #f8fafc;
-  border-left: 3px solid #16a34a;
+  border-left: 3px solid #4f7d3f;
   padding: 12px 16px;
   border-radius: 0 8px 8px 0;
   margin-bottom: 28px;
@@ -6923,7 +6923,7 @@ html.dark .onboarding-step-chip {
 
 /* Hero */
 .guide-bafa-hero {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 60%, #3730a3 100%);
+  background: linear-gradient(135deg, #4f7d3f 0%, #3f6a30 60%, #3730a3 100%);
   border-radius: 20px;
   padding: 40px 36px 32px;
   color: white;
@@ -7407,7 +7407,7 @@ html.dark .card {
 }
 .badge-animateur { background: var(--primary-light); color: var(--primary-dark); }
 .badge-directeur { background: #fef3c7; color: #92400e; }
-.badge-success   { background: #dcfce7; color: #15803d; }
+.badge-success   { background: #dcfce7; color: #3f6a30; }
 .badge-warning   { background: #fef9c3; color: #92400e; }
 .badge-danger    { background: #fee2e2; color: #991b1b; }
 .badge-neutral   { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
@@ -7783,7 +7783,7 @@ html.dark .badge-neutral   { background: #1e293b; color: #94a3b8; border-color: 
 .footer-col { display: flex; flex-direction: column; gap: 10px; }
 .footer-col-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #f1f5f9; margin-bottom: 4px; }
 .footer-col a, .footer-link-btn { color: #94a3b8; text-decoration: none; font-size: 0.875rem; background: none; border: none; cursor: pointer; padding: 0; text-align: left; transition: color .2s; }
-.footer-col a:hover, .footer-link-btn:hover { color: #16a34a; }
+.footer-col a:hover, .footer-link-btn:hover { color: #4f7d3f; }
 .footer-bottom { border-top: 1px solid #134e26; padding: 16px 24px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
 .nav-item.footer-link-btn { font-size: inherit; }
 
@@ -7904,9 +7904,9 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
   --text: #1c1917 !important;
   --muted: #6b7280 !important;
   --border: #d1fae5 !important;
-  --primary: #16a34a !important;
-  --primary-dark: #15803d !important;
-  --primary-light: #f0fdf4 !important;
+  --primary: #4f7d3f !important;
+  --primary-dark: #3f6a30 !important;
+  --primary-light: #eef4e8 !important;
   --navy: #14532d !important;
 }
 
@@ -7958,7 +7958,7 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 .landing-light .hero-badge,
 .landing-light .section-kicker {
   background: rgba(22, 163, 74, 0.12) !important;
-  color: #15803d !important;
+  color: #3f6a30 !important;
 }
 
 /* Cards & Login */
@@ -8031,13 +8031,13 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 }
 .landing-light .footer-col a:hover,
 .landing-light .footer-link-btn:hover {
-  color: #16a34a !important;
+  color: #4f7d3f !important;
 }
 .landing-light .footer-social-btn {
   background: rgba(255,255,255,0.18) !important;
 }
 .landing-light .footer-social-btn:hover {
-  background: #16a34a !important;
+  background: #4f7d3f !important;
 }
 .landing-light .footer-bottom {
   border-top-color: #3d2e1e !important;
@@ -8061,8 +8061,8 @@ html.dark .legal-notice { background: #2d1f07; color: #fbbf24; }
 .landing-light .contact-subtitle { color: #57534e !important; }
 .landing-light .contact-info-label { color: #6b7280 !important; }
 .landing-light .contact-info-value { color: #1c1917 !important; }
-.landing-light .contact-info-value a { color: #16a34a !important; }
-.landing-light .contact-faq-title { color: #16a34a !important; }
+.landing-light .contact-info-value a { color: #4f7d3f !important; }
+.landing-light .contact-faq-title { color: #4f7d3f !important; }
 .landing-light .contact-faq-q { color: #1c1917 !important; }
 .landing-light .contact-faq-r { color: #57534e !important; }
 .landing-light .contact-faq-item { border-bottom-color: #e0d9cc !important; }
@@ -8223,7 +8223,7 @@ h1, h2, h3,
   left: -3%; right: -3%; bottom: -0.14em;
   height: 0.32em;
   background: no-repeat center/100% 100%
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'%3E%3Cpath d='M2 8 Q 30 1 55 7 T 110 6 T 165 7 T 198 5' stroke='%2316a34a' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'%3E%3Cpath d='M2 8 Q 30 1 55 7 T 110 6 T 165 7 T 198 5' stroke='%234f7d3f' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   pointer-events: none;
 }
 
@@ -8252,7 +8252,7 @@ h1, h2, h3,
 .landing-light .hero-badge {
   background: transparent !important;
   border: 2px dashed rgba(22,163,74,0.55) !important;
-  color: #15803d !important;
+  color: #3f6a30 !important;
 }
 .landing-light .section-kicker {
   background: transparent !important;
@@ -9185,3 +9185,396 @@ html.dark .page-title,
   background: #fde68a;
 }
 .sidebar-logo-text { font-family: var(--font-display) !important; letter-spacing: -0.01em; }
+
+/* ════════════════════════════════════════════════════════════════════
+   ESPACE CONNECTÉ — toutes les pages au style "carnet"
+   (annonces, candidatures, recherche, profil, messages, paramètres)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Cartes & panneaux : bordure carnet + coins arrondis + ombre douce */
+.annonce-item,
+.candidature-item,
+.animateur-card,
+.profile-card,
+.profile-info-box,
+.profil-public-card,
+.profil-avis-form-card,
+.completude-block,
+.candidatures-section {
+  border: 1.5px solid var(--paper-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 24px -18px rgba(20,46,31,0.5) !important;
+}
+
+/* Titres de cartes / sections en Fraunces */
+.annonce-item-titre,
+.animateur-card-nom,
+.parametres-card-header,
+.msg-sidebar-title,
+.profil-public-section-title,
+.completude-header {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.01em;
+}
+
+/* Puces / badges bien arrondis */
+.animateur-card-statut,
+.annonce-item-type,
+.profile-empty-chip {
+  border-radius: 999px !important;
+}
+
+/* États vides plus chaleureux (bordure pointillée carnet) */
+.empty-state,
+.candidatures-empty {
+  border: 1.8px dashed var(--paper-line) !important;
+  border-radius: 18px !important;
+  background: var(--surface) !important;
+}
+
+/* Barre de filtres en carnet */
+.filtres-bar {
+  border: 1.5px solid var(--paper-line) !important;
+  border-radius: 16px !important;
+}
+
+/* Messagerie : séparateur pointillé + conversation active arrondie */
+.msg-sidebar { border-right: 1.5px dashed var(--paper-line) !important; }
+.msg-conv-item.active { border-radius: 12px; }
+
+/* Boutons de pagination façon petit tampon */
+.pagination-btn {
+  border: 1.5px solid var(--navy) !important;
+  border-radius: 11px 9px 12px 10px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ESPACE CONNECTÉ — signaux fait-main plus VISIBLES
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Coins inégaux + ombre plus marquée + ressort au survol sur les cartes */
+.annonce-item,
+.candidature-item,
+.animateur-card,
+.profile-card,
+.profile-info-box,
+.profil-public-card,
+.parametres-card,
+.completude-block,
+.dashboard-section,
+.share-card,
+.stat-card {
+  border-radius: 18px 15px 20px 16px !important;
+  box-shadow: 0 12px 26px -16px rgba(20,46,31,0.55) !important;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease !important;
+}
+.annonce-item:hover,
+.candidature-item:hover,
+.profile-card:hover,
+.parametres-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 16px 32px -16px rgba(20,46,31,0.62) !important;
+}
+
+/* Cartes en grille (recherche/favoris) : légère inclinaison "fiche" */
+.animateurs-grid .animateur-card:nth-child(odd)  { transform: rotate(-.7deg); }
+.animateurs-grid .animateur-card:nth-child(even) { transform: rotate(.6deg); }
+.animateurs-grid .animateur-card:hover { transform: rotate(0) translateY(-4px) !important; }
+
+/* Soulignage gribouillé vert sous le titre de chaque page (comme la landing) */
+.page-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 10px;
+}
+.page-title::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 9px;
+  background: no-repeat left center/auto 100%
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 Q 30 1 55 7 T 110 6 T 165 7 T 198 5' stroke='%234f7d3f' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  opacity: .9;
+}
+
+/* États vides : encadré pointillé généreux + doodle tente */
+.empty-state,
+.candidatures-empty {
+  border: 2px dashed var(--paper-line) !important;
+  border-radius: 20px !important;
+  padding: 40px 24px !important;
+  text-align: center;
+}
+.empty-state::before,
+.candidatures-empty::before {
+  content: "";
+  display: block;
+  width: 68px; height: 68px;
+  margin: 0 auto 14px;
+  background: no-repeat center/contain url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2080%2080%22%3E%3Cpath%20d%3D%22M8%2064%2040%2012%2072%2064Z%22%20fill%3D%22%23dcfce7%22%20stroke%3D%22%2314532d%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2012V64%22%20stroke%3D%22%2314532d%22%20stroke-width%3D%222.2%22%2F%3E%3Cpath%20d%3D%22M40%2064%2030%2040%2040%2022%2050%2040Z%22%20fill%3D%22%234f7d3f%22%20stroke%3D%22%2314532d%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M2%2064H78%22%20stroke%3D%22%2314532d%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2012V5%22%20stroke%3D%22%2314532d%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%205%2046%209%22%20stroke%3D%22%23e8826b%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+}
+
+/* Mascotte soleil de la sidebar */
+.sidebar-logo-img-wrapper svg { display: block; }
+
+/* L'icône de stat frétille quand on survole sa carte */
+.stat-card:hover .stat-icon { animation: cd-wiggle .5s ease; }
+
+/* Liens de la sidebar : léger glissement au survol */
+.sidebar-nav-item { transition: background .15s, color .15s, transform .15s ease !important; }
+.sidebar-nav-item:hover { transform: translateX(3px); }
+
+/* ════════════════════════════════════════════════════════════════════
+   CATÉGORIES — version plus ludique (filtres, timeline, stats, sidebar)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 1 ▸ Filtres rapides / types de séjour → petits stickers "tampon" */
+.filtre-rapide-chip {
+  border: 2px solid var(--navy) !important;
+  border-radius: 13px 11px 14px 12px !important;
+  background: var(--surface) !important;
+  color: var(--navy) !important;
+  font-weight: 600 !important;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease !important;
+}
+.filtre-rapide-chip:nth-child(odd)  { transform: rotate(-1.5deg); }
+.filtre-rapide-chip:nth-child(even) { transform: rotate(1.2deg); }
+.filtre-rapide-chip:hover {
+  transform: rotate(0) translateY(-2px) !important;
+  box-shadow: 2px 2px 0 var(--navy) !important;
+}
+.filtre-rapide-chip.active,
+.filtre-rapide-chip[aria-pressed="true"] {
+  background: var(--green) !important;
+  color: #fffdf8 !important;
+  box-shadow: 2px 2px 0 var(--navy) !important;
+}
+.filtre-rapide-chip--reset { border-style: dashed !important; transform: none !important; }
+
+/* 2 ▸ Timeline de candidature → parcours illustré vert (fini le bleu) */
+.timeline-icon {
+  border-radius: 52% 48% 50% 50% / 50% 52% 48% 50% !important;
+  width: 40px !important; height: 40px !important;
+  font-size: 1.1rem !important;
+}
+.timeline-step--blue .timeline-icon  { background: #dcfce7 !important; border-color: #4f7d3f !important; }
+.timeline-step--blue .timeline-label { color: #3f6a30 !important; }
+.timeline-connector {
+  height: 0 !important;
+  background: none !important;
+  border-top: 3px dashed var(--paper-line) !important;
+}
+.timeline-connector--done { border-top-color: var(--green) !important; }
+.candidature-timeline .timeline-step--green .timeline-icon {
+  animation: cd-pulse 2.2s ease-in-out infinite;
+}
+@keyframes cd-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(22,163,74,.35); }
+  70%     { box-shadow: 0 0 0 9px rgba(22,163,74,0); }
+}
+
+/* 3 ▸ Cartes de stats : pastille d'icône colorée selon la catégorie */
+.stats-grid .stat-card:nth-child(1) .stat-icon { background: rgba(22,163,74,0.14) !important; }
+.stats-grid .stat-card:nth-child(2) .stat-icon { background: rgba(34,197,94,0.16) !important; }
+.stats-grid .stat-card:nth-child(3) .stat-icon { background: rgba(245,158,11,0.16) !important; }
+.stats-grid .stat-card:nth-child(4) .stat-icon { background: rgba(21,128,61,0.14) !important; }
+.stats-grid .stat-card:nth-child(5) .stat-icon { background: rgba(251,191,36,0.18) !important; }
+.stats-grid .stat-card:nth-child(6) .stat-icon { background: rgba(239,68,68,0.14) !important; }
+
+/* 4 ▸ Sidebar : l'icône de la rubrique active fait un petit coucou */
+.sidebar-nav-item.active .sidebar-nav-icon { display: inline-block; animation: cd-wiggle .5s ease; }
+
+/* ════════════════════════════════════════════════════════════════════
+   CORRECTIF PAGE "MON PROFIL" — recentré + boîtes allégées
+   (mes styles avaient fait de toute la page une grande carte inclinée
+    et de chaque champ une boîte lourde)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* La page profil = conteneur transparent, centré, largeur lisible */
+.profile-card {
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+.profile-card:hover { transform: none !important; box-shadow: none !important; }
+
+/* Champs d'info : boîtes propres et légères (plus de carrés lourds/inclinés) */
+.profile-info-box {
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.profile-info-box:hover { transform: none !important; box-shadow: none !important; }
+
+/* L'en-tête du profil (avatar + infos) : bien aligné */
+.profile-header { align-items: center; }
+
+/* ════════════════════════════════════════════════════════════════════
+   PAGE ANNONCES — nettoyage (filtres alignés, badges lisibles, cartes)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Filtres : stickers BIEN ALIGNÉS (fini les rotations de travers) */
+.filtre-rapide-chip,
+.filtre-rapide-chip:nth-child(odd),
+.filtre-rapide-chip:nth-child(even) { transform: none !important; }
+.filtre-rapide-chip:hover { transform: translateY(-2px) !important; }
+
+/* Badge de type d'annonce → pastille verte lisible */
+.annonce-card-type,
+.annonce-item-type {
+  background: rgba(22,163,74,0.14) !important;
+  color: var(--green-dark) !important;
+  border: 1px solid rgba(22,163,74,0.30) !important;
+  border-radius: 999px !important;
+  padding: 3px 11px !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+}
+.annonce-card-lieu { color: var(--muted) !important; font-weight: 600 !important; }
+.annonce-card-title { font-family: var(--font-display) !important; }
+
+/* Cartes d'annonce : coins réguliers, ombre douce, survol léger */
+.annonce-card {
+  border: 1.5px solid var(--paper-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 22px -16px rgba(20,46,31,0.45) !important;
+  transition: transform .2s ease, box-shadow .2s ease !important;
+}
+.annonce-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 14px 28px -16px rgba(20,46,31,0.55) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ESPACE CONNECTÉ — version PROPRE & ÉPURÉE
+   (on garde le style "tampon/fiche" ludique uniquement sur la landing)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Boutons : plats et nets */
+.app-main .btn-primary,
+.app-main .login-submit {
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 14px -4px rgba(22,163,74,0.55) !important;
+}
+.app-main .btn-secondary {
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+.app-main .btn-primary:hover,
+.app-main .login-submit:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 20px -6px rgba(22,163,74,0.6) !important;
+}
+.app-main .btn-secondary:hover { transform: translateY(-1px) !important; background: var(--bg) !important; }
+
+/* Cartes : coins réguliers, bordure fine, ombre douce, aucune inclinaison */
+.app-main .annonce-card,
+.app-main .annonce-item,
+.app-main .stat-card,
+.app-main .candidature-item,
+.app-main .animateur-card,
+.app-main .profile-info-box,
+.app-main .dashboard-section,
+.app-main .share-card,
+.app-main .parametres-card,
+.app-main .profil-public-card,
+.app-main .completude-block {
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 18px -14px rgba(20,46,31,0.40) !important;
+  transform: none !important;
+}
+.app-main .annonce-card:hover,
+.app-main .stat-card:hover,
+.app-main .candidature-item:hover,
+.app-main .animateur-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 24px -14px rgba(20,46,31,0.5) !important;
+}
+
+/* Icône de stat : pastille ronde nette */
+.app-main .stat-icon { border-radius: 50% !important; }
+
+/* Filtres : puces légères (fini les stickers épais) */
+.app-main .filtre-rapide-chip {
+  border: 1.5px solid var(--border) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-weight: 500 !important;
+  transform: none !important;
+}
+.app-main .filtre-rapide-chip:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: none !important;
+  background: var(--bg) !important;
+}
+.app-main .filtre-rapide-chip.active {
+  background: var(--green) !important;
+  color: #fff !important;
+  border-color: var(--green) !important;
+}
+
+/* Barre de filtres : fine et discrète */
+.app-main .filtres-bar {
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ANNONCES — accent par type, squelettes de chargement, fondu au scroll
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Barre d'accent colorée à gauche selon le type de séjour */
+.app-main .annonce-card {
+  border-left: 4px solid var(--type-color, var(--border)) !important;
+}
+
+/* Squelettes de chargement (shimmer) */
+.skeleton-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--surface);
+}
+.skeleton-line, .skeleton-btn {
+  height: 12px; border-radius: 7px;
+  background: linear-gradient(90deg, rgba(20,46,31,.06) 25%, rgba(20,46,31,.12) 37%, rgba(20,46,31,.06) 63%);
+  background-size: 400% 100%;
+  animation: cd-shimmer 1.4s ease infinite;
+}
+html.dark .skeleton-line,
+html.dark .skeleton-btn {
+  background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.10) 37%, rgba(255,255,255,.05) 63%);
+  background-size: 400% 100%;
+}
+.skeleton-line.sk-title { height: 20px; width: 70%; }
+.skeleton-line.sk-w40 { width: 40%; }
+.skeleton-line.sk-w60 { width: 60%; }
+.skeleton-btn { height: 44px; border-radius: 12px; margin-top: 8px; }
+@keyframes cd-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+/* Apparition en fondu des cartes au scroll (amélioration progressive) */
+@keyframes cd-appear { from { opacity: 0; } to { opacity: 1; } }
+@supports (animation-timeline: view()) {
+  .app-main .annonce-card,
+  .app-main .stat-card,
+  .app-main .candidature-item,
+  .app-main .animateur-card {
+    animation: cd-appear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 16%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line, .skeleton-btn { animation: none !important; }
+}

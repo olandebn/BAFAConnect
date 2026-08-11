@@ -22,13 +22,13 @@ const SPRITE = `
   <g id="cd-tent">
     <path d="M8 64 L40 12 L72 64 Z" fill="#dcfce7" stroke="#14532d" stroke-width="2.6" stroke-linejoin="round"/>
     <path d="M40 12 L40 64" stroke="#14532d" stroke-width="2.2"/>
-    <path d="M40 64 L30 40 L40 22 L50 40 Z" fill="#16a34a" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M40 64 L30 40 L40 22 L50 40 Z" fill="#4f7d3f" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round"/>
     <path d="M2 64 L78 64" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
     <path d="M40 12 L40 4" stroke="#14532d" stroke-width="2.2" stroke-linecap="round"/>
     <path d="M40 4 L46 8" stroke="#e8826b" stroke-width="2.2" stroke-linecap="round"/>
   </g>
   <g id="cd-tree">
-    <path d="M22 8 L8 30 L16 30 L4 50 L40 50 L28 30 L36 30 Z" fill="#16a34a" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M22 8 L8 30 L16 30 L4 50 L40 50 L28 30 L36 30 Z" fill="#4f7d3f" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round"/>
     <rect x="18" y="50" width="8" height="12" fill="#a87b4f" stroke="#14532d" stroke-width="2"/>
   </g>
   <g id="cd-star">
@@ -40,7 +40,7 @@ const SPRITE = `
     <circle cx="34" cy="34" r="3" fill="#14532d"/>
   </g>
   <g id="cd-backpack">
-    <rect x="10" y="20" width="44" height="48" rx="12" fill="#16a34a" stroke="#14532d" stroke-width="2.6"/>
+    <rect x="10" y="20" width="44" height="48" rx="12" fill="#4f7d3f" stroke="#14532d" stroke-width="2.6"/>
     <path d="M22 20 Q22 8 32 8 Q42 8 42 20" fill="none" stroke="#14532d" stroke-width="2.6"/>
     <rect x="20" y="36" width="24" height="18" rx="6" fill="#dcfce7" stroke="#14532d" stroke-width="2.2"/>
     <line x1="32" y1="20" x2="32" y2="36" stroke="#14532d" stroke-width="2"/>
