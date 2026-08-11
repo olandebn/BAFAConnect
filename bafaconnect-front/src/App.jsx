@@ -37,8 +37,8 @@ function App() {
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
-    // Dark mode par défaut — sauf si l'utilisateur a explicitement choisi le mode clair
-    const isDark = saved !== 'light'
+    // Mode clair par défaut — sombre seulement si l'utilisateur l'a explicitement choisi
+    const isDark = saved === 'dark'
     if (isDark) document.documentElement.classList.add('dark')
     return isDark
   })

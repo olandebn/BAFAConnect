@@ -9578,3 +9578,16 @@ html.dark .skeleton-btn {
 @media (prefers-reduced-motion: reduce) {
   .skeleton-line, .skeleton-btn { animation: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   GARDE-FOU — la landing garde son thème clair (ou son propre mode nuit)
+   même si l'app est en mode sombre (html.dark). Empêche le thème sombre
+   de l'espace connecté de "déborder" sur la page d'accueil.
+   ════════════════════════════════════════════════════════════════════ */
+html.dark .landing-light .hero-section { background: transparent !important; }
+html.dark .landing-light .hero-section::before { display: none !important; }
+html.dark .landing-light:not(.landing-night) .hero-title,
+html.dark .landing-light:not(.landing-night) .hero-title-compact,
+html.dark .landing-light:not(.landing-night) .hero-subtitle,
+html.dark .landing-light:not(.landing-night) .hero-note { color: #1c1917 !important; }
+html.dark .landing-light:not(.landing-night) .footer { background: #14532d !important; }

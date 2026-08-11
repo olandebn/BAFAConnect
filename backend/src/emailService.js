@@ -1,18 +1,52 @@
-// Service d'envoi d'emails via Resend (https://resend.com)
-// Configurez dans .env : RESEND_API_KEY=re_xxxx  et  EMAIL_FROM=noreply@votredomaine.com
+// Service d'envoi d'emails.
+// Ordre de priorité :
+//   1) SMTP (Gmail recommandé) si SMTP_HOST/SMTP_USER/SMTP_PASS sont définis
+//   2) Resend (API) si RESEND_API_KEY est défini
+//   3) Sinon : rien n'est envoyé (les liens s'affichent quand même dans le terminal)
+import nodemailer from 'nodemailer';
 
-// ── Envoi principal via l'API Resend ──────────────────────────────────────
+// Transport SMTP réutilisé (créé une seule fois)
+let _smtpTransport = null;
+function getSmtpTransport() {
+  if (_smtpTransport !== null) return _smtpTransport;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+    const port = Number(SMTP_PORT) || 587;
+    _smtpTransport = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port,
+      secure: port === 465, // true pour 465, false pour 587 (STARTTLS)
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+  } else {
+    _smtpTransport = false; // pas de SMTP configuré
+  }
+  return _smtpTransport;
+}
+
+// ── Envoi principal ────────────────────────────────────────────────────────
 export async function sendMail({ to, subject, html }) {
-  const apiKey = process.env.RESEND_API_KEY;
+  // 1) SMTP (Gmail) prioritaire
+  const transport = getSmtpTransport();
+  if (transport) {
+    const from = process.env.EMAIL_FROM || `BafaConnect <${process.env.SMTP_USER}>`;
+    try {
+      const info = await transport.sendMail({ from, to, subject, html });
+      console.log(`✉️  [SMTP] Email envoyé à ${to} (id: ${info.messageId})`);
+    } catch (err) {
+      console.error(`❌ Erreur SMTP à ${to} :`, err.message);
+    }
+    return;
+  }
 
-  // Mode dev : pas de clé → log dans le terminal
+  // 2) Resend (repli)
+  const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || apiKey === 'VOTRE_CLE_RESEND') {
-    console.log(`\n📧 [DEV - Resend non configuré]\n   À      : ${to}\n   Sujet  : ${subject}\n   (Ajoutez RESEND_API_KEY dans .env pour envoyer de vrais emails)\n`);
+    console.log(`\n📧 [DEV - aucun email configuré]\n   À      : ${to}\n   Sujet  : ${subject}\n   (Ajoutez SMTP_* (Gmail) ou RESEND_API_KEY dans .env pour envoyer de vrais emails)\n`);
     return;
   }
 
   const from = process.env.EMAIL_FROM || 'BafaConnect <noreply@resend.dev>';
-
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
