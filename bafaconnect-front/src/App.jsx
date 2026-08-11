@@ -259,7 +259,7 @@ function App() {
     if (s.includes('vacance')) return '#f59e0b'
     if (s.includes('loisir')) return '#0ea5a4'
     if (s.includes('sport')) return '#e8826b'
-    if (s.includes('ado') || s.includes('camp')) return '#8b5cf6'
+    if (s.includes('ado') || s.includes('camp')) return '#6d8a4f'
     return '#94a3b8'
   }
 
@@ -673,7 +673,7 @@ function App() {
         {/* Bandeau impersonation admin */}
         {localStorage.getItem('adminToken') && (
           <div style={{
-            background: '#7c3aed', color: '#fff', padding: '10px 20px',
+            background: '#b45309', color: '#fff', padding: '10px 20px',
             display: 'flex', alignItems: 'center', gap: 12,
             fontSize: '0.9rem', fontWeight: 500, borderRadius: 0,
             marginBottom: 0, position: 'sticky', top: 0, zIndex: 100,

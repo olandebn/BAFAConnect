@@ -429,7 +429,7 @@ function AdminPanel() {
                     onClick={() => setProfilModal(null)}
                   >Fermer</button>
                   <button
-                    style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600 }}
+                    style={{ background: '#4f7d3f', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600 }}
                     onClick={() => {
                       setProfilModal(null);
                       setConfirmBox({
@@ -686,7 +686,7 @@ function AdminPanel() {
                         >👁 Voir profil</button>
                         <button
                           className="admin-btn-role"
-                          style={{ background: '#7c3aed', color: '#fff', borderColor: '#7c3aed' }}
+                          style={{ background: '#4f7d3f', color: '#fff', borderColor: '#4f7d3f' }}
                           disabled={impersonating === u.id}
                           onClick={() => setConfirmBox({
                             label: `🔐 Se connecter en tant que "${u.nom || u.email}" (${u.email}) ?`,

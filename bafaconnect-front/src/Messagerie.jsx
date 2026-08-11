@@ -20,7 +20,7 @@ function getFileIcon(nom) {
 function Avatar({ nom, size = 40 }) {
   const initiale = nom ? nom.charAt(0).toUpperCase() : '?';
   const palettes = [
-    ['#dbeafe','#1d4ed8'], ['#dcfce7','#15803d'], ['#fef3c7','#b45309'],
+    ['#dceccf','#3f6a30'], ['#dcfce7','#15803d'], ['#fef3c7','#b45309'],
     ['#fce7f3','#9d174d'], ['#ede9fe','#6d28d9'], ['#cffafe','#0e7490'],
     ['#ffedd5','#c2410c'], ['#f0fdf4','#166534'],
   ];

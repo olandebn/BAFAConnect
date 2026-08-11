@@ -146,7 +146,7 @@ function DashboardDirecteur({ onNavigate }) {
           icon="💬"
           value={stats.nb_animateurs_contactes ?? '—'}
           label="Animateur contacté"
-          color="#6366f1"
+          color="#4f7d3f"
         />
         <StatCard
           icon="❤️"

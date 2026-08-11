@@ -145,7 +145,7 @@ function CalendrierSejours({ onPostuler, onContacter }) {
 
   const getColor = (statut) => {
     switch (statut) {
-      case 'directeur': return { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' }
+      case 'directeur': return { bg: '#dceccf', border: '#4f7d3f', text: '#1e40af' }
       case 'acceptée':
       case 'acceptee': return { bg: '#dcfce7', border: '#22c55e', text: '#15803d' }
       case 'refusée':
@@ -471,7 +471,7 @@ function CalendrierSejours({ onPostuler, onContacter }) {
       {/* ── Légende ── */}
       <div className="calendrier-legende">
         {role === 'directeur' ? (
-          <span className="legende-item"><span className="legende-dot" style={{ background: '#3b82f6' }} />Mes séjours</span>
+          <span className="legende-item"><span className="legende-dot" style={{ background: '#4f7d3f' }} />Mes séjours</span>
         ) : (
           <>
             <span className="legende-item"><span className="legende-dot" style={{ background: '#22c55e', opacity: 0.5 }} />Mes dispos</span>

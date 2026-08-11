@@ -7,7 +7,7 @@ const ETAPES = [
     titre: 'Session de formation générale',
     duree: '8 jours minimum',
     description: 'C\'est le point de départ. Tu apprends les bases de l\'animation, la pédagogie, la sécurité et la vie collective. Se déroule dans un centre de formation agréé.',
-    couleur: '#6366f1',
+    couleur: '#4f7d3f',
   },
   {
     num: 2,
